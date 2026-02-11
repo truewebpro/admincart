@@ -1,0 +1,45 @@
+// Fonts
+//@import url('https://fonts.bunny.net/css?family=Roboto');
+//@import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css');
+
+ //Variables
+@import 'variables';
+
+// Bootstrap
+@import "bootstrap/scss/bootstrap";
+h3,h4 {
+    font-size: 1rem;
+}
+.v-data-table__td.v-data-table-column--align-start.v-data-table__th {
+    background: #f1f1f1;
+    color: #000;
+    font-weight: 600;
+    text-transform: capitalize;
+    height: 32px;
+}
+html{font-size: 0.875rem !important;}
+.v-list-item--nav .v-list-item-title {
+    font-size: 0.9rem !important;
+}
+.v-list-group.v-list-group--prepend.v-list-group--open > div:first-child {
+    color: rgb(var(--v-theme-primary));
+}
+.v-list-item .v-list-item__prepend .v-list-item__spacer, .v-list-item .v-list-item__append .v-list-item__spacer {
+    width: 12px !important;
+}
+
+.ql-toolbar.ql-snow {
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-family: 'Helvetica','Arial',sans-serif;
+    padding: 8px;
+    border-radius: 6px 6px 0 0;
+    background: #fafafa;
+}
+.ql-container.ql-snow {
+    border-radius: 0 0 6px 6px;
+}
+.ql-editor {
+    min-height: 175px;
+    max-height: 350px;
+}

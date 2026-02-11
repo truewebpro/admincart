@@ -1,0 +1,187 @@
+<template>
+    <v-container>
+        <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
+            <v-col cols="12" md="6">
+                <h2 class="text-h6">
+                    <v-btn link to="/settings/brands" icon variant="tonal" density="compact">
+                        <v-icon>mdi-arrow-left</v-icon>
+                    </v-btn>
+                    {{brand.brand_name}}
+                </h2>
+            </v-col>
+            <v-col cols="12" md="6" class="text-end">
+                <v-btn :href="domain+'brands/'+brand.brand_slug" target="_blank" variant="tonal" class="text-none me-2"
+                       density="compact" title="Preview" color="grey-darken-1">Preview</v-btn>
+                <v-btn variant="outlined" @click="disCard" class="text-none me-2" density="compact" color="grey-darken-4">Discard</v-btn>
+<!--                <v-menu>-->
+<!--                    <template v-slot:activator="{props}">-->
+<!--                        <v-btn v-bind="props" variant="outlined" class="text-none me-2" append-icon="mdi-chevron-down"-->
+<!--                               density="compact">More Actions</v-btn>-->
+<!--                    </template>-->
+<!--                    <v-list nav density="compact">-->
+<!--                        <v-list-item base-color="dark" v-if="pro.archived" @click="restoreProduct">-->
+<!--                            <v-list-item-title><v-icon class="me-2">mdi-archive-cancel-outline</v-icon>Restore Product</v-list-item-title>-->
+<!--                        </v-list-item>-->
+<!--                        <v-list-item base-color="dark" v-else @click="archiveProduct">-->
+<!--                            <v-list-item-title><v-icon class="me-2">mdi-archive-outline</v-icon>Archive Product</v-list-item-title>-->
+<!--                        </v-list-item>-->
+<!--                        <v-list-item base-color="error" @click="perdeleteProduct">-->
+<!--                            <v-list-item-title><v-icon class="me-2">mdi-trash-can-outline</v-icon>Delete Product</v-list-item-title>-->
+<!--                        </v-list-item>-->
+<!--                    </v-list>-->
+<!--                </v-menu>-->
+                <v-btn @click="editBrand" :loading="upLoading" :disabled="upLoading" color="grey-darken-4" density="compact" class="text-none" >Save</v-btn>
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col cols="12" md="9">
+                <v-card class="border-sm">
+                    <v-card-text>
+                        <v-text-field v-model="brand.brand_name" label="Brand Name" :rules="btitleRule"
+                                      density="compact" class="mb-3" ref="brandNameField"
+                                      variant="outlined" placeholder="Brand name"
+                                      persistent-placeholder></v-text-field>
+                        <v-textarea v-model="brand.brand_desc" label="Brand Description" density="compact" variant="outlined" placeholder="Brand Description" persistent-placeholder></v-textarea>
+                    </v-card-text>
+                </v-card>
+                <v-card class="border-sm mt-4">
+                    <v-card-title>Search engine listing</v-card-title>
+                    <v-card-text>
+                        <div class="font-weight-medium text-h6">{{this.$store.state.shop.shop_name}}</div>
+                        <div class="text-body-2 text-grey-darken-4 mb-2">{{ domain }}>{{brand.brand_slug}}</div>
+                    </v-card-text>
+                    <v-divider></v-divider>
+                    <v-card-text>
+                        <v-text-field v-model="brand.meta_title" variant="outlined" density="compact" label="Brand Name"
+                                      counter="70" :placeholder="brand.brand_name" persistent-counter
+                                      persistent-placeholder class="mb-3"></v-text-field>
+                        <v-textarea v-model="brand.meta_desc" variant="outlined" density="compact" label="Meta Description"
+                                    counter="160" :placeholder="brand.brand_desc"
+                                    persistent-counter persistent-placeholder class="mb-3"></v-textarea>
+                        <v-text-field v-model="brand.brand_slug" variant="outlined" density="compact" persistent-placeholder
+                                      persistent-hint :prefix="domain+'brands/'"></v-text-field>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+            <v-col cols="12" md="3">
+                <v-card class="border-sm">
+                    <v-card-title>Brand Status</v-card-title>
+                    <v-card-text>
+                        <v-select v-model="brand.brand_status" variant="outlined" density="compact" label="Status"
+                                  :items="['Active','Inactive']" persistent-placeholder></v-select>
+                    </v-card-text>
+                </v-card>
+                <v-card class="border-sm mt-4">
+                    <v-card-title>Brand Image</v-card-title>
+                    <v-card-text>
+                        <v-img v-if="brand.brand_image != null" :src="cdn+brand.brand_image" max-height="200"></v-img>
+                        <v-img v-else :src="cdn+'noimage.png'" max-height="200"></v-img>
+                        <v-file-upload v-model="newImage" density="compact" browse-text="Add Image"
+                                       icon="mdi-upload" class="mt-3"
+                                       title="Upload Image" clearable show-size
+                        ></v-file-upload>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+        </v-row>
+    </v-container>
+</template>
+<script>
+import axios from "axios";
+import {VFileUpload} from "vuetify/labs/components";
+export default {
+    name:"BrandEdit",
+    props:{
+        brand_id:[Number,String]
+    },
+    components:{VFileUpload},
+    data(){
+        return{
+            cdn:this.$store.state.cdn,
+            domain:"https://"+(this.$store.state.shop.maindomain || this.$store.state.shop.subdomain)+'/',
+            upLoading:false,
+            dataLoaded: false,
+            brand:{},
+            brands:[],
+            newImage:null,
+            btitleRule:[
+                (v) => !!v || "Brand is required",
+                (v) => (v && v.length >= 3) || "Minimum 3 characters required",
+                (v) => (v && v.length <= 60) || "Maximum 60 characters allowed",
+                v => !this.checkDuplicateBrandName(v) || 'Brand name already exists',
+            ],
+        }
+    },
+    watch:{
+        brand_id: {
+            immediate: true,
+            handler(newVal) {
+                if (newVal) this.getBrandById();
+            }
+        },
+        brands(){
+            this.$nextTick(() => {
+                if (this.$refs.brandNameField) {
+                    this.$refs.brandNameField.validate();
+                }
+            });
+        }
+    },
+    // created() {
+    //     this.getBrandById()
+    // },
+    methods:{
+        getBrandById(){
+            this.dataLoaded = false;
+            axios.get('/sadmin/brand/'+this.brand_id)
+                .then((resp)=>{
+                    this.brand = resp.data.brand;
+                    this.brands = resp.data.brands;
+                    this.dataLoaded = true;
+                })
+        },
+        disCard(){
+            this.getBrandById();
+        },
+        checkDuplicateBrandName(name) {
+            if (!this.dataLoaded) return false;
+            if (!name) return false;
+            const nameLower = name.trim().toLowerCase();
+            const currentId = String(this.brand_id);
+            return this.brands.some((brand, index) => {
+                const brandIdStr = String(brand.brand_id);
+                if (currentId && brandIdStr === currentId) return false;
+                return brand.brand_name.trim().toLowerCase() === nameLower;
+            });
+        },
+        editBrand(){
+            this.upLoading = true;
+            const uheaders = {headers: {'Content-Type': 'multipart/form-data'}};
+            const ubrand = {
+                brand_id:this.brand_id,
+                brand_name:this.brand.brand_name,
+                brand_desc:this.brand.brand_desc,
+                brand_status:this.brand.brand_status,
+                brand_image:this.newImage,
+                brand_slug:this.brand.brand_slug,
+                meta_title:this.brand.meta_title,
+                meta_desc:this.brand.meta_desc,
+            }
+            axios.post('/sadmin/brand/update',ubrand,uheaders)
+                .then((resp)=>{
+                    window.Toast.success(resp.data.message);
+                    this.getBrandById();
+                })
+                .finally(()=>{
+                    this.upLoading = false;
+                    this.newImage = null;
+                })
+        }
+    }
+}
+
+</script>
+
+<style scoped>
+
+</style>
