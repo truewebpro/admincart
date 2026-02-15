@@ -70,7 +70,7 @@
                     <div>
                         <v-data-table :items="filteredPros" :headers="prosHeaders" density="comfortable"
                                       hover show-select select-strategy="single" item-value="variant_id" :search="psearch" :custom-filter="customFilter"
-                                      :loading="isLoading" items-per-page="50">
+                                      :loading="isLoading" items-per-page="50" mobileBreakpoint="sm">
                             <template v-slot:item.variant_image="{item}">
                                 <v-img :src="cdn+item.variant_image" lazy-src="https://dummyimage.com/150x150/efe6f2/01010a.png&text=No+Image" max-width="40"></v-img>
                             </template>

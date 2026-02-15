@@ -103,7 +103,7 @@
                     <div>
                         <v-data-table :items="filteredPros" :headers="prosHeaders" density="comfortable" v-model="selectedPros"
                                       hover show-select :search="psearch" :custom-filter="customFilter" return-object
-                                      :loading="isLoading" items-per-page="50">
+                                      :loading="isLoading" items-per-page="50" mobileBreakpoint="sm">
                             <template v-slot:item.title="{item}">
                                 <div class="title d-flex align-center justify-space-between">
                                     <router-link :to="{ name: 'ProductEdit', params: { product_id: item.product_id } }"

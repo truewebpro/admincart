@@ -1,49 +1,71 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Confirm Password') }}</div>
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
 
-                <div class="card-body">
-                    {{ __('Please confirm your password before continuing.') }}
+        <div class="w-full max-w-lg">
 
-                    <form method="POST" action="{{ route('password.confirm') }}">
+            <div class="bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden">
+
+                <!-- Header -->
+                <div class="bg-gray-100 px-6 py-4 text-lg font-semibold">
+                    {{ __('Confirm Password') }}
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 space-y-5">
+
+                    <p class="text-sm text-gray-600">
+                        {{ __('Please confirm your password before continuing.') }}
+                    </p>
+
+                    <form method="POST" action="{{ route('password.confirm') }}" class="space-y-5">
                         @csrf
 
-                        <div class="row mb-3">
-                            <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>
+                        <!-- Password -->
+                        <div>
+                            <label for="password" class="block mb-1 text-sm font-medium">
+                                {{ __('Password') }}
+                            </label>
 
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
+                            <input id="password"
+                                   type="password"
+                                   name="password"
+                                   required
+                                   autocomplete="current-password"
+                                   class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
 
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
+                            @error('password')
+                            <span class="text-red-500 text-sm">
+                                {{ $message }}
+                            </span>
+                            @enderror
                         </div>
 
-                        <div class="row mb-0">
-                            <div class="col-md-8 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __('Confirm Password') }}
-                                </button>
+                        <!-- Actions -->
+                        <div class="flex flex-col gap-3">
 
-                                @if (Route::has('password.request'))
-                                    <a class="btn btn-link" href="{{ route('password.request') }}">
-                                        {{ __('Forgot Your Password?') }}
-                                    </a>
-                                @endif
-                            </div>
+                            <button type="submit"
+                                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold transition">
+                                {{ __('Confirm Password') }}
+                            </button>
+
+                            @if (Route::has('password.request'))
+                                <a href="{{ route('password.request') }}"
+                                   class="text-center text-sm text-blue-600 hover:underline">
+                                    {{ __('Forgot Your Password?') }}
+                                </a>
+                            @endif
+
                         </div>
+
                     </form>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
-</div>
 @endsection

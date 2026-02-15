@@ -189,7 +189,6 @@
                 </v-card>
             </v-col>
         </v-row>
-        <pre>{{this.$store.state.user}}</pre>
     </v-container>
 </template>
 <script>

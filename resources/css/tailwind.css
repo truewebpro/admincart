@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@source "../views/**/*.blade.php";
+@source "../js/**/*.js";
+
+@layer theme {
+    :root{
+        --font-sans: "Roboto",sans-serif;
+    }
+}
+@layer base {
+    html {
+        font-size:1rem !important;
+    }
+    .row {
+        @apply flex
+    }
+    .form-control {
+        @apply border border-gray-200 rounded w-full px-2 py-2
+    }
+    .col-form-label {
+        @apply font-semibold mb-1
+    }
+}

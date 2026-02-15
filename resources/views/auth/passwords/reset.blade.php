@@ -1,65 +1,92 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Reset Password') }}</div>
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
 
-                <div class="card-body">
-                    <form method="POST" action="{{ route('password.update') }}">
+        <div class="w-full max-w-lg">
+
+            <div class="bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden">
+
+                <!-- Header -->
+                <div class="bg-gray-100 px-6 py-4 text-lg font-semibold">
+                    {{ __('Reset Password') }}
+                </div>
+
+                <!-- Body -->
+                <div class="p-6">
+                    <form method="POST" action="{{ route('password.update') }}" class="space-y-5">
                         @csrf
 
                         <input type="hidden" name="token" value="{{ $token }}">
 
-                        <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
+                        <!-- Email -->
+                        <div>
+                            <label for="email" class="block mb-1 text-sm font-medium">
+                                {{ __('Email Address') }}
+                            </label>
 
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ $email ?? old('email') }}" required autocomplete="email" autofocus>
+                            <input id="email"
+                                   type="email"
+                                   name="email"
+                                   value="{{ $email ?? old('email') }}"
+                                   required
+                                   autofocus
+                                   autocomplete="email"
+                                   class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
 
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
+                            @error('email')
+                            <span class="text-red-500 text-sm">
+                                {{ $message }}
+                            </span>
+                            @enderror
                         </div>
 
-                        <div class="row mb-3">
-                            <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>
+                        <!-- Password -->
+                        <div>
+                            <label for="password" class="block mb-1 text-sm font-medium">
+                                {{ __('Password') }}
+                            </label>
 
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
+                            <input id="password"
+                                   type="password"
+                                   name="password"
+                                   required
+                                   autocomplete="new-password"
+                                   class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
 
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
+                            @error('password')
+                            <span class="text-red-500 text-sm">
+                                {{ $message }}
+                            </span>
+                            @enderror
                         </div>
 
-                        <div class="row mb-3">
-                            <label for="password-confirm" class="col-md-4 col-form-label text-md-end">{{ __('Confirm Password') }}</label>
+                        <!-- Confirm Password -->
+                        <div>
+                            <label for="password-confirm" class="block mb-1 text-sm font-medium">
+                                {{ __('Confirm Password') }}
+                            </label>
 
-                            <div class="col-md-6">
-                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
-                            </div>
+                            <input id="password-confirm"
+                                   type="password"
+                                   name="password_confirmation"
+                                   required
+                                   autocomplete="new-password"
+                                   class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
 
-                        <div class="row mb-0">
-                            <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __('Reset Password') }}
-                                </button>
-                            </div>
-                        </div>
+                        <!-- Submit -->
+                        <button type="submit"
+                                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold transition">
+                            {{ __('Reset Password') }}
+                        </button>
+
                     </form>
                 </div>
+
             </div>
+
         </div>
+
     </div>
-</div>
 @endsection

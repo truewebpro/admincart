@@ -6,7 +6,9 @@
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
+    <link rel="icon" type="image/x-icon"  href="{{ asset('favicon.ico') }}" sizes="48x48" />
+{{--    <link rel="icon" type="image/png" href="{{ url('favicon-32x32.png') }}" sizes="32x32" />--}}
+{{--    <link rel="icon" type="image/png" href="{{ url('favicon-16x16.png') }}" sizes="16x16" />--}}
     <title>{{ config('app.name', 'Laravel') }}</title>
 @if(auth()->user())
         <meta name="currenturl" content="current url {{url()->current()}}">
@@ -32,63 +34,112 @@
 </head>
 <body>
     <v-app id="app" v-cloak>
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm sticky">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'Laravel') }}
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+        <nav class="shadow fixed top-0 w-full bg-white">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between h-16 items-center">
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Left Side Of Navbar -->
-                    <ul class="navbar-nav me-auto">
+                    <!-- Logo -->
+                    <a href="{{ url('/') }}" class="text-2xl font-semibold">
 
-                    </ul>
+                        <img src="https://truewebcart.s3-accelerate.amazonaws.com/logo_truewebcart400.png"
+                             alt="{{ config('app.name', 'Laravel') }}" width="200" height="37">
+                    </a>
 
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
-                        <!-- Authentication Links -->
+                    <!-- Mobile Toggle -->
+                    <button id="menuBtn" class="md:hidden p-2 p-1 border border-gray-200 rounded-xl cursor-pointer">
+                        <span class="iconify text-2xl" data-icon="mdi-menu"></span>
+                    </button>
+
+
+                    <!-- Desktop Menu -->
+                    <div class="hidden md:flex items-center space-x-6">
                         @guest
                             @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
+                                <a href="{{ route('login') }}" class="hover:text-blue-600">Login</a>
                             @endif
 
                             @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
-                                </li>
+                                <a href="{{ route('register') }}" class="hover:text-blue-600">Register</a>
                             @endif
                         @else
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            <!-- Dropdown -->
+                            <div class="relative">
+                                <button id="userBtn" class="hover:text-blue-600 flex items-end gap-1">
                                     {{ Auth::user()->name }}
-                                </a>
+                                    <span class="iconify text-xl" data-icon="mdi-chevron-down"/>
+                                </button>
 
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
+                                <div id="userMenu" class="hidden absolute right-0 mt-2 w-40 bg-white border rounded-lg border-gray-200 shadow">
+                                    <a href="{{ route('logout') }}"
+                                       class="block px-4 py-2 hover:bg-gray-100"
+                                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        Logout
                                     </a>
-
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
                                 </div>
-                            </li>
+                            </div>
+
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                                @csrf
+                            </form>
                         @endguest
-                    </ul>
+
+                    </div>
+                </div>
+
+                <!-- Mobile Menu -->
+                <div id="mobileMenu" class="hidden md:hidden pb-4 space-y-2">
+                    @guest
+                        <a href="{{ route('login') }}" class="block">Login</a>
+                        <a href="{{ route('register') }}" class="block">Register</a>
+                    @else
+                        <a href="#"
+                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                           class="block">
+                            Logout
+                        </a>
+                    @endguest
                 </div>
             </div>
         </nav>
-        <main class="bg-grey-lighten-3">
+        <main class="bg-slate-50">
             @yield('content')
         </main>
     </v-app>
     @vite(['resources/js/app.js'])
+    <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
+
+
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const userBtn = document.getElementById('userBtn');
+        const userMenu = document.getElementById('userMenu');
+
+        if (menuBtn && mobileMenu) {
+            menuBtn.addEventListener('click', function () {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        if (userBtn && userMenu) {
+            userBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                userMenu.classList.toggle('hidden');
+            });
+        }
+
+        document.addEventListener('click', function (e) {
+            if (userMenu && userBtn &&
+                !userBtn.contains(e.target) &&
+                !userMenu.contains(e.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+
+    });
+</script>
+
 </html>
