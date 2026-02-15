@@ -58,31 +58,26 @@
             <router-view/>
         </v-main>
         <v-bottom-navigation grow color="primary" active v-if="$vuetify.display.mobile" density="compact">
-            <v-btn size="x-small" density="compact" value="recent" @click.stop="drawer = !drawer" min-width="60">
+            <v-btn value="recent" @click.stop="drawer = !drawer" min-width="60">
                 <v-icon>mdi-menu</v-icon>
-
                 <span>Menu</span>
             </v-btn>
 
-            <v-btn link to="/orders" size="x-small" value="favorites" min-width="60">
+            <v-btn link to="/orders" value="favorites" min-width="60">
                 <v-icon>mdi-invoice-text-clock</v-icon>
-
                 <span>Orders</span>
             </v-btn>
 
-            <v-btn link to="/products" size="x-small" value="nearby" min-width="60">
+            <v-btn link to="/products" value="nearby" min-width="60">
                 <v-icon>mdi-tag-outline</v-icon>
-
                 <span>Products</span>
             </v-btn>
-            <v-btn link to="/inventory" size="x-small" density="compact" value="nearby" min-width="60">
+            <v-btn link to="/inventory" value="nearby" min-width="60">
                 <v-icon>mdi-format-list-numbered</v-icon>
-
                 <span>Stock</span>
             </v-btn>
-            <v-btn link to="/orders" size="x-small" density="compact" value="nearby" min-width="60">
+            <v-btn link to="/orders" value="nearby" min-width="60">
                 <v-icon>mdi-cog</v-icon>
-
                 <span>Settings</span>
             </v-btn>
         </v-bottom-navigation>

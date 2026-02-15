@@ -1,24 +1,25 @@
 <template>
     <v-container fluid>
         <v-row>
-            <v-col cols="12" md="6">
+            <v-col cols="3" md="6">
                 <span class="text-h6">Products</span>
             </v-col>
-            <v-col cols="12" md="6" class="text-end">
+            <v-col cols="9" md="6" class="text-end">
                 <v-btn @click="uploadDialog = true" class="text-none" size="small" color="grey-darken-4 me-2">Import</v-btn>
                 <v-btn @click="exportProducts" class="text-none" size="small" color="grey-darken-4 me-2">Export</v-btn>
                 <v-btn link to="/products/new" class="text-none" size="small" color="grey-darken-4">Add Product</v-btn>
             </v-col>
             <v-col cols="12">
                 <v-card flat class="border">
-                    <v-toolbar density="default" height="44" color="white">
-                        <v-tabs v-model="status" color="primary" density="compact" show-arrows class="w-100">
-                            <v-tab v-for="(stat, index) in prostatus" :key="index" :value="stat" class="text-none">
-                                {{ stat }}
-                            </v-tab>
-                        </v-tabs>
-                        <v-slide-group density="compact" class="w-100 me-2" show-arrows>
-                            <v-spacer></v-spacer>
+                    <v-row dense class="px-2 py-1">
+                        <v-col cols="10" md="10">
+                            <v-tabs v-model="status" color="primary" density="compact" show-arrows>
+                                <v-tab v-for="(stat, index) in prostatus" :key="index" :value="stat" class="text-none">
+                                    {{ stat }}
+                                </v-tab>
+                            </v-tabs>
+                        </v-col>
+                        <v-col cols="2" md="2" class="text-end">
                             <v-menu>
                                 <template v-slot:activator="{ props: menu }">
                                     <v-tooltip location="top">
@@ -42,64 +43,69 @@
                                     <v-list-item base-color="primary" @click="setDirection('desc')" title="Z-A" />
                                 </v-list>
                             </v-menu>
-                        </v-slide-group>
-                    </v-toolbar>
-                    <div class="px-2 py-2 d-flex">
-                        <div class="v-col-6 py-0">
+                        </v-col>
+                    </v-row>
+                    <v-row dense class="py-2 px-2">
+                        <v-col cols="12" md="6">
                             <v-text-field v-model="psearch" class="w-100" variant="outlined" density="compact" clearable hide-details
                                           placeholder="Searching all Products"
                                           prepend-inner-icon="mdi-magnify"
                             ></v-text-field>
-                        </div>
-                        <div class="v-col-2 py-0">
+                        </v-col>
+                        <v-col cols="12" md="2">
                             <v-autocomplete v-model="selectedType" class="mx-1" variant="outlined" density="compact" label="Type"
                                             :items="protypes"
                                             clearable hide-details />
-                        </div>
-                        <div class="v-col-2 py-0">
+                        </v-col>
+                        <v-col cols="12" md="2">
                             <v-autocomplete v-model="selectedBrand" class="mx-1" variant="outlined" density="compact" label="Brand"
                                             :items="pbrands"
                                             clearable hide-details />
-                        </div>
-                        <div class="v-col-2 py-0">
+                        </v-col>
+                        <v-col cols="12" md="2">
                             <v-autocomplete v-model="selectedTag" class="mx-1" variant="outlined" density="compact" label="Tag"
                                             :items="atags"
                                             clearable hide-details />
-                        </div>
-                    </div>
-                    <v-toolbar v-if="selectedPros.length > 0" density="compact" height="44" color="white">
-                        <v-btn variant="text" density="compact" class="font-weight-bold text-none">{{selectedPros.length}} Selected</v-btn>
-                        <v-btn @click="selectedPros = []" variant="outlined" density="compact" class="text-none">Unselect All</v-btn>
-                        <v-spacer/>
-                        <v-menu>
-                            <template v-slot:activator="{ props: menu }">
-                                <v-tooltip location="top">
-                                    <template v-slot:activator="{ props: tooltip }">
-                                        <v-btn variant="outlined" class="text-none me-5" v-bind="mergeProps(menu, tooltip)"
-                                               density="compact" append-icon="mdi-chevron-down">
-                                            More Actions
-                                        </v-btn>
-                                    </template>
-                                    <span>More Actions</span>
-                                </v-tooltip>
-                            </template>
-                            <v-list nav density="compact">
-                                <v-list-item @click="archiveProducts">
-                                    <v-list-item-title><v-icon class="me-2">mdi-archive-outline</v-icon>Archive Products</v-list-item-title>
-                                </v-list-item>
-                                <v-list-item base-color="error" @click="deleteProducts">
-                                    <v-list-item-title><v-icon class="me-2">mdi-trash-can-outline</v-icon>Delete Products</v-list-item-title>
-                                </v-list-item>
-                                <v-divider/>
-                                <v-list-item @click="addBulkTagDialog = true">
-                                    <v-list-item-title><v-icon class="me-2">mdi-tag-plus-outline</v-icon>Add Tags</v-list-item-title>
-                                </v-list-item>
-                                <v-list-item base-color="error" @click="removeBulkTagDialog = true">
-                                    <v-list-item-title><v-icon class="me-2">mdi-tag-remove-outline</v-icon>Remove Tags</v-list-item-title>
-                                </v-list-item>
-                            </v-list>
-                        </v-menu>
-                    </v-toolbar>
+                        </v-col>
+                    </v-row>
+                    <v-row dense v-if="selectedPros.length > 0" class="mb-2 px-2">
+                        <v-col cols="6" md="3">
+                            <v-btn variant="text" density="compact" class="font-weight-bold text-none">{{selectedPros.length}} Selected</v-btn>
+                        </v-col>
+                        <v-col cols="6" md="3">
+                            <v-btn @click="selectedPros = []" variant="outlined" density="compact" class="text-none">Unselect All</v-btn>
+                        </v-col>
+                        <v-col cols="12" md="4">
+                            <v-menu>
+                                <template v-slot:activator="{ props: menu }">
+                                    <v-tooltip location="top">
+                                        <template v-slot:activator="{ props: tooltip }">
+                                            <v-btn variant="outlined" class="text-none me-5" v-bind="mergeProps(menu, tooltip)"
+                                                   density="compact" append-icon="mdi-chevron-down">
+                                                More Actions
+                                            </v-btn>
+                                        </template>
+                                        <span>More Actions</span>
+                                    </v-tooltip>
+                                </template>
+                                <v-list nav density="compact">
+                                    <v-list-item @click="archiveProducts">
+                                        <v-list-item-title><v-icon class="me-2">mdi-archive-outline</v-icon>Archive Products</v-list-item-title>
+                                    </v-list-item>
+                                    <v-list-item base-color="error" @click="deleteProducts">
+                                        <v-list-item-title><v-icon class="me-2">mdi-trash-can-outline</v-icon>Delete Products</v-list-item-title>
+                                    </v-list-item>
+                                    <v-divider/>
+                                    <v-list-item @click="addBulkTagDialog = true">
+                                        <v-list-item-title><v-icon class="me-2">mdi-tag-plus-outline</v-icon>Add Tags</v-list-item-title>
+                                    </v-list-item>
+                                    <v-list-item base-color="error" @click="removeBulkTagDialog = true">
+                                        <v-list-item-title><v-icon class="me-2">mdi-tag-remove-outline</v-icon>Remove Tags</v-list-item-title>
+                                    </v-list-item>
+                                </v-list>
+                            </v-menu>
+                        </v-col>
+                    </v-row>
                     <div>
                         <v-data-table :items="filteredPros" :headers="prosHeaders" density="comfortable" v-model="selectedPros"
                                       hover show-select :search="psearch" :custom-filter="customFilter" return-object
@@ -258,8 +264,8 @@ export default {
                 {title:'Title',value:'title',maxWidth:375},
                 {title:'Status',value:'product_status'},
                 {title:'Inventory',value:'astock_sum_quantity'},
-                {title:'Type',value:'ptype.product_type_name'},
-                {title:'Vendor',value:'brand.brand_name'},
+                {title:'Type',key:'ptype.product_type_name'},
+                {title:'Vendor',key:'brand.brand_name'},
             ],
             addBulkTagDialog:false,
             removeBulkTagDialog:false,
