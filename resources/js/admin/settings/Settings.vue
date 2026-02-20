@@ -1,5 +1,5 @@
 <template>
-    <div class="settings v-container">
+    <v-container class="settings">
         <h2>Settings</h2>
         <v-row>
             <v-col cols="12" md="4">
@@ -100,11 +100,11 @@
                 </v-card>
             </v-col>
         </v-row>
-    </div>
+    </v-container>
 </template>
 <script>
 export default {
-    name:"SettingsShipping",
+    name:"Settings",
     data(){
         return{
             cdn:this.$store.state.cdn,

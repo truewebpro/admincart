@@ -1,12 +1,10 @@
 <template>
-    <v-container>
+    <v-container class="pa-2">
         <v-row dense>
             <v-col cols="12" md="6"><h2>Reviews</h2></v-col>
-            <v-col cols="12" md="6" class="text-md-end">
-            </v-col>
             <v-col cols="12">
                 <v-card class="border-sm">
-                    <v-data-table :items="areviews" :headers="reviewsHeaders" items-per-page="20">
+                    <v-data-table :items="areviews" :headers="reviewsHeaders" items-per-page="20" mobileBreakpoint="sm">
                         <template v-slot:item.review_title="{item}">
                             <div>
                                 <div class="font-weight-bold">{{ item.review_title }}</div>
@@ -22,7 +20,7 @@
                             <v-btn v-if="item.review_status === 'rejected'" color="red" density="compact" class="text-none" variant="text">{{ item.review_status }}</v-btn>
                         </template>
                         <template v-slot:item.product_id="{item}">
-                            <router-link :to="{name:'productview',params:{product_id:item.product_id}}">
+                            <router-link :to="{name:'ProductEdit',params:{product_id:item.product_id}}">
                                 <v-img :src="cdn+item.featured_image" max-width="75"></v-img>
                             </router-link>
                         </template>

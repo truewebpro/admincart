@@ -125,12 +125,12 @@
 </template>
 <script>
 import axios from "axios";
-import { Country, State, City } from 'country-state-city';
+// import { Country, State, City } from 'country-state-city';
 
 export default {
     name:"SettingsGeneral",
     mounted() {
-        this.getAllofThem();
+        // this.getAllofThem();
     },
     data(){
         return{
@@ -228,11 +228,11 @@ export default {
         this.getShopBusiness();
     },
     methods:{
-        getAllofThem(){
-            this.countries = Country.getCountryByCode('GB');
-            this.states = State.getStatesOfCountry('GB');
-            this.cities = City.getCitiesOfCountry('GB');
-        },
+        // getAllofThem(){
+        //     this.countries = Country.getCountryByCode('GB');
+        //     this.states = State.getStatesOfCountry('GB');
+        //     this.cities = City.getCitiesOfCountry('GB');
+        // },
         getShopBusiness(){
             axios.get('/sadmin/shop/business')
                 .then((resp)=>{
