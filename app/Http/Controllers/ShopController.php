@@ -25,6 +25,7 @@ use App\Models\ShipMethod;
 use App\Models\Shop;
 use App\Models\ShopPaymentMethod;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class ShopController extends Controller
 {
@@ -360,13 +361,13 @@ class ShopController extends Controller
             ->withAvg('reviews','rating')
             ->where('shop_id','=',$shopId)
             ->where('handle','=',$slug)->first();
-        $previews = $sproduct->reviews;
-        $sproduct['stars5'] = $previews->whereIn('rating',5)->count();
-        $sproduct['stars4'] = $previews->whereIn('rating',4)->count();
-        $sproduct['stars3'] = $previews->whereIn('rating',3)->count();
-        $sproduct['stars2'] = $previews->whereIn('rating',2)->count();
-        $sproduct['stars1'] = $previews->whereIn('rating',1)->count();
         if($sproduct != null){
+            $previews = $sproduct->reviews;
+            $sproduct['stars5'] = $previews->whereIn('rating',5)->count();
+            $sproduct['stars4'] = $previews->whereIn('rating',4)->count();
+            $sproduct['stars3'] = $previews->whereIn('rating',3)->count();
+            $sproduct['stars2'] = $previews->whereIn('rating',2)->count();
+            $sproduct['stars1'] = $previews->whereIn('rating',1)->count();
             $addons = Product::with('brand','ptype','variants.astock')
                 ->withCount('reviews')->withAvg('reviews','rating')
                 ->where('shop_id','=',$shopId)
@@ -641,6 +642,22 @@ class ShopController extends Controller
                 'existsCustomer' => false,
             ]);
         }
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:customers,email',
+            'password' => 'required|min:5|confirmed',
+        ]);
+        $customer = Customer::where('email', $request->email)->first();
+        $customer->password = Hash::make($request->password);
+        $customer->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password updated successfully'
+        ]);
     }
 
     public function getPageBySlug(Request $request,$shopname,$page_slug)

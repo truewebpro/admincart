@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'resolve.admin.shop' => \App\Http\Middleware\ResolveAdminShop::class,
         'resolve.shop' => \App\Http\Middleware\ResolveShop::class,
+        'auth.customer' => \App\Http\Middleware\AuthenticateCustomer::class,
     ];
 }

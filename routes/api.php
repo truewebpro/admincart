@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ShopController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -41,8 +42,21 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/page/{page_slug}',[ShopController::class,'getPageBySlug']);
     Route::get('/cartsections', [ShopController::class, 'cartSections']);
     Route::get('/announcements', [ShopController::class, 'getAnnouncements']);
+    Route::get('/products/search',[ShopController::class,'webSearch']);
     Route::get('/searchtags', [ShopController::class, 'getSearchTags']);
     Route::get('/footer', [ShopController::class, 'getFooter']);
     Route::get('/customer/exists',[ShopController::class,'exitingCustomer']);
     Route::post('/reset-password',[ShopController::class,'resetPassword']);
+
+    Route::prefix('customer')->group(function () {
+        Route::post('/login',[CustomerController::class,'customerLogin'])->name('customer.login');
+        Route::post('/register',[CustomerController::class,'customerRegister'])->name('customer.register');
+        Route::post('/cregister',[CustomerController::class,'registerOnCheckout'])->name('customer.cregister');
+
+        Route::middleware('auth:customer')->group(function () {
+            Route::get('/me',[CustomerController::class,'me']);
+            Route::get('/orders',[CustomerController::class,'recentOrders']);
+        });
+    });
+
 });

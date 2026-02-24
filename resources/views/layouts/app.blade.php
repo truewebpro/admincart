@@ -44,7 +44,13 @@
                         <img src="https://truewebcart.s3-accelerate.amazonaws.com/logo_truewebcart400.png"
                              alt="{{ config('app.name', 'Laravel') }}" width="200" height="37">
                     </a>
-
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="/" class="text-slate-600">Home</a>
+                        <a href="/" class="text-slate-600">Solutions</a>
+                        <a href="/" class="text-slate-600">About</a>
+                        <a href="/" class="text-slate-600">Plan</a>
+                        <a href="/" class="text-slate-600">Contact</a>
+                    </div>
                     <!-- Mobile Toggle -->
                     <button id="menuBtn" class="md:hidden p-2 p-1 border border-gray-200 rounded-xl cursor-pointer">
                         <span class="iconify text-2xl" data-icon="mdi-menu"></span>

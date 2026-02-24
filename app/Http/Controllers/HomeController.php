@@ -167,8 +167,9 @@ class HomeController extends Controller
 
     public function updateShopSetting(Request $request)
     {
+        $shopId = session('shop_id');
         $setting = Setting::find($request->setting_id);
-        $setting->shop_id = $request->shop_id;
+        $setting->shop_id = $shopId;
         $setting->min_checkout_price = $request->min_checkout_price;
         $setting->vat_included = $request->vat_included;
         $setting->hide_price = $request->hide_price;
@@ -190,7 +191,7 @@ class HomeController extends Controller
         $request->validate([
             'file' => 'required|file|mimes:xlsx,csv'
         ]);
-        $shopId = $request->shop_id;
+        $shopId = session('shop_id');
 
         Excel::import(new ProductsImport($shopId), $request->file('file'));
 
@@ -2433,6 +2434,7 @@ class HomeController extends Controller
 
     public function updateAdminPaymentMethod(Request $request)
     {
+        $shopId = session('shop_id');
         $validatedData = $request->validate([
             'payment_name' => 'required|string',
             'payment_method' => 'required|string',
