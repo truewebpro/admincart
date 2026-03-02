@@ -24,9 +24,11 @@
         "dayjs": "^1.11.19",
         "laravel-echo": "^2.3.0",
         "pusher-js": "^8.4.0",
+        "sortablejs": "^1.15.6",
         "vue-router": "^4.6.4",
         "vue-toastification": "^2.0.0-rc.5",
         "vue3-apexcharts": "^1.10.0",
+        "vuedraggable": "^4.1.0",
         "vuex": "^4.0.2"
     }
 }
