@@ -56,6 +56,11 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
         Route::middleware('auth:customer')->group(function () {
             Route::get('/me',[CustomerController::class,'me']);
             Route::get('/orders',[CustomerController::class,'recentOrders']);
+            Route::get('/address/default',[CustomerController::class,'getDefaultAddress']);
+            Route::post('/address/default',[CustomerController::class,'markAsDefaultAddress']);
+            Route::post('/address/add',[CustomerController::class,'addNewAddress']);
+            Route::post('/address/update',[CustomerController::class,'updateAddress']);
+            Route::post('/address/delete',[CustomerController::class,'deleteAddress']);
         });
     });
 

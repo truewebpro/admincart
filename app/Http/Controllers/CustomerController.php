@@ -8,6 +8,7 @@ use App\Models\CustomerShop;
 use App\Models\Order;
 use App\Models\Shop;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -219,5 +220,177 @@ class CustomerController extends Controller
             'orders' => $orders,
             'addresses' => $addresses,
         ]);
+    }
+
+    public function getDefaultAddress(Request $request)
+    {
+        $customer = auth()->guard('customer')->user();
+        $addresses = CustomerAddress::where('customer_id','=',$customer->customer_id)
+            ->get();
+        $defaultAddress = $addresses->where('is_default','=',true)->first();
+        return response()->json($defaultAddress);
+    }
+
+    public function markAsDefaultAddress(Request $request)
+    {
+        $customer = auth()->guard('customer')->user();
+        $existingDefault = CustomerAddress::where('customer_id','=',$customer->customer_id)
+            ->where('is_default','=',true)->first();
+        $requestedId = $request->address_id;
+        if($existingDefault){
+            if($existingDefault->address_id != $requestedId){
+                CustomerAddress::where('customer_id','=',$customer->customer_id)
+                    ->where('address_id','=',$request->address_id)->update(['is_default'=>true]);
+                $existingDefault->update(['is_default' => false]);
+            }
+            $existingDefault->is_default = true;
+        }
+        CustomerAddress::where('customer_id','=',$customer->customer_id)
+            ->where('address_id','=',$requestedId)
+            ->update(['is_default'=>true]);
+        $existingDefault->update(['is_default' => false]);
+
+        return response()->json($requestedId);
+    }
+
+    public function addNewAddress(Request $request)
+    {
+        $customer = auth()->guard('customer')->user();
+        $validated = $request->validate([
+            'fname' => 'required|string|max:255',
+            'lname' => 'required|string|max:255',
+            'address_line1' => 'required|string|max:255',
+            'address_line2' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'postcode' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'phone' => 'required|string|max:255',
+        ]);
+        DB::beginTransaction();
+        try {
+            $existingAddress = CustomerAddress::where('address_id','=',$request->address_id)->first();
+            if($existingAddress){
+                $existingAddress->update([
+                    'fname' => $request->fname,
+                    'lname' => $request->lname,
+                    'address_line1' => $request->address_line1,
+                    'address_line2' => $request->address_line2,
+                    'city' => $request->city,
+                    'postcode' => $request->postcode,
+                    'country' => $request->country,
+                    'phone' => $request->phone,
+                    'is_default' => $request->is_default,
+                    'customer_id' => $customer->customer_id,
+                ]);
+                DB::commit();
+                return response()->json([
+                    'success' => true,
+                    'address' => $existingAddress,
+                ]);
+            } else {
+                $caddress = CustomerAddress::create([
+                    'fname' => $request->fname,
+                    'lname' => $request->lname,
+                    'address_line1' => $request->address_line1,
+                    'address_line2' => $request->address_line2,
+                    'city' => $request->city,
+                    'postcode' => $request->postcode,
+                    'country' => $request->country,
+                    'phone' => $request->phone,
+                    'is_default' => $request->is_default ?? false,
+                    'customer_id' => $customer->customer_id,
+                ]);
+                DB::commit();
+                return response()->json([
+                    'success' => true,
+                    'address' => $caddress,
+                ]);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to add address',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateAddress(Request $request)
+    {
+        $customer = auth()->guard('customer')->user();
+        $validated = $request->validate([
+            'address_id' => 'required|integer|exists:customer_addresses,address_id',
+            'fname' => 'required|string|max:255',
+            'lname' => 'required|string|max:255',
+            'address_line1' => 'required|string|max:255',
+            'address_line2' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'postcode' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'phone' => 'required|string|max:255',
+            'is_default' => 'required',
+        ]);
+        DB::beginTransaction();
+        try {
+            $caddress = CustomerAddress::findOrFail($request->address_id)->update([
+                'fname' => $request->fname,
+                'lname' => $request->lname,
+                'address_line1' => $request->address_line1,
+                'address_line2' => $request->address_line2,
+                'city' => $request->city,
+                'postcode' => $request->postcode,
+                'country' => $request->country,
+                'phone' => $request->phone,
+                'is_default' => $request->is_default,
+                'customer_id' => $customer->customer_id,
+            ]);
+            if($caddress){
+                DB::commit();
+                return response()->json([
+                    'success' => true,
+                    'address' => $caddress,
+                    'message' => 'Address updated successfully',
+                ]);
+            } else {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to update address',
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to add address',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function deleteAddress(Request $request)
+    {
+        $customer = auth()->guard('customer')->user();
+        $validated = $request->validate([
+            'address_id' => 'required|integer|exists:customer_addresses,address_id',
+        ]);
+        DB::beginTransaction();
+        try {
+            CustomerAddress::find($request->address_id)->delete();
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Address deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete address',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

@@ -678,6 +678,7 @@ export default {
                         cat_name: catData.cat_name,
                         cat_slug: catData.cat_slug,
                         cat_desc: catData.cat_desc,
+                        cat_image : catData.cat_image,
                         short_desc: catData.short_desc,
                         cat_rule: catData.cat_rule || 'and',
                         sort_order: catData.sort_order,
