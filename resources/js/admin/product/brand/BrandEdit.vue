@@ -3,7 +3,7 @@
         <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
             <v-col cols="12" md="6">
                 <h2 class="text-h6">
-                    <v-btn link to="/settings/brands" icon variant="tonal" density="compact">
+                    <v-btn link to="/pros/brands" icon variant="tonal" density="compact">
                         <v-icon>mdi-arrow-left</v-icon>
                     </v-btn>
                     {{brand.brand_name}}
@@ -130,13 +130,17 @@ export default {
     // created() {
     //     this.getBrandById()
     // },
+    mounted() {
+        this.$store.dispatch('fetchBrands');
+    },
     methods:{
-        getBrandById(){
+       async getBrandById(){
             this.dataLoaded = false;
-            axios.get('/sadmin/brand/'+this.brand_id)
+            await axios.get('/sadmin/brand/'+this.brand_id)
                 .then((resp)=>{
                     this.brand = resp.data.brand;
-                    this.brands = resp.data.brands;
+                    this.$store.dispatch('fetchBrands');
+                    this.brands = this.$store.state.brands;
                     this.dataLoaded = true;
                 })
         },
@@ -170,7 +174,11 @@ export default {
             axios.post('/sadmin/brand/update',ubrand,uheaders)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
-                    this.getBrandById();
+                    this.$store.commit('UPDATE_BRAND', resp.data.brand)
+                    this.$store.dispatch('fetchShopResources')
+                        .then(()=>{
+                            this.getBrandById();
+                        })
                 })
                 .finally(()=>{
                     this.upLoading = false;

@@ -1,6 +1,6 @@
 <template>
     <v-container>
-        <v-row>
+        <v-row dense>
             <v-col cols="12" md="6">
                 <v-btn link to="/customers" icon variant="tonal" density="compact" class="me-2">
                     <v-icon>mdi-chevron-left</v-icon>
@@ -22,17 +22,11 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <v-btn icon variant="tonal" density="compact" class="ms-1">
-                    <v-icon>mdi-arrow-up</v-icon>
-                </v-btn>
-                <v-btn icon variant="tonal" density="compact" class="ms-1">
-                    <v-icon>mdi-arrow-down</v-icon>
-                </v-btn>
             </v-col>
         </v-row>
         <v-row class="bg-white rounded-lg border my-3 elevation-2" no-gutters>
             <v-col cols="12" md="4">
-                <div class="pa-3 border-e-sm">
+                <div class="pa-3 border-e-sm text-2xl">
                     <div class="font-weight-semibold">Amount Spent</div>
                     <div class="font-weight-medium">£{{amount_spent.toFixed(2)}}</div>
                 </div>
@@ -108,12 +102,16 @@
                         <v-btn color="primary" variant="outlined" density="compact" class="text-none mx-auto">Post</v-btn>
                     </v-card-text>
                 </v-card>
-                <div class="mt-5">
-                    <v-timeline side="end">
-                        <v-timeline-item v-for="(otime,index) in orders" :key="index">
-                            <div>{{otime.order_number}}</div>
-                            <div class="text-body-2">{{dayjs(otime.placed_at)}}</div>
-                            <div class="text-body-1">£{{otime.order_total.toFixed(2)}}</div>
+                <div>
+                    <v-timeline align="start" side="end" density="compact" dotColor="green" size="x-small">
+                        <v-timeline-item id="ctimeline" v-for="(otime,index) in orders" :key="index" class="w-100">
+                            <div class="w-100 d-flex flex-wrap align-center justify-space-between ga-1">
+                                <div class="d-flex ga-1 align-center flex-wrap">
+                                    <div>{{otime.order_number}}</div>
+                                    <div class="text-body-1">£{{otime.order_total.toFixed(2)}}</div>
+                                </div>
+                                <div class="text-body-2">{{dayjs(otime.placed_at).format('DD-MM-YYYY hh:mm a')}}</div>
+                            </div>
                         </v-timeline-item>
                     </v-timeline>
                 </div>

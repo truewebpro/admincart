@@ -1,6 +1,6 @@
 <template>
-   <v-container>
-       <v-row>
+   <v-container class="pa-2">
+       <v-row dense>
            <v-col cols="12" md="6">
                <span class="text-h6"><v-icon>mdi-account-outline</v-icon> Customers</span> </v-col>
            <v-col cols="12" md="6" class="text-end">
@@ -51,7 +51,7 @@
                    <div>
                        <v-data-table :items="filteredCusts" :headers="custsHeaders" density="comfortable"
                                      hover :search="csearch" :custom-filter="customFilter" :loading="isLoading"
-                                     :hide-default-footer="filteredCusts.length < 50" items-per-page="50">
+                                     :hide-default-footer="filteredCusts.length < 50" items-per-page="50" mobileBreakpoint="sm">
                            <template v-slot:item.fname="{item}">
                                <div class="title d-flex align-center justify-space-between">
                                    <router-link class="text-decoration-none text-grey-darken-3"

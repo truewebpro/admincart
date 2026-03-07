@@ -262,6 +262,9 @@ export default {
     },
     watch: {
         'cat.cat_type'(val) {
+            if (!this.cat.rules) {
+                this.cat.rules = [];
+            }
             if (val === 'smart') {
                 // Add default rule only if none exist
                 if (this.cat.rules.length === 0) {
@@ -282,6 +285,7 @@ export default {
             }
         },
         'cat.cat_name'(newSlug){
+            if(!newSlug) return
             this.cat.cat_slug = newSlug
                 .toLowerCase()
                 .trim()
@@ -510,9 +514,13 @@ export default {
             }
             axios.post('/sadmin/cat/new',ncat,uheaders)
                 .then((resp)=>{
-                    this.$router.push({name:'CatView',params:{cat_id:resp.data.cat_id}})
+                    let cat = resp.data.cat;
+                    this.$store.commit('ADD_CAT',cat)
                     window.Toast.success('Collection added Successfully')
-                    console.log(resp.data);
+                    this.$router.push({
+                        name:'CatView',
+                        params:{cat_id:cat.cat_id}
+                    })
                 })
                 .catch((err)=>{
                     console.log(err.message);

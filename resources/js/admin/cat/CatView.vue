@@ -210,7 +210,7 @@
                                     <v-autocomplete v-model="defaultRcat.cat_child_id"
                                                     :rules="selectChildCatRule"
                                                     label="Select Category"
-                                                    density="comfortable" :items="allCategories" return-object
+                                                    density="comfortable" :items="pcats" return-object
                                                     item-title="cat_name" variant="underlined"></v-autocomplete>
                                     <v-file-upload v-model="defaultRcat.related_image" density="compact" browse-text="Add Image"
                                                    icon="mdi-image" class="mt-3"
@@ -236,7 +236,7 @@
                                     <v-autocomplete v-model="editedRcat.cat_child_id"
                                                     :rules="selectChildCatRule"
                                                     label="Select Category" item-value="cat_id"
-                                                    density="comfortable" :items="allCategories"
+                                                    density="comfortable" :items="pcats"
                                                     item-title="cat_name" variant="underlined"></v-autocomplete>
                                     <v-file-upload v-model="newrImage" density="compact" browse-text="Add Image"
                                                    icon="mdi-image" class="mt-3"
@@ -343,9 +343,9 @@
                 v-model="dialogVisible"
                 :editingSection="selectedSection"
                 :products="allProducts"
-                :categories="allCategories"
+                :categories="pcats"
                 :banners="allBanners"
-                :brands="allBrands"
+                :brands="pbrands"
                 @save="updateSection"
             />
             <v-dialog v-model="deleteSectionDialog" max-width="400" transition="dialog-bottom-transition">
@@ -455,6 +455,9 @@ export default {
         ptypes(){
             return this.$store.state.productTypes;
         },
+        pcats(){
+            return this.$store.state.cats;
+        },
         plainTextDesc() {
             return this.cat.cat_desc
                 .replace(/<br\s*\/?>/gi, '\n')
@@ -503,8 +506,6 @@ export default {
             editingSection: null,
             deleteSectionDialog:false,
             allProducts: [],
-            allBrands:[],
-            allCategories:[],
             allBanners: [],
             dataLoading:false,
             domain:"https://"+(this.$store.state.shop.maindomain || this.$store.state.shop.subdomain)+"/",
@@ -701,8 +702,6 @@ export default {
                     });
                     this.sections = catData.sections;
                     this.stypes = resp.data.stypes;
-                    this.allCategories = resp.data.categories;
-                    this.allBrands = resp.data.brands;
                     this.rcats = catData.rcats;
                 })
                 .catch((err)=>{
@@ -762,7 +761,6 @@ export default {
                     this.getCategory();
                 })
         },
-
         editItem(item){
             this.editedrIndex = this.rcats.indexOf(item);
             this.editedRcat = Object.assign({},item);
@@ -871,6 +869,7 @@ export default {
             axios.post('/sadmin/cat/supdate/'+this.cat_id,uscat,uheaders)
                 .then((resp)=>{
                     console.log(resp.data)
+                    this.$store.commit('UPDATE_CAT',resp.data.cat)
                     this.getCategory();
                     window.Toast.success('Smart Category Updated')
                 })
@@ -927,6 +926,7 @@ export default {
             axios.post('/sadmin/cat/mupdate/'+this.cat_id,umcat,uheaders)
                 .then((resp)=>{
                     console.log(resp.data)
+                    this.$store.commit('UPDATE_CAT',resp.data.cat)
                 })
                 .catch((err)=>{
                     console.log(err)
@@ -943,6 +943,7 @@ export default {
             axios.get('/sadmin/cat/delete/'+this.cat_id)
                 .then((resp)=>{
                     this.delDialog = false;
+                    this.$store.commit('DELETE_CAT',this.cat_id)
                     window.Toast.success(resp.data.message);
                 })
                 .catch((err)=>{

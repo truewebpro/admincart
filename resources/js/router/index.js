@@ -9,6 +9,49 @@ import ProductsList from "@/admin/product/ProductsList.vue";
 import ProductNew from "@/admin/product/ProductNew.vue";
 import ProductEdit from "@/admin/product/ProductEdit.vue";
 import InventoryList from "@/admin/stock/InventoryList.vue";
+import Cats from "@/admin/cat/Cats.vue";
+import CatNew from "@/admin/cat/CatNew.vue";
+import CatView from "@/admin/cat/CatView.vue";
+import Ptypes from "@/admin/product/ptype/Ptypes.vue";
+import Brands from "@/admin/product/brand/Brands.vue";
+import BrandEdit from "@/admin/product/brand/BrandEdit.vue";
+import Tags from "@/admin/product/tag/Tags.vue";
+import Poptions from "@/admin/product/option/Poptions.vue";
+import Features from "@/admin/product/feature/Features.vue";
+import Customers from "@/admin/customer/Customers.vue";
+import CustomerEdit from "@/admin/customer/CustomerEdit.vue";
+import ShopSettings from "@/admin/shop/ShopSettings.vue";
+import MainHomePage from "@/admin/shop/MainHomePage.vue";
+import MainCartPage from "@/admin/shop/MainCartPage.vue";
+import ShopHome from "@/admin/shop/ShopHome.vue";
+import ShopFooter from "@/admin/shop/ShopFooter.vue";
+import ShopSearch from "@/admin/shop/ShopSearch.vue";
+import ShopAnnouncement from "@/admin/shop/ShopAnnouncement.vue";
+import ShopSubscribe from "@/admin/shop/ShopSubscribe.vue";
+import PagesList from "@/admin/theme/page/PagesList.vue";
+import PagesNew from "@/admin/theme/page/PagesNew.vue";
+import PagesEdit from "@/admin/theme/page/PagesEdit.vue";
+import BlogsList from "@/admin/theme/blog/BlogsList.vue";
+import BlogsNew from "@/admin/theme/blog/BlogsNew.vue";
+import BlogsEdit from "@/admin/theme/blog/BlogsEdit.vue";
+import PoliciesList from "@/admin/theme/policy/PoliciesList.vue";
+import PoliciesNew from "@/admin/theme/policy/PoliciesNew.vue";
+import PoliciesEdit from "@/admin/theme/policy/PoliciesEdit.vue";
+import Settings from "@/admin/settings/Settings.vue";
+import SettingsGeneral from "@/admin/settings/SettingsGeneral.vue";
+import SettingsShipping from "@/admin/settings/SettingsShipping.vue";
+import SettingsPayment from "@/admin/settings/SettingsPayment.vue";
+import SettingsPrinting from "@/admin/settings/SettingsPrinting.vue";
+import SettingsMarketing from "@/admin/settings/SettingsMarketing.vue";
+import SettingsInventory from "@/admin/settings/SettingsInventory.vue";
+import SettingsReview from "@/admin/settings/SettingsReview.vue";
+import SettingsAccount from "@/admin/settings/SettingsAccount.vue";
+import MenuEdit from "@/admin/menus/MenuEdit.vue";
+import MenuAdd from "@/admin/menus/MenuAdd.vue";
+import MenusList from "@/admin/menus/MenusList.vue";
+import Preferences from "@/admin/theme/Preferences.vue";
+import ThemeView from "@/admin/theme/ThemeView.vue";
+
 
 
 const routes = [
@@ -21,50 +64,50 @@ const routes = [
     {path: '/products/new',name: 'productsnew',component:ProductNew},
     {path: '/products/:product_id',name: 'ProductEdit',component:ProductEdit,props: true},
     {path: '/inventory',name: 'InventoryList',component:InventoryList},
-    {path: '/categories',name: 'cats',component: () => import('@/admin/cat/Cats.vue')},
-    {path: '/categories/new',name: 'catnew',component: () => import('@/admin/cat/CatNew.vue')},
-    {path: '/categories/:cat_id',name: 'CatView',component: () => import('@/admin/cat/CatView.vue'),props:true},
-    {path: '/pros/ptypes',name: 'ptypes',component: () => import('@/admin/product/ptype/Ptypes.vue')},
-    {path: '/pros/brands',name: 'brands',component: () => import('@/admin/product/brand/Brands.vue')},
-    {path: '/pros/brands/edit/:brand_id',name:'BrandEdit',component:()=>import('@/admin/product/brand/BrandEdit.vue'),props: true},
-    {path: '/pros/tags',name: 'tags',component: () => import('@/admin/product/tag/Tags.vue')},
-    {path: '/pros/poptions',name: 'poptions',component: () => import('@/admin/product/option/Poptions.vue')},
-    {path: '/pros/features',name: 'Features',component: () => import('@/admin/product/feature/Features.vue')},
-    {path: '/customers',name: 'customers',component: () => import('@/admin/customer/Customers.vue')},
-    {path: '/customers/:customer_id',name: 'CustomerEdit',component: () => import('@/admin/customer/CustomerEdit.vue'),props:true},
-    {path: '/shop',component: () => import('@/admin/shop/ShopSettings.vue'),
+    {path: '/categories',name: 'cats',component: Cats},
+    {path: '/categories/new',name: 'catnew',component: CatNew},
+    {path: '/categories/:cat_id',name: 'CatView',component: CatView,props:true},
+    {path: '/pros/ptypes',name: 'ptypes',component: Ptypes},
+    {path: '/pros/brands',name: 'brands',component: Brands},
+    {path: '/pros/brands/edit/:brand_id',name:'BrandEdit',component:BrandEdit,props: true},
+    {path: '/pros/tags',name: 'tags',component: Tags},
+    {path: '/pros/poptions',name: 'poptions',component: Poptions},
+    {path: '/pros/features',name: 'Features',component: Features},
+    {path: '/customers',name: 'customers',component: Customers},
+    {path: '/customers/:customer_id',name: 'CustomerEdit',component: CustomerEdit,props:true},
+    {path: '/shop',component: ShopSettings,
         children:[
-            {path: 'homepage',name: 'MainHomePage',component: () => import('@/admin/shop/MainHomePage.vue')},
-            {path: 'cartpage',name: 'MainCartPage',component: () => import('@/admin/shop/MainCartPage.vue')},
-            {path: 'settings',name: 'ShopHome',component: () => import('@/admin/shop/ShopHome.vue')},
-            {path: 'footer',name: 'ShopFooter',component: () => import('@/admin/shop/ShopFooter.vue')},
-            {path: 'search',name: 'ShopSearch',component: () => import('@/admin/shop/ShopSearch.vue')},
-            {path: 'announcement',name: 'ShopAnnouncement',component: () => import('@/admin/shop/ShopAnnouncement.vue')},
-            {path: 'subscribe',name: 'ShopSubscribe',component: () => import('@/admin/shop/ShopSubscribe.vue')},
+            {path: 'homepage',name: 'MainHomePage',component: MainHomePage},
+            {path: 'cartpage',name: 'MainCartPage',component: MainCartPage},
+            {path: 'settings',name: 'ShopHome',component: ShopHome},
+            {path: 'footer',name: 'ShopFooter',component: ShopFooter},
+            {path: 'search',name: 'ShopSearch',component: ShopSearch},
+            {path: 'announcement',name: 'ShopAnnouncement',component: ShopAnnouncement},
+            {path: 'subscribe',name: 'ShopSubscribe',component: ShopSubscribe},
         ]},
-    {path: '/theme/store',name:'ThemeView',component: () => import('@/admin/theme/ThemeView.vue')},
-    {path: '/theme/preferences',name:'Preferences',component: () => import('@/admin/theme/Preferences.vue')},
-    {path: '/theme/menuslist',name:'MenusList',component: () => import('@/admin/menus/MenusList.vue')},
-    {path: '/theme/menu/add',name:'MenuAdd',component: () => import('@/admin/menus/MenuAdd.vue')},
-    {path: '/theme/menu/edit/:menu_id',name:'MenuEdit',component: () => import('@/admin/menus/MenuEdit.vue'),props:true},
-    {path: '/theme/pages',name:'PagesList',component: () => import('@/admin/theme/page/PagesList.vue')},
-    {path: '/theme/pages/new',name:'PagesNew',component: () => import('@/admin/theme/page/PagesNew.vue')},
-    {path: '/theme/pages/:page_id',name:'PagesEdit',component: () => import('@/admin/theme/page/PagesEdit.vue'),props:true},
-    {path: '/theme/blogs',name:'BlogsList',component: () => import('@/admin/theme/blog/BlogsList.vue')},
-    {path: '/theme/blogs/new',name:'BlogsNew',component: () => import('@/admin/theme/blog/BlogsNew.vue')},
-    {path: '/theme/blogs/:blog_id',name:'BlogsEdit',component: () => import('@/admin/theme/blog/BlogsEdit.vue'),props:true},
-    {path: '/theme/policies',name:'PoliciesList',component: () => import('@/admin/theme/policy/PoliciesList.vue')},
-    {path: '/theme/policies/new',name:'PoliciesNew',component: () => import('@/admin/theme/policy/PoliciesNew.vue')},
-    {path: '/theme/policies/:policy_id',name:'PoliciesEdit',component:  () => import('@/admin/theme/policy/PoliciesEdit.vue'),props:true},
-    {path: '/settings',name: 'Settings',component: () => import('@/admin/settings/Settings.vue')},
-    {path: '/settings/general',name: 'SettingsGeneral',component: () => import('@/admin/settings/SettingsGeneral.vue')},
-    {path: '/settings/shipping',name: 'SettingsShipping',component: () => import('@/admin/settings/SettingsShipping.vue')},
-    {path: '/settings/payment',name: 'SettingsPayment',component: () => import('@/admin/settings/SettingsPayment.vue')},
-    {path: '/settings/printing',name: 'SettingsPrinting',component: () => import('@/admin/settings/SettingsPrinting.vue')},
-    {path: '/settings/marketing',name: 'SettingsMarketing',component: () => import('@/admin/settings/SettingsMarketing.vue')},
-    {path: '/settings/inventory',name: 'SettingsInventory',component: () => import('@/admin/settings/SettingsInventory.vue')},
-    {path: '/settings/review',name: 'SettingsReview',component: () => import('@/admin/settings/SettingsReview.vue')},
-    {path: '/settings/account',name: 'SettingsAccount',component: () => import('@/admin/settings/SettingsAccount.vue')},
+    {path: '/theme/store',name:'ThemeView',component: ThemeView},
+    {path: '/theme/preferences',name:'Preferences',component: Preferences},
+    {path: '/theme/menuslist',name:'MenusList',component: MenusList},
+    {path: '/theme/menu/add',name:'MenuAdd',component: MenuAdd},
+    {path: '/theme/menu/edit/:menu_id',name:'MenuEdit',component: MenuEdit,props:true},
+    {path: '/theme/pages',name:'PagesList',component: PagesList},
+    {path: '/theme/pages/new',name:'PagesNew',component: PagesNew},
+    {path: '/theme/pages/:page_id',name:'PagesEdit',component: PagesEdit,props:true},
+    {path: '/theme/blogs',name:'BlogsList',component: BlogsList},
+    {path: '/theme/blogs/new',name:'BlogsNew',component: BlogsNew},
+    {path: '/theme/blogs/:blog_id',name:'BlogsEdit',component: BlogsEdit,props:true},
+    {path: '/theme/policies',name:'PoliciesList',component: PoliciesList},
+    {path: '/theme/policies/new',name:'PoliciesNew',component: PoliciesNew},
+    {path: '/theme/policies/:policy_id',name:'PoliciesEdit',component:  PoliciesEdit,props:true},
+    {path: '/settings',name: 'Settings',component: Settings},
+    {path: '/settings/general',name: 'SettingsGeneral',component: SettingsGeneral},
+    {path: '/settings/shipping',name: 'SettingsShipping',component: SettingsShipping},
+    {path: '/settings/payment',name: 'SettingsPayment',component: SettingsPayment},
+    {path: '/settings/printing',name: 'SettingsPrinting',component: SettingsPrinting},
+    {path: '/settings/marketing',name: 'SettingsMarketing',component: SettingsMarketing},
+    {path: '/settings/inventory',name: 'SettingsInventory',component: SettingsInventory},
+    {path: '/settings/review',name: 'SettingsReview',component: SettingsReview},
+    {path: '/settings/account',name: 'SettingsAccount',component: SettingsAccount},
 ]
 
 const router = createRouter({

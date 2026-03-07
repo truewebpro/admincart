@@ -1,9 +1,9 @@
 <template>
     <v-container>
-        <v-row>
-            <v-col cols="12" md="6">
+        <v-row dense>
+            <v-col cols="6" md="6">
                 <span class="text-h6">Features List</span></v-col>
-            <v-col cols="12" md="6" class="text-end">
+            <v-col cols="6" md="6" class="text-end">
                 <v-btn class="text-none" size="small" color="grey-darken-4" @click="addDialog = true">Add Feature</v-btn>
             </v-col>
             <v-col cols="12" md="12">
@@ -14,7 +14,7 @@
                     ></v-text-field>
                     <div>
                         <v-data-table :items="features" :headers="featuresHeaders" density="comfortable" items-per-page="20"
-                                      hover :search="fsearch" :custom-filter="customFilter" :loading="isLoading">
+                                      hover :search="fsearch" :custom-filter="customFilter" :loading="isLoading" mobileBreakpoint="sm">
                             <template v-slot:item.ftitle="{item}">
                                 <div class="title d-flex align-center justify-space-between">
                                     <div class="text-decoration-none text-grey-darken-3">
@@ -134,8 +134,8 @@ export default{
             featuresHeaders:[
                 {title:'ID',value:'feature_id',width:60},
                 {title:'Image',value:'fimage',width:60},
-                {title:'Name',value:'ftitle',maxWidth:375},
-                {title:'Product Count',value:'pcount'},
+                {title:'Name',key:'ftitle',maxWidth:375},
+                {title:'Product Count',key:'pcount'},
                 {title:'Actions',value:'actions'},
             ],
             editedIndex:-1,

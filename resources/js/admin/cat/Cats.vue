@@ -86,7 +86,6 @@
     </v-container>
 </template>
 <script>
-import axios from "axios";
 import {mergeProps} from "vue";
 
 export default {
@@ -115,6 +114,7 @@ export default {
     },
     mounted() {
         this.getAllCats();
+        this.$store.dispatch('fetchCats');
     },
     created() {
     },
@@ -171,23 +171,20 @@ export default {
             // Return true only if all search terms are found somewhere in the title
             return searchTerms.every(term => title.includes(term));
         },
-        getAllCats(){
+        async getAllCats(){
             this.isLoading = true;
-            axios.get('/sadmin/categories')
-                .then((resp)=>{
-                    this.cats = resp.data.cats;
+            try {
+                await this.$store.dispatch('fetchCats');
+                this.cats = this.$store.state.cats;
+                let statuses = [...new Set(this.cats.map(item => item.cat_status))];
+                statuses = statuses.filter(status => status !== "Archived");
+                this.catstatus = ["All", ...statuses, "Archived"];
 
-                    let statuses = [...new Set(this.cats.map(item => item.cat_status))];
-
-                    // Remove "Archive" if already present
-                    statuses = statuses.filter(status => status !== "Archived");
-
-                    // Add "All" at the beginning and "Archive" at the end
-                    this.catstatus = ["All", ...statuses, "Archived"];
-                })
-                .finally(()=>{
-                    this.isLoading = false;
-                })
+            } catch (e) {
+                console.error("Failed to load categories", e);
+            } finally {
+                this.isLoading = false;
+            }
         },
         deleteCats(){
             const confirmed = window.confirm("Are you sure you want to permanently delete the selected Collections?");

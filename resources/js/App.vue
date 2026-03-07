@@ -99,6 +99,7 @@
     </v-app>
 </template>
 <script>
+import axios from "axios";
 export default {
     name:"App",
     data(){
@@ -119,30 +120,51 @@ export default {
     },
     mounted() {
         this.drawer = this.isDesktop;
+        this.boostfetchShopResources();
     },
     methods: {
-        async logout() {
-            try {
-                // Call backend logout if using Laravel Sanctum/JWT
-                await fetch('/logout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    }
-                });
-
-            } catch (e) {
-                console.log('Logout request failed, continuing...');
-            }
-
-            // Clear store/localStorage
-            localStorage.removeItem('token');
-            this.$store.commit('SET_USER', null);
-
-            // Redirect
-            window.location.href = '/login';
-        }
+        async logout(){
+            await axios.post('/logout')
+                .then(()=>{
+                    this.$store.commit('LOGOUT');
+                    window.location.href = '/login';
+                })
+        },
+        // async logout() {
+        //     try {
+        //         // Call backend logout if using Laravel Sanctum/JWT
+        //         await fetch('/logout', {
+        //             method: 'POST',
+        //             headers: {
+        //                 'Content-Type': 'application/json',
+        //                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        //             }
+        //         });
+        //
+        //     } catch (e) {
+        //         console.log('Logout request failed, continuing...');
+        //     }
+        //
+        //     // Clear store/localStorage
+        //     this.$store.commit('SET_USER', null);
+        //
+        //     // Redirect
+        //     window.location.href = '/login';
+        // },
+        async boostfetchShopResources(){
+            const [brands,productTypes,tags,poptions,cats] = await Promise.all([
+                axios.get('/sadmin/brands'),
+                axios.get('/sadmin/ptypes'),
+                axios.get('/sadmin/tags'),
+                axios.get('/sadmin/poptions'),
+                axios.get('/sadmin/categories'),
+            ])
+            this.$store.commit('SET_BRANDS', brands.data.brands)
+            this.$store.commit('SET_PRODUCT_TYPES', productTypes.data.ptypes)
+            this.$store.commit('SET_TAGS', tags.data.tags)
+            this.$store.commit('SET_POPTIONS', poptions.data)
+            this.$store.commit('SET_CATS',cats.data.cats)
+        },
     }
 }
 
@@ -150,13 +172,14 @@ export default {
 
 <style>
 .v-list-group__items {
-    --indent-padding: -4px !important;
+    --indent-padding: -6px !important;
 }
 html{font-size: 0.875rem !important;}
 
 .v-list-group__items .v-list-item {
     padding-inline-start: calc(5px + var(--indent-padding)) !important;
 }
-
-
+#ctimeline > div {
+    width: 100%;
+}
 </style>

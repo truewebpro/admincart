@@ -1,5 +1,95 @@
 <template>
     <v-container>
+        <v-row align="stretch">
+            <v-col cols="12" md="8">
+                <v-card class="position-relative overflow-visible mt-16 elevation-6 rounded-lg">
+                    <v-card-text>
+                        <div class="d-flex">
+                            <div class="w-75 d-flex flex-column justify-space-between">
+                                <div class="text-h5 text-md-h4">Welcome <span class="font-weight-bold">{{suser.name}} 🎉</span></div>
+                                <p class="text-body-1 mt-3">
+                                    You have done 72% 😎 more sales today. Check your new raising badge in your profile.
+                                </p>
+                            </div>
+                            <div class="position-absolute bottom-0 right-0">
+                                <v-img width="225"
+                                    src="https://demos.themeselection.com/materio-vuetify-vuejs-admin-template/demo-1/assets/illustration-john-2-DCqPs8R_.png"/>
+                            </div>
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+            <v-col cols="12" md="2">
+                <v-card class="h-100 elevation-6 rounded-lg">
+                    <v-card-title>Revenue <v-icon>mdi-credit-card-wireless-outline</v-icon></v-card-title>
+                    <v-card-text>
+                        <div>+16% <v-icon>mdi-arrow-up-thin</v-icon></div>
+                        <div class="text-h6">£{{paidRev.toFixed(2)}}</div>
+                        <div class="font-weight-bold">Paid</div>
+                        <div class="text-h6">£{{pendingRev.toFixed(2)}}</div>
+                        <div class="font-weight-bold">Pending</div>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+            <v-col cols="12" md="2">
+                <v-card class="h-100 elevation-6 rounded-lg">
+                    <v-card-title>Orders <v-icon>mdi-list-box-outline</v-icon></v-card-title>
+                    <v-card-text>
+                        <div>+16% <v-icon>mdi-arrow-up-thin</v-icon></div>
+                        <div>
+                            <div class="text-h6">{{shippedOrd}}</div>
+                            <div class="font-weight-bold">Shipped</div>
+                        </div>
+                        <div>
+                            <div class="text-h6">{{pendingOrd}}</div>
+                            <div class="font-weight-bold">Pending</div>
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+            <v-col cols="12" md="8">
+                <v-card class="border-sm elevation-6 rounded-lg">
+                    <v-card-title class="d-flex justify-space-between bg-grey-lighten-4">
+                        <span>Recent Orders</span>
+                        <span><v-icon>mdi-dots-horizontal</v-icon></span>
+                    </v-card-title>
+                    <v-data-table :items="rorders" :headers="rordersHeaders" hide-default-footer mobileBreakpoint="sm">
+                        <template v-slot:item.order_items_count="{item}">
+                            <div class="font-weight-medium">{{item.order_items_count}} item<span v-if="item.order_items_count > 1">s</span></div>
+                        </template>
+                        <template v-slot:item.order_total="{item}">
+                            £ {{item.order_total}}
+                        </template>
+                        <template v-slot:item.placed_at="{item}">
+                            <div class="font-weight-medium">{{dayjs(item.placed_at).format('D MMM [at] h:mm a')}}</div>
+                        </template>
+                        <template v-slot:item.fulfillment_status="{item}">
+                            <v-chip v-if="item.fulfillment_status === 'unfulfilled'" color="red" density="compact" variant="tonal" class="text-capitalize font-weight-medium">{{item.fulfillment_status}}</v-chip>
+                            <v-chip v-else color="green" density="compact" variant="tonal" class="text-capitalize font-weight-medium">{{item.fulfillment_status}}</v-chip>
+                        </template>
+                        <template v-slot:item.actions="{item}">
+                            <v-btn icon="mdi-eye" density="compact" variant="text" color="info"></v-btn>
+                        </template>
+                    </v-data-table>
+                </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+                <v-card class="border-sm elevation-6 rounded-lg">
+                    <v-card-title class="d-flex justify-space-between bg-grey-lighten-4">
+                        <span>Top Sold</span>
+                        <span><v-icon>mdi-dots-horizontal</v-icon></span>
+                    </v-card-title>
+                    <v-data-table :items="tpros" :headers="tprosHeaders" density="comfortable" hide-default-footer>
+                        <template v-slot:item.featured_image="{item}">
+                            <v-img :src="cdn+item.featured_image" width="44" height="44" class="rounded-lg my-1"></v-img>
+                        </template>
+                        <template v-slot:item.title="{item}">
+                            <div>{{item.title}}</div>
+                        </template>
+                    </v-data-table>
+                </v-card>
+            </v-col>
+        </v-row>
         <v-row dense>
             <v-col cols="12" md="6">
                 <span class="text-h6">Welcome {{suser.name}}</span>
@@ -106,48 +196,6 @@
                         <span><v-icon>mdi-dots-horizontal</v-icon></span>
                     </v-card-title>
                     <apexchart type="bar" :options="visoptions" :series="visseries"></apexchart>
-                </v-card>
-            </v-col>
-            <v-col cols="12" md="8">
-                <v-card class="border-sm">
-                    <v-card-title class="d-flex justify-space-between grad bg-red">
-                        <span>Recent Orders</span>
-                        <span><v-icon>mdi-dots-horizontal</v-icon></span>
-                    </v-card-title>
-                    <v-data-table :items="rorders" :headers="rordersHeaders" hide-default-footer>
-                        <template v-slot:item.order_items_count="{item}">
-                            <div class="font-weight-medium">{{item.order_items_count}} item<span v-if="item.order_items_count > 1">s</span></div>
-                        </template>
-                        <template v-slot:item.order_total="{item}">
-                            £ {{item.order_total}}
-                        </template>
-                        <template v-slot:item.placed_at="{item}">
-                            <div class="font-weight-medium">{{dayjs(item.placed_at).format('D MMM [at] h:mm a')}}</div>
-                        </template>
-                        <template v-slot:item.fulfillment_status="{item}">
-                            <v-chip v-if="item.fulfillment_status === 'unfulfilled'" color="red" density="compact" variant="tonal" class="text-capitalize font-weight-medium">{{item.fulfillment_status}}</v-chip>
-                            <v-chip v-else color="green" density="compact" variant="tonal" class="text-capitalize font-weight-medium">{{item.fulfillment_status}}</v-chip>
-                        </template>
-                        <template v-slot:item.actions="{item}">
-                            <v-btn icon="mdi-eye" density="compact" variant="text" color="info"></v-btn>
-                        </template>
-                    </v-data-table>
-                </v-card>
-            </v-col>
-            <v-col cols="12" md="4">
-                <v-card class="border-sm">
-                    <v-card-title class="d-flex justify-space-between grad bg-green">
-                        <span>Top Sold</span>
-                        <span><v-icon>mdi-dots-horizontal</v-icon></span>
-                    </v-card-title>
-                    <v-data-table :items="tpros" :headers="tprosHeaders" density="comfortable" hide-default-footer>
-                        <template v-slot:item.featured_image="{item}">
-                            <v-img :src="cdn+item.featured_image" width="44" height="44" class="rounded-lg my-1"></v-img>
-                        </template>
-                        <template v-slot:item.title="{item}">
-                            <div>{{item.title}}</div>
-                        </template>
-                    </v-data-table>
                 </v-card>
             </v-col>
         </v-row>

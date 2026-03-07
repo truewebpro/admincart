@@ -1,9 +1,9 @@
 <template>
     <v-container>
-        <v-row>
-            <v-col cols="12" md="6">
+        <v-row dense>
+            <v-col cols="6" md="6">
                 <span class="text-h6">Product Options</span></v-col>
-            <v-col cols="12" md="6" class="text-end">
+            <v-col cols="6" md="6" class="text-end">
                 <v-btn class="text-none" size="small" color="grey-darken-4" @click="addDialog = true">Add Option</v-btn>
             </v-col>
             <v-col cols="12">
@@ -108,9 +108,7 @@ export default {
     },
     mounted() {
         this.getAllPoptions();
-    },
-    created() {
-        // this.getAllPoptions();
+        this.$store.dispatch('fetchPoptions')
     },
     computed: {
         filteredPoptions() {
@@ -131,15 +129,16 @@ export default {
             const searchTerms = search.toLowerCase().split(' ');
             return searchTerms.every(term => title.includes(term));
         },
-        getAllPoptions(){
+        async getAllPoptions(){
             this.isLoading = true;
-            axios.get('/sadmin/poptions')
-                .then((resp)=>{
-                    this.poptions = resp.data.poptions;
-                })
-                .finally(()=>{
-                    this.isLoading = false;
-                })
+            try {
+                await this.$store.dispatch('fetchPoptions');
+                this.poptions = this.$store.state.poptions;
+            } catch (e) {
+                console.error("Failed to load productTypes", e);
+            } finally {
+                this.isLoading = false;
+            }
         },
         editOption(){
             const uoption = {
@@ -149,6 +148,7 @@ export default {
             axios.post('/sadmin/poption/update',uoption)
                 .then((resp)=>{
                     this.editDialog = false;
+                    this.$store.commit('UPDATE_POPTION',resp.data.poption)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getAllPoptions();
@@ -171,6 +171,7 @@ export default {
             axios.post('/sadmin/poption/update',noption)
                 .then((resp)=>{
                     this.addDialog = false;
+                    this.$store.commit('ADD_POPTION',resp.data.poption)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getAllPoptions();

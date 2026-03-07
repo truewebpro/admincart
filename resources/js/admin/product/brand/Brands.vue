@@ -1,9 +1,9 @@
 <template>
     <v-container>
-        <v-row>
-            <v-col cols="12" md="6">
+        <v-row dense>
+            <v-col cols="6" md="6">
                 <span class="text-h6">Brands</span></v-col>
-            <v-col cols="12" md="6" class="text-end">
+            <v-col cols="6" md="6" class="text-end">
                 <v-btn class="text-none" size="small" color="grey-darken-4" @click="addDialog = true">Add Brand</v-btn>
             </v-col>
             <v-col cols="12">
@@ -36,7 +36,7 @@
                     </div>
                     <div>
                         <v-data-table :items="filteredBrands" :headers="brandsHeaders" density="comfortable" items-per-page="20"
-                                      hover :search="bsearch" :custom-filter="customFilter" :loading="isLoading">
+                                      hover :search="bsearch" :custom-filter="customFilter" :loading="isLoading" mobileBreakpoint="sm">
                             <template v-slot:item.brand_name="{item}">
                                 <div class="title d-flex align-center justify-space-between">
                                     <div class="text-decoration-none text-grey-darken-3">
@@ -54,7 +54,6 @@
                             </template>
                             <template v-slot:item.actions="{item}">
                                 <v-btn variant="outlined" color="info" density="compact" link :to="{name:'BrandEdit',params:{brand_id:item.brand_id}}">Edit</v-btn>
-<!--                                <v-btn variant="outlined" color="info" density="compact" @click="editItem(item)">Edit</v-btn>-->
                                 <v-btn variant="outlined" color="red" density="compact" @click="deleteItem(item)" class="ms-2">Delete</v-btn>
                             </template>
                         </v-data-table>
@@ -62,52 +61,6 @@
                 </v-card>
             </v-col>
             <v-col cols="12">
-                <v-dialog max-width="600" v-model="editDialog">
-                    <v-card>
-                        <v-card-text>
-                            <v-form v-model="upValid" @submit.prevent="editBrand">
-                                <div class="my-2">
-                                    <v-text-field v-model="editedItem.brand_name" variant="outlined" density="compact"
-                                                  label="Brand Name" :rules="btitleRule"></v-text-field>
-                                </div>
-                                <div class="mb-2">
-                                    <v-textarea v-model="editedItem.brand_desc" variant="outlined" density="compact"
-                                                label="Brand Desc" rows="3"></v-textarea>
-                                </div>
-                                <div class="mb-2 d-flex">
-                                    <div class="w-25">
-                                        <v-img v-if="editedItem.previewImage" :src="editedItem.previewImage"></v-img>
-                                    </div>
-                                    <div class="w-75">
-                                        <v-file-input @change="updatePreviewImage(editedItem.brand_image)"
-                                                      v-model="editedItem.brand_image"
-                                                      accept="image/*"
-                                                      density="compact"
-                                                      :multiple="false"
-                                                      title="Brand Image"></v-file-input>
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <v-select v-model="editedItem.brand_status" :items="brandstatus" variant="outlined" density="compact"
-                                              label="Status"></v-select>
-                                </div>
-                                <div class="my-2">
-                                    <v-text-field v-model="editedItem.meta_title" variant="outlined" density="compact"
-                                                  label="Meta Title"></v-text-field>
-                                </div>
-                                <div class="mb-2">
-                                    <v-textarea v-model="editedItem.meta_desc" variant="outlined" density="compact"
-                                                label="Meta Desc" rows="3"></v-textarea>
-                                </div>
-                                <div class="d-flex">
-                                    <v-btn type="submit" :loading="upLoading" :disabled="!upValid || upLoading" variant="elevated" density="comfortable" color="success">Update</v-btn>
-                                    <v-spacer/>
-                                    <v-btn @click="editDialog = false" variant="elevated" density="comfortable" color="red">Cancel</v-btn>
-                                </div>
-                            </v-form>
-                        </v-card-text>
-                    </v-card>
-                </v-dialog>
                 <v-dialog max-width="600" v-model="addDialog">
                     <v-card>
                         <v-card-text>
@@ -196,11 +149,11 @@ export default {
             cdn:this.$store.state.cdn,
             shopname:this.$store.state.shop.shop_name || "Shop_name",
             brandsHeaders:[
-                {title:'ID',value:'brand_id',width:60},
+                // {title:'ID',value:'brand_id',width:60},
                 {title:'Image',value:'brand_image',width:60},
-                {title:'Name',value:'brand_name',maxWidth:375},
+                {title:'Name',key:'brand_name',maxWidth:375},
                 {title:'Status',value:'brand_status'},
-                {title:'Product Count',value:'pcount'},
+                {title:'Product Count',key:'pcount'},
                 {title:'Actions',value:'actions'},
             ],
             editedIndex:-1,
@@ -235,15 +188,12 @@ export default {
     },
     mounted() {
         this.getAllBrands();
-        // this.updatePreviewImage(this.editedItem.brand_image);
+        this.$store.dispatch('fetchBrands');
     },
     watch:{
         'editedItem.brand_image'(newVal){
             this.updatePreviewImage(newVal)
         }
-    },
-    created() {
-        // this.getAllBrands();
     },
     computed: {
         filteredBrands() {
@@ -264,18 +214,19 @@ export default {
             const searchTerms = search.toLowerCase().split(' ');
             return searchTerms.every(term => title.includes(term));
         },
-        getAllBrands(){
+        async getAllBrands(){
             this.isLoading = true;
-            axios.get('/sadmin/brands')
-                .then((resp)=>{
-                    this.brands = resp.data.brands;
-                    let statuses = [...new Set(this.brands.map(item => item.brand_status))];
-                    statuses = statuses.filter(status => status !== "Archived");
-                    this.bstatuses = ["All", ...statuses, "Archived"];
-                })
-                .finally(()=>{
-                    this.isLoading = false;
-                })
+            try {
+                await this.$store.dispatch('fetchBrands');
+                this.brands = this.$store.state.brands;
+                let statuses = [...new Set(this.brands.map(item => item.brand_status))];
+                statuses = statuses.filter(status => status !== "Archived");
+                this.bstatuses = ["All", ...statuses, "Archived"];
+            } catch (e) {
+                console.error("Failed to load brands", e);
+            } finally {
+                this.isLoading = false;
+            }
         },
         updatePreviewImage(fileList) {
             const file = Array.isArray(fileList) ? fileList[0] : fileList;
@@ -305,6 +256,7 @@ export default {
             axios.post('/sadmin/brand/update',ubrand,uheaders)
                 .then((resp)=>{
                     this.editDialog = false;
+                    this.$store.commit('UPDATE_BRAND',resp.data.brand)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getAllBrands();
@@ -344,6 +296,7 @@ export default {
             axios.post('/sadmin/brand/delete',dbrand,uheaders)
                 .then((resp)=>{
                     this.deleteDialog = false;
+                    this.$store.commit('DELETE_BRAND',dbrand.brand_id)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getAllBrands();
@@ -372,6 +325,7 @@ export default {
             axios.post('/sadmin/brand/update',nbrand,uheaders)
                 .then((resp)=>{
                     this.addDialog = false;
+                    this.$store.commit('ADD_BRAND',resp.data.brand)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getAllBrands();

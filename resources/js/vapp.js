@@ -1,3 +1,4 @@
+import './bootstrap.js';
 import "vuetify/dist/vuetify.min.css";
 import { createApp} from "vue";
 import App from "./App.vue";

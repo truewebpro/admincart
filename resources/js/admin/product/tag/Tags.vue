@@ -1,9 +1,9 @@
 <template>
     <v-container>
-        <v-row>
-            <v-col cols="12" md="6">
+        <v-row dense>
+            <v-col cols="6" md="6">
                 <span class="text-h6">Tags</span></v-col>
-            <v-col cols="12" md="6" class="text-end">
+            <v-col cols="6" md="6" class="text-end">
                 <v-btn class="text-none" size="small" color="grey-darken-4" @click="addDialog = true">Add Tag</v-btn>
             </v-col>
             <v-col cols="12">
@@ -37,7 +37,7 @@
                     <div>
                         <v-data-table :items="filteredTags" :headers="tagsHeaders" density="comfortable"
                                       hover :search="tsearch" :custom-filter="customFilter"
-                                      :loading="isLoading" items-per-page="25">
+                                      :loading="isLoading" items-per-page="25" mobileBreakpoint="sm">
                             <template v-slot:item.tag_name="{item}">
                                 <div class="title d-flex align-center justify-space-between">
                                     <div class="text-decoration-none text-grey-darken-3">
@@ -139,9 +139,9 @@ export default {
             atags:[],
             tagsHeaders:[
                 {title:'ID',value:'tag_id',width:60},
-                {title:'Name',value:'tag_name',maxWidth:375},
+                {title:'Name',key:'tag_name',maxWidth:375},
                 {title:'Status',value:'tag_status'},
-                {title:'Product Count',value:'pcount'},
+                {title:'Product Count',key:'pcount'},
                 {title:'Actions',value:'actions'},
             ],
             editedIndex:-1,
@@ -167,9 +167,7 @@ export default {
     },
     mounted() {
         this.getAllTags();
-    },
-    created() {
-        // this.getAllTags();
+        this.$store.dispatch('fetchTags')
     },
     computed: {
         filteredTags() {
@@ -190,18 +188,19 @@ export default {
             const searchTerms = search.toLowerCase().split(' ');
             return searchTerms.every(term => title.includes(term));
         },
-        getAllTags(){
+        async getAllTags(){
             this.isLoading = true;
-            axios.get('/sadmin/tags')
-                .then((resp)=>{
-                    this.tags = resp.data.tags;
-                    let statuses = [...new Set(this.tags.map(item => item.tag_status))];
-                    statuses = statuses.filter(status => status !== "Archived");
-                    this.tstatuses = ["All", ...statuses, "Archived"];
-                })
-                .finally(()=>{
-                    this.isLoading = false;
-                })
+            try {
+                await this.$store.dispatch('fetchTags');
+                this.tags = this.$store.state.tags;
+                let statuses = [...new Set(this.tags.map(item => item.tag_status))];
+                statuses = statuses.filter(status => status !== "Archived");
+                this.tstatuses = ["All", ...statuses, "Archived"];
+            } catch (e) {
+                console.error("Failed to load productTypes", e);
+            } finally {
+                this.isLoading = false;
+            }
         },
         editTag(){
             const utag = {
@@ -212,6 +211,7 @@ export default {
             axios.post('/sadmin/tag/update',utag)
                 .then((resp)=>{
                     this.editDialog = false;
+                    this.$store.commit('UPDATE_TAG',resp.data.tag)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getAllTags();
@@ -239,6 +239,7 @@ export default {
             axios.post('/sadmin/tag/delete',dtag)
                 .then((resp)=>{
                     this.deleteDialog = false;
+                    this.$store.commit('DELETE_TAG',dtag.tag_id)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getAllTags();
@@ -257,6 +258,7 @@ export default {
             axios.post('/sadmin/tag/update',ntag)
                 .then((resp)=>{
                     this.addDialog = false;
+                    this.$store.commit('ADD_TAG',resp.data.tag)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getAllTags();

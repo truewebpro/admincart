@@ -260,7 +260,7 @@ class HomeController extends Controller
                 $constraint->aspectRatio();
             });
         } else {
-            $img = Image::make($file->getRealPath())->resize(600, 600, function ($constraint) {
+            $img = Image::make($file->getRealPath())->resize(1200, 1200, function ($constraint) {
                 $constraint->aspectRatio();
             });
         }
@@ -1584,19 +1584,11 @@ class HomeController extends Controller
             ]);
         $ctypes = ['review_slider','blog_slider'];
         $stypes = Stype::whereNotIn('stype_slug',$ctypes)->get();
-        $categories = Cat::where('shop_id','=',$shopId)
-            ->select('cat_id','cat_name','cat_slug','cat_image')
-            ->get();
-        $brands = Brand::where('shop_id','=',$shopId)
-            ->select('brand_id','brand_name','brand_slug','brand_image')
-            ->get();
         return response()->json([
             'cat' => $cat,
             'pros' => $pros,
             'location' => $location,
             'stypes' => $stypes,
-            'categories' => $categories,
-            'brands' => $brands,
         ],200);
     }
 
@@ -2010,7 +2002,6 @@ class HomeController extends Controller
         return response()->json([
             'status' => 200,
             'brand' => $brand,
-            'brands'=> Brand::where('shop_id','=',$shopId)->get(),
             'message' => "Brand Detail",
         ]);
     }
@@ -2296,6 +2287,7 @@ class HomeController extends Controller
         if($poption){
             return response()->json([
                 'success' => true,
+                'poption' => $poption,
                 'message' => 'Option updated successfully',
             ],200);
         } else {

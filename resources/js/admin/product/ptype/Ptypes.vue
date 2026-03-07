@@ -140,7 +140,7 @@ export default {
                 {title:'ID',value:'product_type_id',width:60},
                 {title:'Name',value:'product_type_name',maxWidth:375},
                 {title:'Status',value:'product_type_status'},
-                {title:'Product Count',value:'pcount'},
+                {title:'Product Count',key:'pcount'},
                 {title:'Actions',value:'actions'},
             ],
             editedIndex:-1,
@@ -168,9 +168,7 @@ export default {
     },
     mounted() {
         this.getAllPtypes();
-    },
-    created() {
-        // this.getAllPtypes();
+        this.$store.dispatch('fetchPtypes');
     },
     computed: {
         filteredPtypes() {
@@ -220,18 +218,19 @@ export default {
             const searchTerms = search.toLowerCase().split(' ');
             return searchTerms.every(term => title.includes(term));
         },
-        getAllPtypes(){
+        async getAllPtypes(){
             this.isLoading = true;
-            axios.get('/sadmin/ptypes')
-                .then((resp)=>{
-                    this.ptypes = resp.data.ptypes;
-                    let statuses = [...new Set(this.ptypes.map(item => item.product_type_status))];
-                    statuses = statuses.filter(status => status !== "Archived");
-                    this.pstatuses = ["All", ...statuses, "Archived"];
-                })
-                .finally(()=>{
-                    this.isLoading = false;
-                })
+            try {
+                await this.$store.dispatch('fetchPtypes');
+                this.ptypes = this.$store.state.productTypes;
+                let statuses = [...new Set(this.ptypes.map(item => item.product_type_status))];
+                statuses = statuses.filter(status => status !== "Archived");
+                this.pstatuses = ["All", ...statuses, "Archived"];
+            } catch (e) {
+                console.error("Failed to load productTypes", e);
+            } finally {
+                this.isLoading = false;
+            }
         },
         editPtype(){
             this.upLoading = true;
@@ -243,6 +242,7 @@ export default {
             axios.post('/sadmin/ptype/update',uptype)
                 .then((resp)=>{
                     this.editDialog = false;
+                    this.$store.commit('UPDATE_PRODUCT_TYPE',resp.data.ptype)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getAllPtypes();
@@ -275,6 +275,7 @@ export default {
             axios.post('/sadmin/ptype/update',nptype)
                 .then((resp)=>{
                     this.addDialog = false;
+                    this.$store.commit('ADD_PRODUCT_TYPE',resp.data.ptype)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getAllPtypes();
@@ -296,6 +297,7 @@ export default {
             axios.post('/sadmin/ptype/delete',deldata)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
+                    this.$store.commit('DELETE_PRODUCT_TYPE',deldata.product_type_id)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getAllPtypes();
