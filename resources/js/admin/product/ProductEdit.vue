@@ -1,22 +1,22 @@
 <template>
-    <div class="propage v-container">
-        <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
+    <v-container class="propage pa-2">
+        <v-row dense class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
             <v-col cols="12" md="6">
                 <h2 class="text-h6">
                     <v-btn link to="/products" icon variant="tonal" density="compact">
                         <v-icon>mdi-arrow-left</v-icon>
                     </v-btn>
-                    Edit Product <v-chip v-if="pro.archived" color="red" variant="outlined" density="compact" >Archived</v-chip>
+                    Edit {{productname}} <v-chip v-if="pro.archived" color="red" variant="outlined" density="compact" >Archived</v-chip>
                 </h2>
 <!--                <v-btn @click="generateAiContent" color="success" density="compact">Generate Content</v-btn>-->
             </v-col>
-            <v-col cols="12" md="6" class="text-end">
-                <v-btn :href="domain+'products/'+pro.handle" target="_blank" variant="tonal" class="text-none me-2"
+            <v-col cols="12" md="6" class="text-end d-flex ga-2 flex-wrap justify-center">
+                <v-btn :href="domain+'products/'+pro.handle" target="_blank" variant="tonal" class="text-none"
                        density="compact" title="Preview" color="grey-darken-1">Preview</v-btn>
                 <v-btn variant="outlined" @click="disCard" class="text-none me-2" density="compact" color="grey-darken-4">Discard</v-btn>
                 <v-menu>
                     <template v-slot:activator="{props}">
-                        <v-btn v-bind="props" variant="outlined" class="text-none me-2" append-icon="mdi-chevron-down"
+                        <v-btn v-bind="props" variant="outlined" class="text-none" append-icon="mdi-chevron-down"
                                density="compact">More Actions</v-btn>
                     </template>
                     <v-list nav density="compact">
@@ -34,7 +34,7 @@
                 <v-btn @click="editProductById" :loading="isLoading" :disabled="pro.archived || isLoading" color="grey-darken-4" density="compact" class="text-none" >Save</v-btn>
             </v-col>
         </v-row>
-        <v-row>
+        <v-row dense>
             <v-col cols="12" md="9">
                 <v-card class="border-sm">
                     <v-card-text>
@@ -754,7 +754,7 @@
                 </v-card>
             </v-dialog>
         </div>
-    </div>
+    </v-container>
 </template>
 <script>
 import {ref, toRaw} from 'vue';
@@ -982,8 +982,11 @@ export default {
             },
         }
     },
-    created() {
-        this.getProductByID();
+    async mounted() {
+        if (!this.$store.state.products.length) {
+            await this.$store.dispatch('fetchProducts')
+        }
+        this.getProductByID()
     },
     computed: {
         mbrands(){
@@ -1708,6 +1711,7 @@ export default {
             }
             axios.post('/sadmin/product/update/'+this.product_id,epro,uheaders)
                 .then((resp) => {
+                    this.$store.commit('UPDATE_PRODUCT',resp.data.product)
                     this.$store.dispatch('fetchShopResources')
                         .then(()=>{
                             this.getProductByID();
@@ -1733,11 +1737,13 @@ export default {
             }
             axios.post('/sadmin/product/delete/'+this.product_id,sdelete,uheaders)
                 .then((resp)=>{
+                    const now = new Date().toISOString()
+                    this.$store.commit('UPDATE_PRODUCT',{
+                        product_id: Number(this.product_id),
+                        deleted_at: now,
+                    })
+                    this.pro.archived = true
                     window.Toast.success(resp.data.message);
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getProductByID();
-                        })
                 })
                 .catch((err)=>{
                     window.Toast.error(err.message);
@@ -1751,11 +1757,11 @@ export default {
             }
             axios.post('/sadmin/product/delete/'+this.product_id,restore,uheaders)
                 .then((resp)=>{
+                    this.$store.commit('UPDATE_PRODUCT',{
+                        product_id: Number(this.product_id),
+                        deleted_at: null,
+                    })
                     window.Toast.success(resp.data.message);
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getProductByID();
-                        })
                     this.pro.archived = false;
                 })
                 .catch((err)=>{
@@ -1771,10 +1777,9 @@ export default {
             axios.post('/sadmin/product/delete/'+this.product_id,pdelete,uheaders)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
-                    // this.$store.dispatch('fetchShopResources')
-                    //     .then(()=>{
-                    //         this.getProductByID();
-                    //     })
+                    this.$store.commit('DELETE_PRODUCT',{
+                        product_id:Number(this.product_id)
+                    })
                     this.$router.push({name:'products'});
                 })
                 .catch((err)=>{
@@ -1814,6 +1819,7 @@ export default {
                 .then((resp)=>{
                     if(resp.data.success && resp.data.ptype){
                         const newType = resp.data.ptype;
+                        this.$store.commit('UPDATE_PRODUCT_TYPE',newType)
                         const exists = this.mptypes.some(pt => pt.product_type_id === newType.product_type_id);
                         if (!exists) {
                             this.mptypes.push(newType);
@@ -1852,6 +1858,7 @@ export default {
                 .then((resp)=>{
                     if(resp.data.success && resp.data.brand){
                         const newBrand = resp.data.brand;
+                        this.$store.commit('UPDATE_BRAND',newBrand)
                         const exists = this.mbrands.some(pt => pt.brand_id === newBrand.brand_id);
                         if (!exists) {
                             this.mbrands.push(newBrand);
@@ -1890,6 +1897,7 @@ export default {
                 .then((resp)=>{
                     if(resp.data.success && resp.data.tag){
                         const newTag = resp.data.tag;
+                        this.$store.commit('UPDATE_TAG',newTag)
                         const exists = this.mtags.some(tag => tag.tag_id === newTag.tag_id);
                         if (!exists) {
                             this.mtags.push(newTag);
@@ -2236,6 +2244,9 @@ export default {
             }
             axios.post('/sadmin/product/bulk/update',uprice)
                 .then((resp)=>{
+                    this.$store.commit('UPDATE_PRODUCT', {
+                        product_id:Number(this.product_id)
+                    })
                     window.Toast.success(resp.data.message);
                     this.getProductByID();
                     this.selectedVariants = [];
@@ -2251,6 +2262,9 @@ export default {
             }
             axios.post('/sadmin/product/bulk/update',uqty)
                 .then((resp)=>{
+                    this.$store.commit('UPDATE_PRODUCT', {
+                        product_id:Number(this.product_id)
+                    })
                     window.Toast.success(resp.data.message);
                     this.getProductByID();
                     this.selectedVariants = [];
@@ -2260,7 +2274,6 @@ export default {
         }
     }
 }
-
 </script>
 
 <style scoped>

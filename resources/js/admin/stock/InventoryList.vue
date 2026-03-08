@@ -1,48 +1,19 @@
 <template>
-    <v-container fluid>
-        <v-row>
-            <v-col cols="12" md="6">
+    <v-container class="pa-2">
+        <v-row dense>
+            <v-col cols="6" md="6">
                 <span class="text-h6">Inventory</span></v-col>
-            <v-col cols="12" md="6" class="text-end">
+            <v-col cols="6" md="6" class="text-end">
                 <v-btn class="text-none" size="small" color="grey-darken-4">Export Stock</v-btn>
             </v-col>
             <v-col cols="12">
                 <v-card flat class="border">
-                    <v-toolbar density="default" height="44" color="white">
+                    <div class="d-flex px-2 py-1">
                         <v-tabs v-model="status" color="primary" density="compact" show-arrows class="w-100">
                             <v-tab v-for="(stat, index) in prostatus" :key="index" :value="stat" class="text-none">
                                 {{ stat }}
                             </v-tab>
                         </v-tabs>
-                        <v-slide-group density="compact" class="w-100" show-arrows>
-                            <v-spacer></v-spacer>
-                            <v-btn variant="text" class="text-none ma-1" density="compact">
-                                <v-icon>mdi-plus</v-icon>
-                            </v-btn>
-                            <v-btn variant="outlined" class="text-none ma-1" density="compact">
-                                <v-icon>mdi-magnify</v-icon>
-                                <v-icon>mdi-sort-variant</v-icon>
-                            </v-btn>
-                            <v-btn variant="outlined" class="text-none ma-1" density="compact" min-width="28" max-width="28">
-                                <v-icon>mdi-sort</v-icon>
-                            </v-btn>
-                        </v-slide-group>
-                    </v-toolbar>
-
-                    <div class="px-2 py-2 d-flex">
-                        <v-text-field v-model="psearch" class="w-50" variant="outlined" density="compact" clearable hide-details
-                                      placeholder="Searching all Products"
-                                      prepend-inner-icon="mdi-magnify"
-                        ></v-text-field>
-                        <v-autocomplete v-model="selectedType" class="mx-1" variant="outlined" density="compact" label="Type"
-                                        :items="protypes"
-                                        clearable hide-details />
-                        <v-autocomplete v-model="selectedBrand" class="mx-1" variant="outlined" density="compact" label="Brand"
-                                        :items="pbrands"
-                                        clearable hide-details />
-                        <v-autocomplete v-model="selectedTag" class="mx-1" variant="outlined" density="compact" label="Tag"
-                                        :items="atags"
-                                        clearable hide-details />
                         <v-menu>
                             <template v-slot:activator="{ props: menu }">
                                 <v-tooltip location="top">
@@ -66,6 +37,31 @@
                                 <v-list-item title="Z-A" />
                             </v-list>
                         </v-menu>
+                    </div>
+                    <div class="px-2 py-2">
+                        <v-row dense>
+                            <v-col cols="12" md="6">
+                                <v-text-field v-model="psearch" class="w-100" variant="outlined" density="compact" clearable hide-details
+                                              placeholder="Searching all Products"
+                                              prepend-inner-icon="mdi-magnify"
+                                ></v-text-field>
+                            </v-col>
+                            <v-col cols="12" md="2">
+                                <v-autocomplete v-model="selectedType" variant="outlined" density="compact" label="Type"
+                                                :items="protypes"
+                                                clearable hide-details />
+                            </v-col>
+                            <v-col cols="12" md="2">
+                                <v-autocomplete v-model="selectedBrand" variant="outlined" density="compact" label="Brand"
+                                                :items="pbrands"
+                                                clearable hide-details />
+                            </v-col>
+                            <v-col cols="12" md="2">
+                                <v-autocomplete v-model="selectedTag" variant="outlined" density="compact" label="Tag"
+                                                :items="atags"
+                                                clearable hide-details />
+                            </v-col>
+                        </v-row>
                     </div>
                     <div>
                         <v-data-table :items="filteredPros" :headers="prosHeaders" density="comfortable"
@@ -227,30 +223,29 @@ export default {
             // Return true only if all search terms are found somewhere in the title
             return searchTerms.every(term => title.includes(term));
         },
-        getAllPros(){
+        async getAllPros(){
             this.isLoading = true;
-            axios.get('/sadmin/inventory')
-                .then((resp)=>{
-                    console.log(resp.data);
-                    this.pros = resp.data.variants;
+            try {
+                await this.$store.dispatch('fetchInstocks');
+                this.pros = this.$store.state.instocks;
+                let statuses = [...new Set(this.pros.map(item => item.product_status))];
 
-                    let statuses = [...new Set(this.pros.map(item => item.product_status))];
+                // Remove "Archive" if already present
+                statuses = statuses.filter(status => status !== "Archived");
 
-                    // Remove "Archive" if already present
-                    statuses = statuses.filter(status => status !== "Archived");
+                // Add "All" at the beginning and "Archive" at the end
+                this.prostatus = ["All", ...statuses, "Archived"];
+                this.protypes = [...new Set(this.pros.map(p => p.product_type_name))];
+                this.pbrands = [...new Set(this.pros.map(p => p.brand_name))];
 
-                    // Add "All" at the beginning and "Archive" at the end
-                    this.prostatus = ["All", ...statuses, "Archived"];
-                    this.protypes = [...new Set(this.pros.map(p => p.product_type_name))];
-                    this.pbrands = [...new Set(this.pros.map(p => p.brand_name))];
-
-                    const allTags = this.pros.flatMap(p => Array.isArray(p.tags) ? p.tags : []);
-                    // Remove duplicates
-                    this.atags = [...new Set(allTags)];
-                })
-                .finally(()=>{
-                    this.isLoading = false;
-                })
+                const allTags = this.pros.flatMap(p => Array.isArray(p.tags) ? p.tags : []);
+                // Remove duplicates
+                this.atags = [...new Set(allTags)];
+            } catch (e) {
+                console.error("Failed to load Inventory", e);
+            } finally {
+                this.isLoading = false;
+            }
         },
         updateStock(){
             const ustock = {
@@ -265,12 +260,11 @@ export default {
             }
             axios.post('/sadmin/inventory/update',ustock)
                 .then((respo)=>{
-                    console.log(respo.data);
+                    this.$store.commit('UPDATE_INSTOCK',respo.data.stock)
                     this.editDialog = false;
                     this.adjust = 0;
                     this.getAllPros();
                 })
-            console.log('ustock',ustock);
         },
         editItem(item){
             this.editedIndex = this.pros.indexOf(item);

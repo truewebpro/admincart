@@ -1,6 +1,6 @@
 <template>
-    <v-container fluid>
-        <v-row>
+    <v-container fluid class="pa-2">
+        <v-row dense>
             <v-col cols="3" md="6">
                 <span class="text-h6">Products</span>
             </v-col>
@@ -45,7 +45,7 @@
                             </v-menu>
                         </v-col>
                     </v-row>
-                    <v-row dense class="py-2 px-2">
+                    <v-row dense class="pb-2 px-2">
                         <v-col cols="12" md="6">
                             <v-text-field v-model="psearch" class="w-100" variant="outlined" density="compact" clearable hide-details
                                           placeholder="Searching all Products"
@@ -53,17 +53,17 @@
                             ></v-text-field>
                         </v-col>
                         <v-col cols="12" md="2">
-                            <v-autocomplete v-model="selectedType" class="mx-1" variant="outlined" density="compact" label="Type"
+                            <v-autocomplete v-model="selectedType" variant="outlined" density="compact" label="Type"
                                             :items="protypes"
                                             clearable hide-details />
                         </v-col>
                         <v-col cols="12" md="2">
-                            <v-autocomplete v-model="selectedBrand" class="mx-1" variant="outlined" density="compact" label="Brand"
+                            <v-autocomplete v-model="selectedBrand" variant="outlined" density="compact" label="Brand"
                                             :items="pbrands"
                                             clearable hide-details />
                         </v-col>
                         <v-col cols="12" md="2">
-                            <v-autocomplete v-model="selectedTag" class="mx-1" variant="outlined" density="compact" label="Tag"
+                            <v-autocomplete v-model="selectedTag" variant="outlined" density="compact" label="Tag"
                                             :items="atags"
                                             clearable hide-details />
                         </v-col>
@@ -126,8 +126,8 @@
                                 <v-img v-else :src="cdn+'noimage.png'" lazy-src="https://dummyimage.com/150x150/efe6f2/01010a.png&text=No+Image" max-width="40"></v-img>
                             </template>
                             <template v-slot:item.product_status="{item}">
-                                <v-chip size="small" class="bg-light-green-accent-1 text-black"  v-if="item.product_status === 'Active'">{{item.product_status}}</v-chip>
-                                <v-chip size="small" v-else>{{item.product_status}}</v-chip>
+                                <v-chip size="small" class="bg-light-green-accent-1 text-black"  v-if="item.display_status === 'Active'">{{item.display_status}}</v-chip>
+                                <v-chip size="small" v-else>{{item.display_status}}</v-chip>
                             </template>
                             <template v-slot:item.astock_sum_quantity="{item}">
                                 <div v-if="item.astock_sum_quantity > 0">{{ item.astock_sum_quantity }} in stock
@@ -286,7 +286,8 @@ export default {
     computed: {
         filteredPros() {
             let filtered = this.pros.filter((p) => {
-                const matchStatus = this.status === "All" || p.product_status === this.status;
+                const status = p.display_status || p.product_status
+                const matchStatus = this.status === "All" || status === this.status;
                 const matchType = !this.selectedType || p.ptype?.product_type_name === this.selectedType;
                 const matchBrand = !this.selectedBrand || p.brand?.brand_name === this.selectedBrand;
                 const matchTag = !this.selectedTag || (p.tags && p.tags.includes(this.selectedTag));
@@ -296,16 +297,16 @@ export default {
             // Sort the filtered list
             if (this.sortKey) {
                 filtered = filtered.sort((a, b) => {
-                    const aVal = this.getSortValue(a, this.sortKey).toString();
-                    const bVal = this.getSortValue(b, this.sortKey).toString();
+                    const aVal = this.getSortValue(a, this.sortKey) ?? ""
+                    const bVal = this.getSortValue(b, this.sortKey) ?? ""
 
                     if (typeof aVal === 'number' && typeof bVal === 'number') {
                         return this.sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
                     }
 
                     return this.sortDirection === 'asc'
-                        ? aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' })
-                        : bVal.toString().localeCompare(aVal.toString(), undefined, { sensitivity: 'base' });
+                        ? String(aVal).localeCompare(String(bVal), undefined, { sensitivity: "base" })
+                        : String(bVal).localeCompare(String(aVal), undefined, { sensitivity: "base" })
                 });
             }
 
@@ -352,32 +353,27 @@ export default {
             // Return true only if all search terms are found somewhere in the title
             return searchTerms.every(term => title.includes(term));
         },
-        getAllPros(){
+        async getAllPros(){
             this.isLoading = true;
-            axios.get('/sadmin/pros')
-                .then((resp)=>{
-                    this.pros = resp.data.products;
-                    // Inject "Archived" if deleted_at is not null
-                    this.pros = this.pros.map((item) => {
-                        if (item.deleted_at !== null) {
-                            return {...item, product_status: "Archived"};
-                        }
-                        return item;
-                    });
-
-                    let statuses = [...new Set(this.pros.map(item => item.product_status))];
-
-                    statuses = statuses.filter(status => status !== "Archived");
-
-                    this.prostatus = ["All", ...statuses, "Archived"];
-                    this.protypes = [...new Set(this.pros.map(p => p.ptype.product_type_name))];
-                    this.pbrands = [...new Set(this.pros.map(p => p.brand.brand_name))];
-                    const allTags = resp.data.products.flatMap(p => Array.isArray(p.tags) ? p.tags : []);
-                    this.atags = [...new Set(allTags)];
-                })
-                .finally(()=>{
-                    this.isLoading = false;
-                })
+            try {
+                await this.$store.dispatch('fetchProducts');
+                let apros = this.$store.state.products;
+                this.pros = apros;
+                this.pros = apros.map(item => ({
+                    ...item,
+                    display_status: item.deleted_at ? "Archived" : item.product_status
+                }));
+                let statuses = [...new Set(this.pros.map(item => item.display_status))];
+                this.prostatus = ["All", ...statuses];
+                this.protypes = [...new Set(apros.map(p => p.ptype.product_type_name))];
+                this.pbrands = [...new Set(apros.map(p => p.brand.brand_name))];
+                const allTags = apros.flatMap(p => Array.isArray(p.tags) ? p.tags : []);
+                this.atags = [...new Set(allTags)];
+            } catch (e) {
+                console.error("Failed to load products", e);
+            } finally {
+                this.isLoading = false;
+            }
         },
         archiveProducts(){
             const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
@@ -389,6 +385,9 @@ export default {
             }
             axios.post('/sadmin/products/bulk-delete',sdeletes,uheaders)
                 .then((resp)=>{
+                    this.$store.commit('UPDATE_PRODUCTS_STATUS',{
+                        ids: productIds,
+                    })
                     window.Toast.success(resp.data.message);
                     this.selectedPros = [];
                     this.getAllPros();
@@ -400,7 +399,6 @@ export default {
         deleteProducts(){
             const confirmed = window.confirm("Are you sure you want to permanently delete the selected products?");
             if (!confirmed) return;
-
             const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
             const productIds = this.selectedPros.map(p => p.product_id);
             const perdeletes = {
@@ -409,6 +407,7 @@ export default {
             }
             axios.post('/sadmin/products/bulk-delete',perdeletes,uheaders)
                 .then((resp)=>{
+                    this.$store.commit('DELETE_PRODUCTS', {ids: productIds})
                     window.Toast.success(resp.data.message);
                     this.selectedPros = [];
                     this.getAllPros();
@@ -429,6 +428,10 @@ export default {
             }
             axios.post('/sadmin/products/bulk-tag-add',atags,uheaders)
                 .then((resp)=>{
+                    this.$store.commit('ADD_TAGS_TO_PRODUCTS',{
+                        ids:productIds,
+                        tags:this.seltags
+                    })
                     window.Toast.success(resp.data.message);
                     this.closeTag();
                     this.getAllPros();
@@ -445,6 +448,10 @@ export default {
             }
             axios.post('/sadmin/products/bulk-tag-add',rtags,uheaders)
                 .then((resp)=>{
+                    this.$store.commit('REMOVE_TAGS_FROM_PRODUCTS',{
+                        ids:productIds,
+                        tags:this.seltags
+                    })
                     window.Toast.success(resp.data.message);
                     this.closeTag();
                     this.getAllPros();
@@ -457,19 +464,21 @@ export default {
             window.open(url, '_blank');
         },
         uploadProducts() {
-            const file = this.ipros;
-
             const ufile = new FormData();
-            ufile.append('file', file);
+            ufile.append('file', this.ipros);
             ufile.append('shop_id', this.$store.state.shop.shop_id);
-
             axios.post('/sadmin/products/import', ufile, {
                 headers: { 'Content-Type': 'multipart/form-data' }
-            }).then(resp => {
-                console.log('Imported:', resp.data);
+            }).then(async resp => {
+                window.Toast.success(resp.data.message)
                 this.uploadDialog = false;
-                this.getAllPros();
-            });
+                this.ipros = null;
+                await this.$store.dispatch('fetchProducts',true);
+            })
+                .catch(err=>{
+                    window.Toast.error("Import failed")
+                    console.error(err)
+                })
         },
         closeUpload(){
             this.uploadDialog= false;

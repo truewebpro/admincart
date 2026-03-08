@@ -16,6 +16,10 @@ const store = createStore({
         poptionsLoaded: false,
         cats: [],
         catsLoaded: false,
+        instocks:[],
+        instocksLoaded:false,
+        products:[],
+        productsLoaded:false,
     },
     mutations:{
         SET_SHOP(state, shop){
@@ -122,6 +126,73 @@ const store = createStore({
         DELETE_CAT(state, cat_id){
             state.cats = state.cats.filter(c => c.cat_id !== cat_id)
         },
+        SET_INVENTORY(state,instocks){
+            state.instocks = instocks
+            state.instocksLoaded = true
+        },
+        UPDATE_INSTOCK(state,updatedInstock){
+            const index = state.instocks.findIndex(st => st.variant_id = updatedInstock.variant_id)
+            if(index !== -1){
+                state.instocks[index] = {...state.instocks[index], ...updatedInstock}
+            }
+        },
+
+        SET_PRODUCTS(state,products){
+            state.products = products
+            state.productsLoaded = true
+        },
+        UPDATE_PRODUCT(state, updatedProduct) {
+            const index = state.products.findIndex(
+                p => p.product_id === updatedProduct.product_id
+            )
+            if (index !== -1) {
+                state.products[index] = {
+                    ...state.products[index],
+                    ...updatedProduct
+                }
+            }
+        },
+        UPDATE_PRODUCTS_STATUS(state, { ids }) {
+            state.products = state.products.map(p => {
+                if (ids.includes(p.product_id)) {
+                    return { ...p,deleted_at: new Date().toISOString(), product_status: "Archived" }
+                }
+                return p
+            })
+        },
+        ADD_PRODUCT(state,product){
+            state.products.unshift(product)
+        },
+        ADD_TAGS_TO_PRODUCTS(state, { ids, tags }) {
+            state.products = state.products.map(p => {
+                if (ids.includes(p.product_id)) {
+                    const existing = Array.isArray(p.tags) ? p.tags : []
+                    return {
+                        ...p,
+                        tags: [...new Set([...existing, ...tags])]
+                    }
+                }
+                return p
+            })
+        },
+        REMOVE_TAGS_FROM_PRODUCTS(state, { ids, tags }) {
+            state.products = state.products.map(p => {
+                if (ids.includes(p.product_id)) {
+                    return {
+                        ...p,
+                        tags: p.tags.filter(t => !tags.includes(t))
+                    }
+                }
+                return p
+            })
+        },
+        DELETE_PRODUCT(state,product_id){
+            state.products = state.products.filter(pro => pro.product_id !== product_id)
+        },
+        DELETE_PRODUCTS(state, ids) {
+            state.products = state.products.filter(p => !ids.includes(p.product_id))
+        },
+
         SET_USER(state, user){
             state.user = user
             localStorage.setItem('user', JSON.stringify(user))
@@ -140,6 +211,7 @@ const store = createStore({
         product_types: state => state.productTypes,
         poptions: state => state.poptions,
         cats: state => state.cats,
+        instocks:state => state.instocks,
     },
     actions:{
         async fetchBrands({state,commit},force = false){
@@ -185,6 +257,24 @@ const store = createStore({
                 commit('SET_CATS', resp.data.cats)
             } catch (e) {
                 console.error('Failed to fetch categories', e)
+            }
+        },
+        async fetchInstocks({state,commit},force = false){
+            if(state.instocksLoaded && !force) return
+            try {
+                const resp = await axios.get('/sadmin/inventory')
+                commit('SET_INVENTORY',resp.data.variants);
+            } catch (e) {
+                console.error('Failed to fetch Instocks', e)
+            }
+        },
+        async fetchProducts({state,commit},force = false){
+            if(state.productsLoaded && !force) return
+            try {
+                const resp = await axios.get('/sadmin/pros')
+                commit('SET_PRODUCTS',resp.data.products);
+            } catch (e) {
+                console.error('Failed to fetch products', e)
             }
         },
         async fetchShopResources({ dispatch, state }) {

@@ -970,6 +970,7 @@ class HomeController extends Controller
                 'success' => true,
                 'message' => 'Product updated successfully',
                 'product_id' => $product_id,
+                'product' => $product,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
