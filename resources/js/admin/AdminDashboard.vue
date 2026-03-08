@@ -2,7 +2,7 @@
     <v-container>
         <v-row align="stretch">
             <v-col cols="12" md="8">
-                <v-card class="position-relative overflow-visible mt-16 elevation-6 rounded-lg">
+                <v-card class="position-relative overflow-visible elevation-6 rounded-lg h-100">
                     <v-card-text>
                         <div class="d-flex">
                             <div class="w-75 d-flex flex-column justify-space-between">
@@ -19,31 +19,104 @@
                     </v-card-text>
                 </v-card>
             </v-col>
-            <v-col cols="12" md="2">
-                <v-card class="h-100 elevation-6 rounded-lg">
-                    <v-card-title>Revenue <v-icon>mdi-credit-card-wireless-outline</v-icon></v-card-title>
-                    <v-card-text>
-                        <div>+16% <v-icon>mdi-arrow-up-thin</v-icon></div>
-                        <div class="text-h6">£{{paidRev.toFixed(2)}}</div>
-                        <div class="font-weight-bold">Paid</div>
-                        <div class="text-h6">£{{pendingRev.toFixed(2)}}</div>
-                        <div class="font-weight-bold">Pending</div>
+            <v-col cols="12" md="4">
+                <v-card class="h-100 elevation-6 rounded-lg d-flex flex-column">
+                    <v-card-item
+                        title="Revenue"
+                        :subtitle="('Total £'+ paidRev.toFixed(2) + ' Growth this month' )"
+                        append-icon="mdi-finance"></v-card-item>
+                    <v-card-text class="d-flex align-center">
+                        <div class="d-flex align-center ga-3">
+                            <v-avatar icon="mdi-progress-check" class="bg-success rounded"></v-avatar>
+                            <div class="d-flex flex-column">
+                                <div class="text-body-1 text-medium-emphasis">Paid</div>
+                                <h5 class="text-h5 font-weight-medium">£{{paidRev.toFixed(2)}}</h5>
+                            </div>
+                        </div>
+                        <v-spacer/>
+                        <div class="d-flex align-center ga-3">
+                            <v-avatar icon="mdi-progress-clock" class="bg-warning rounded"></v-avatar>
+                            <div class="d-flex flex-column">
+                                <div class="text-body-1 text-medium-emphasis">Pending</div>
+                                <h5 class="text-h5 font-weight-medium">£{{pendingRev.toFixed(2)}}</h5>
+                            </div>
+                        </div>
                     </v-card-text>
                 </v-card>
             </v-col>
-            <v-col cols="12" md="2">
-                <v-card class="h-100 elevation-6 rounded-lg">
-                    <v-card-title>Orders <v-icon>mdi-list-box-outline</v-icon></v-card-title>
-                    <v-card-text>
-                        <div>+16% <v-icon>mdi-arrow-up-thin</v-icon></div>
-                        <div>
-                            <div class="text-h6">{{shippedOrd}}</div>
-                            <div class="font-weight-bold">Shipped</div>
+            <v-col cols="12" md="4">
+                <v-card class="h-100 elevation-6 rounded-lg d-flex flex-column">
+                    <v-card-item
+                        title="Orders"
+                        :subtitle="('Total £'+ paidRev.toFixed(2) + ' Growth this month' )"
+                        append-icon="mdi-truck-fast-outline"></v-card-item>
+                    <v-card-text class="d-flex align-center">
+                        <div class="d-flex align-center ga-3">
+                            <v-avatar icon="mdi-truck-check" class="bg-success rounded"></v-avatar>
+                            <div class="d-flex flex-column">
+                                <div class="text-body-1 text-medium-emphasis">Shipped</div>
+                                <h5 class="text-h5 font-weight-medium">{{shippedOrd}}</h5>
+                            </div>
                         </div>
-                        <div>
-                            <div class="text-h6">{{pendingOrd}}</div>
-                            <div class="font-weight-bold">Pending</div>
+                        <v-spacer/>
+                        <div class="d-flex align-center ga-3">
+                            <v-avatar icon="mdi-truck-delivery" class="bg-warning rounded"></v-avatar>
+                            <div class="d-flex flex-column">
+                                <div class="text-body-1 text-medium-emphasis">Pending</div>
+                                <h5 class="text-h5 font-weight-medium">{{pendingOrd}}</h5>
+                            </div>
                         </div>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-btn block color="success" variant="tonal" append-icon="mdi-send" density="compact">View Orders</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-col>
+            <v-col cols="12" md="8">
+                <v-card class="h-100 elevation-6 rounded-lg d-flex flex-column">
+                    <v-card-item
+                        title="Transactions"
+                        subtitle="Total 48.5% Growth 😎 this month "
+                        append-icon="mdi-credit-card-wireless-outline"></v-card-item>
+                    <v-card-text class="d-flex align-end">
+                        <v-row>
+                            <v-col cols="12" md="3">
+                                <div class="d-flex align-center ga-3">
+                                    <v-avatar icon="mdi-finance" class="bg-primary rounded"></v-avatar>
+                                    <div class="d-flex flex-column">
+                                        <div class="text-body-1 text-medium-emphasis">Sales</div>
+                                        <h5 class="text-h5 font-weight-medium">£{{paidRev.toFixed(2)}}</h5>
+                                    </div>
+                                </div>
+                            </v-col>
+                            <v-col cols="12" md="3">
+                                <div class="d-flex align-center ga-3">
+                                    <v-avatar icon="mdi-account-group" class="bg-success rounded"></v-avatar>
+                                    <div class="d-flex flex-column">
+                                        <div class="text-body-1 text-medium-emphasis">Customers</div>
+                                        <h5 class="text-h5 font-weight-medium">{{custNew}}</h5>
+                                    </div>
+                                </div>
+                            </v-col>
+                            <v-col cols="12" md="3">
+                                <div class="d-flex align-center ga-3">
+                                    <v-avatar icon="mdi-cart-arrow-down" class="bg-info rounded"></v-avatar>
+                                    <div class="d-flex flex-column">
+                                        <div class="text-body-1 text-medium-emphasis">Products</div>
+                                        <h5 class="text-h5 font-weight-medium">{{productsCount}}</h5>
+                                    </div>
+                                </div>
+                            </v-col>
+                            <v-col cols="12" md="3">
+                                <div class="d-flex align-center ga-3">
+                                    <v-avatar icon="mdi-chart-timeline-variant-shimmer" class="bg-green rounded"></v-avatar>
+                                    <div class="d-flex flex-column">
+                                        <div class="text-body-1 text-medium-emphasis">Revenue</div>
+                                        <h5 class="text-h5 font-weight-medium">£{{(pendingRev + paidRev).toFixed(2)}} </h5>
+                                    </div>
+                                </div>
+                            </v-col>
+                        </v-row>
                     </v-card-text>
                 </v-card>
             </v-col>
@@ -90,16 +163,7 @@
                 </v-card>
             </v-col>
         </v-row>
-        <v-row dense>
-            <v-col cols="12" md="6">
-                <span class="text-h6">Welcome {{suser.name}}</span>
-            </v-col>
-            <v-col cols="12" md="6" class="text-end d-flex ga-3 align-center">
-                <v-autocomplete item-title="shop_name" density="compact"
-                                variant="underlined" hide-details
-                                label="Shop Name"></v-autocomplete>
-                Role :  <v-btn density="comfortable" color="success">Role</v-btn>
-            </v-col>
+        <v-row dense class="d-none">
             <v-col cols="12" md="3">
                 <v-card color="indigo" variant="flat" elevation="1" class="grad rounded-lg">
                     <v-card-title class="d-flex justify-space-between">

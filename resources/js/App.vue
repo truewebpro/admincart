@@ -162,7 +162,7 @@ export default {
             this.$store.commit('SET_BRANDS', brands.data.brands)
             this.$store.commit('SET_PRODUCT_TYPES', productTypes.data.ptypes)
             this.$store.commit('SET_TAGS', tags.data.tags)
-            this.$store.commit('SET_POPTIONS', poptions.data)
+            this.$store.commit('SET_POPTIONS', poptions.data.poptions)
             this.$store.commit('SET_CATS',cats.data.cats)
         },
     }
