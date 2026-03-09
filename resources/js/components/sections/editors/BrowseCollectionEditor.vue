@@ -4,6 +4,9 @@
             v-model="localModel.stype_json.heading"
             label="Heading"
         />
+        <v-select v-model="localModel.stype_json.style" label="Style" density="compact" variant="underlined"
+                  :items="['style1','style1b','style2','style3','style4','style5','style5b','style6']" class="mb-2"
+                  hint="Style1 with Name shape & style1b transparent with button, Style2 With no Name Seen, Style3 with no Link, style4 links/name under image, style5 links/name in top & style5b bottom center of image, style6 shaped with link/name" persistent-hint></v-select>
         <SubtextEditor v-model="localModel.stype_json.subtext" />
         <v-row class="mt-4">
             <v-col cols="12" lg="4" v-for="(scat, sdx) in localModel.stype_json.scats" :key="sdx">

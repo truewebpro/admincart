@@ -260,7 +260,7 @@ class HomeController extends Controller
                 $constraint->aspectRatio();
             });
         } else {
-            $img = Image::make($file->getRealPath())->resize(1200, 1200, function ($constraint) {
+            $img = Image::make($file->getRealPath())->resize(1800, 1800, function ($constraint) {
                 $constraint->aspectRatio();
             });
         }
