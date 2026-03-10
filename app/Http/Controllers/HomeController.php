@@ -2407,6 +2407,24 @@ class HomeController extends Controller
 
     }
 
+    public function deleteAdminShipMethod(Request $request)
+    {
+        $shopId = session('shop_id');
+        $shipMethod = ShipMethod::where('ship_method_id','=',$request->ship_method_id)
+            ->where('shop_id','=',$shopId)
+            ->first();
+        if($shipMethod){
+            $shipMethod->delete();
+            return response()->json([
+                'success' => true,
+                'message'=> "Ship Method Deleted Successfully",
+                'shipMethod' => $shipMethod,
+            ]);
+        } else {
+            return response()->json(['success' => false,'message' => "Method not Found"]);
+        }
+    }
+
     public function getAdminShopPaymentMethods()
     {
         $shopId = session('shop_id');

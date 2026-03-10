@@ -1,6 +1,6 @@
 <template>
-    <div class="settings-shipping v-container">
-        <v-row class="row">
+    <v-container class="settings-shipping pa-2">
+        <v-row dense>
             <v-col cols="12" md="6">
                 <h2>
                     <v-icon>mdi-truck</v-icon>
@@ -11,7 +11,7 @@
 
             </v-col>
         </v-row>
-        <v-row>
+        <v-row dense>
             <v-col cols="12" md="6">
                 <v-card class="border-sm mb-3">
                     <v-card-title class="bg-grey-lighten-4 font-weight-medium">Fulfillment Location</v-card-title>
@@ -32,8 +32,11 @@
                                 <template #append>
                                     <v-btn v-if="item.price === 0" variant="text">Free</v-btn>
                                     <v-btn v-else variant="text">£{{item.price.toFixed(2)}}</v-btn>
-                                    <v-btn color="success" density="compact" variant="outlined"
-                                           @click.stop="editExistingMethod(item)">Edit</v-btn>
+                                    <v-btn color="green" density="comfortable" variant="outlined" icon size="small"
+                                           @click.stop="editExistingMethod(item)"><v-icon>mdi-pencil</v-icon></v-btn>
+                                    <v-btn v-if="index > 0" icon size="small" variant="outlined" class="ms-1"
+                                           density="comfortable" color="red"
+                                           @click.stop="delExistingMethod(item)"><v-icon>mdi-delete</v-icon></v-btn>
                                 </template>
                             </v-list-item>
                         </v-list>
@@ -114,6 +117,18 @@
                                 </v-card-text>
                             </v-card>
                         </v-dialog>
+                        <v-dialog v-model="dshipDialog" max-width="400">
+                            <v-card>
+                                <v-card-item title="Delete method" appendIcon="mdi-close"/>
+                                <v-card-text class="text-center">
+                                    Are you sure to delete <br/> {{editedItem.method}} £{{editedItem.price.toFixed(2)}}
+                                    <div class="text-end mt-3">
+                                        <v-btn @click="dshipDialog = false" color="red" variant="outlined" density="compact">Cancel</v-btn>
+                                        <v-btn @click="deleteExistingMethod" color="red" density="compact" class="ms-2">Delete</v-btn>
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-dialog>
                     </v-card-text>
                 </v-card>
             </v-col>
@@ -123,16 +138,30 @@
                         <v-icon>mdi-map-marker</v-icon>
                         Location
                     </v-card-title>
-                    <v-card-text>
-                            <div class="text-body-1 pt-2"><span class="font-weight-bold">Name: </span>{{location.location_name}}</div>
-                            <div class="text-body-1"><span class="font-weight-bold">Address: </span>{{location.location_address}}</div>
-                            <div class="text-body-1"><span class="font-weight-bold">Status: </span>{{location.location_status}}</div>
-                            <div class="text-body-1"><span class="font-weight-bold">Country: </span>{{location.country}}</div>
-                    </v-card-text>
+                    <v-table density="comfortable">
+                        <tbody>
+                        <tr>
+                            <th width="100">Name</th>
+                            <td>{{location.location_name}}</td>
+                        </tr>
+                        <tr>
+                            <th>Address</th>
+                            <td>{{location.location_address}}</td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td>{{location.location_status}}</td>
+                        </tr>
+                        <tr>
+                            <th>Country</th>
+                            <td>{{location.country}}</td>
+                        </tr>
+                        </tbody>
+                    </v-table>
                 </v-card>
             </v-col>
         </v-row>
-    </div>
+    </v-container>
 </template>
 <script>
 import axios from "axios";
@@ -144,6 +173,7 @@ export default {
             cdn:this.$store.state.cdn,
             ashipDialog:false,
             ushipDialog:false,
+            dshipDialog:false,
             location: {},
             couriers:[],
             ship_methods:[],
@@ -193,8 +223,12 @@ export default {
                 })
         },
         editExistingMethod(item){
-            console.log('items selected',item);
             this.ushipDialog = true;
+            this.getShipping();
+            this.editedItem = item;
+        },
+        delExistingMethod(item){
+            this.dshipDialog = true;
             this.getShipping();
             this.editedItem = item;
         },
@@ -206,6 +240,21 @@ export default {
                 .then((resp)=>{
                     window.Toast.success('Shipping Method Updated Successfully')
                     this.ushipDialog = false;
+                })
+                .catch((err)=>{
+                    window.Toast.error(err.message);
+                })
+                .finally(()=>{
+                    this.getShipping();
+                })
+        },
+        deleteExistingMethod(){
+            const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
+            const ddata = this.editedItem;
+            axios.post('/sadmin/settings/shipping/delete',ddata,uheaders)
+                .then((resp)=>{
+                    window.Toast.success(resp.data.message)
+                    this.dshipDialog = false;
                 })
                 .catch((err)=>{
                     window.Toast.error(err.message);

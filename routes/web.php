@@ -112,6 +112,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/shops/homebanners',[HomeController::class,'homeBanners']);
         Route::get('/settings/shipping',[HomeController::class,'shippingSettings']);
         Route::post('/settings/shipping/update',[HomeController::class,'updateOrAddAdminShipMethod']);
+        Route::post('/settings/shipping/delete',[HomeController::class,'deleteAdminShipMethod']);
         Route::get('/settings/payment/methods/list',[HomeController::class,'getAdminShopPaymentMethods']);
         Route::post('/settings/payment/method/update',[HomeController::class,'updateAdminPaymentMethod']);
         Route::get('/shop/preferences',[HomeController::class,'shopPreferences']);

@@ -1,6 +1,6 @@
 <template>
-    <v-container>
-        <v-row>
+    <v-container class="pa-2">
+        <v-row dense>
             <v-col cols="12" md="7">
                 <h2 class="text-h5 font-weight-medium mb-2">Company Information</h2>
                 <v-card>
