@@ -136,7 +136,7 @@ export default {
         return{
             countries:[],
             availableCountries:[
-                {name:'United Kingdom',isoCode:'GB'}
+                {name:"United Kingdom",isoCode:"GB"}
             ],
             states:[],
             cities:[],
@@ -228,11 +228,6 @@ export default {
         this.getShopBusiness();
     },
     methods:{
-        // getAllofThem(){
-        //     this.countries = Country.getCountryByCode('GB');
-        //     this.states = State.getStatesOfCountry('GB');
-        //     this.cities = City.getCitiesOfCountry('GB');
-        // },
         getShopBusiness(){
             axios.get('/sadmin/shop/business')
                 .then((resp)=>{
@@ -282,7 +277,7 @@ export default {
         async getPredictions(input) {
             try {
                 this.loading = true;
-                const resp = await axios.get(`/api/google/autocomplete?query=${encodeURIComponent(input)}`);
+                const resp = await axios.get(`/google/autocomplete?query=${encodeURIComponent(input)}`);
                 this.predictions = resp.data.predictions || [];
             } catch (err) {
                 console.error("Prediction error:", err);
@@ -297,7 +292,7 @@ export default {
         },
         async getPlaceDetails(placeId) {
             try {
-                const resp = await axios.get(`/api/google/details?place_id=${placeId}`);
+                const resp = await axios.get(`/google/details?place_id=${placeId}`);
                 const details = resp.data.result;
 
                 console.log("Full address details:", details);

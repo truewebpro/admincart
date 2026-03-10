@@ -212,6 +212,7 @@ const store = createStore({
         poptions: state => state.poptions,
         cats: state => state.cats,
         instocks:state => state.instocks,
+        products:state=> state.products,
     },
     actions:{
         async fetchBrands({state,commit},force = false){

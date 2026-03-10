@@ -202,7 +202,7 @@ export default{
         hideOrShowSection(section){
             this.selectedSection = JSON.parse(JSON.stringify(section));
             const section_id = this.selectedSection.section_id;
-            axios.post(`/api/sadmin/homepage/section/hideorshow/${section_id}`)
+            axios.post(`/sadmin/homepage/section/hideorshow/${section_id}`)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
                     this.fetchCartpage();
@@ -217,7 +217,7 @@ export default{
         moveUp(section){
             this.selectedSection = JSON.parse(JSON.stringify(section));
             const section_id = this.selectedSection.section_id;
-            axios.post(`/api/sadmin/homepage/section/moveup/${section_id}`)
+            axios.post(`/sadmin/homepage/section/moveup/${section_id}`)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
                     this.fetchCartpage();
@@ -232,7 +232,7 @@ export default{
         moveDown(section){
             this.selectedSection = JSON.parse(JSON.stringify(section));
             const section_id = this.selectedSection.section_id;
-            axios.post(`/api/sadmin/homepage/section/movedown/${section_id}`)
+            axios.post(`/sadmin/homepage/section/movedown/${section_id}`)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
                     this.fetchCartpage();
@@ -246,7 +246,7 @@ export default{
         },
         async updateSection(updated) {
             try {
-                await axios.post(`/api/sadmin/homepage/section/update/${updated.section_id}`, {
+                await axios.post(`/sadmin/homepage/section/update/${updated.section_id}`, {
                     section_json: updated.section_json,
                     sort_order: updated.sort_order,
                     section_status: updated.section_status
@@ -272,7 +272,7 @@ export default{
                 // sort_order:1,
                 // selected_item:this.selectToAdd.stype_id
             }
-            axios.post('/api/sadmin/cartpage/section/add/new',sdata)
+            axios.post('/sadmin/cartpage/section/add/new',sdata)
                 .then((resp)=>{
                     this.fetchCartpage();
                     window.Toast.success('section added successfully')

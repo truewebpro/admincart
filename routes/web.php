@@ -1,10 +1,38 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\HomeController;
 
 Route::get('/', function () {
     return view('auth.login');
+});
+
+Route::get('/google/autocomplete',function (Request $request){
+    $input = $request->input('query');
+    if (empty($input)) {
+        return response()->json(['error' => 'Missing input'], 400);
+    }
+    $apiKey = 'AIzaSyD1cGNhJz2BiG4oODjDAkfOH__dxXC_N10';
+    $url = "https://maps.googleapis.com/maps/api/place/autocomplete/json";
+    $response = Http::get($url, [
+        'input' => $input,
+        'types' => 'address',
+        'components' => 'country:gb',
+        'key' => $apiKey,
+    ]);
+    return $response->json();
+});
+Route::get('/google/details', function (Request $request) {
+    $apiKey = "AIzaSyD1cGNhJz2BiG4oODjDAkfOH__dxXC_N10";
+    $placeId = $request->query('place_id');
+    $url = "https://maps.googleapis.com/maps/api/place/details/json";
+    $response = Http::get($url,[
+        'place_id' => $placeId,
+        'key' => $apiKey,
+    ]);
+    return $response->json();
 });
 
 Auth::routes();

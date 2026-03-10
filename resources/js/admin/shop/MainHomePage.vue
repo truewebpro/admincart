@@ -278,7 +278,7 @@ export default {
                 // sort_order:1,
                 // selected_item:this.selectToAdd.stype_id
             }
-            axios.post('/api/sadmin/homepage/section/add/new',sdata)
+            axios.post('/sadmin/homepage/section/add/new',sdata)
                 .then((resp)=>{
                     this.fetchHomepage();
                     window.Toast.success('section added successfully')

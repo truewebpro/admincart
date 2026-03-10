@@ -310,11 +310,9 @@ export default{
             weight:0.500,
             weightUnit:"kg",
             optionValues: "",
-            availableOptions: [],
             weight_units:['kg','g'],
             prostatus:['Active','Draft'],
             protemplates:['Default','Template 1','Template 2'],
-            poptions:[],
             location:{},
             npro:{
                 prodname:"",
@@ -355,6 +353,9 @@ export default{
         },
         ptypes(){
             return this.$store.state.productTypes;
+        },
+        poptions(){
+            return this.$store.state.poptions;
         },
         optionInputsTrimmed() {
             return this.optionValueInputs.map(v => (v ?? '').trim());
@@ -426,7 +427,7 @@ export default{
             ];
         },
         filteredOptions() {
-            return this.availableOptions.filter(option => {
+            return this.poptions.filter(option => {
                 return (
                     option.option_name === this.selectedOption || !this.variants.hasOwnProperty(option.option_name)
                 );
@@ -539,8 +540,6 @@ export default{
         getProDetails(){
             axios.get('/sadmin/pros/new')
                 .then((resp)=>{
-                    this.poptions = resp.data.poptions;
-                    this.availableOptions = resp.data.poptions;
                     this.location = resp.data.location;
                 });
         },
@@ -647,6 +646,7 @@ export default{
             }
             axios.post('/sadmin/product/new',nprod,uheaders)
                 .then((resp)=>{
+                    this.$store.commit('ADD_PRODUCT',resp.data.product);
                     window.Toast.success(resp.data.message);
                     this.$router.push({name:'productview',params:{product_id:resp.data.product_id}});
                 })
@@ -685,10 +685,11 @@ export default{
                 .then((resp)=>{
                     if(resp.data.success && resp.data.ptype){
                         const newType = resp.data.ptype;
-                        const exists = this.ptypes.some(pt => pt.product_type_id === newType.product_type_id);
-                        if (!exists) {
-                            this.ptypes.push(newType);
-                        }
+                        this.$store.commit('ADD_PRODUCT_TYPE',newType);
+                        // const exists = this.ptypes.some(pt => pt.product_type_id === newType.product_type_id);
+                        // if (!exists) {
+                        //     this.ptypes.push(newType);
+                        // }
                         this.npro.product_type_id = newType.product_type_id;
                         this.typedPtype = '';
                         const inputEl = this.$refs.ptypeInputRef?.$el?.querySelector('input');
@@ -723,10 +724,11 @@ export default{
                 .then((resp)=>{
                     if(resp.data.success && resp.data.brand){
                         const newBrand = resp.data.brand;
-                        const exists = this.pbrands.some(pt => pt.brand_id === newBrand.brand_id);
-                        if (!exists) {
-                            this.pbrands.push(newBrand);
-                        }
+                        this.$store.commit('ADD_BRAND',newBrand);
+                        // const exists = this.pbrands.some(pt => pt.brand_id === newBrand.brand_id);
+                        // if (!exists) {
+                        //     this.pbrands.push(newBrand);
+                        // }
                         this.npro.brand_id = newBrand.brand_id;
                         this.typedBrand = '';
                         const inputEl = this.$refs.brandInputRef?.$el?.querySelector('input');
@@ -761,13 +763,14 @@ export default{
                 .then((resp)=>{
                     if(resp.data.success && resp.data.tag){
                         const newTag = resp.data.tag;
-                        const exists = this.ptags.some(tag => tag.tag_id === newTag.tag_id);
-                        if (!exists) {
-                            this.ptags.push(newTag);
-                        }
-                        if (!this.npro.tags.includes(newTag.tag_name)) {
-                            this.npro.tags.push(newTag.tag_name);
-                        }
+                        this.$store.commit('ADD_TAG',newTag);
+                        // const exists = this.ptags.some(tag => tag.tag_id === newTag.tag_id);
+                        // if (!exists) {
+                        //     this.ptags.push(newTag);
+                        // }
+                        // if (!this.npro.tags.includes(newTag.tag_name)) {
+                        //     this.npro.tags.push(newTag.tag_name);
+                        // }
                         this.typedTag = '';
                         const inputEl = this.$refs.tagInputRef?.$el?.querySelector('input');
                         if (inputEl) inputEl.value = '';

@@ -164,7 +164,7 @@ export default {
                 setting:this.editedItem.setting,
                 status:this.editedItem.status,
             }
-            axios.post('/api/sadmin/announcement/update',udata)
+            axios.post('/sadmin/announcement/update',udata)
                 .then((resp)=>{
                     this.getAllAnnouncements();
                     window.Toast.success("Announcement Updated Successfully");
@@ -176,7 +176,7 @@ export default {
                 mname:'delete',
                 announcement_id:this.editedItem.announcement_id,
             }
-            axios.post('/api/sadmin/announcement/update',ddata)
+            axios.post('/sadmin/announcement/update',ddata)
                 .then((resp)=>{
                     this.getAllAnnouncements();
                     window.Toast.success(resp.data.message);

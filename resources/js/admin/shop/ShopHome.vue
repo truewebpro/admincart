@@ -67,7 +67,8 @@ export default{
         return{
             htab:'',
             tsettings:[],
-            domain:"https://vapetocart.co.uk/",
+            domain:this.$store.state.shop.maindomain || this.$store.state.shop.subdomain,
+            shopName:this.$store.state.shop.shop_name || 'ShopName?',
             cdn:this.$store.state.cdn,
             bheading:'Main Heading',
             bsubheading:'Sub Heading',

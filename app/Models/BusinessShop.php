@@ -26,4 +26,9 @@ class BusinessShop extends Model
     {
         return $this->hasMany(Shop::class, 'shop_id','shop_id');
     }
+
+    public function shop()
+    {
+        return $this->hasOne(Shop::class, 'shop_id','shop_id');
+    }
 }

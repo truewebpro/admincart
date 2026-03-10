@@ -30,7 +30,7 @@
                     <v-card-title>Search engine listing</v-card-title>
                     <v-card-subtitle>Add a title and description to see how this Policy post might appear in a search engine listing</v-card-subtitle>
                     <v-card-text>
-                        <div class="font-weight-medium text-h6">Vapetocart</div>
+                        <div class="font-weight-medium text-h6">{{shopName}}</div>
                         <div class="text-body-2 text-grey-darken-4 mb-2">{{domain}}</div>
                         <div class="font-weight-medium text-h5 text-blue-darken-2">Policy title</div>
                         <div class="text-body-1">Text of Policy</div>
@@ -93,7 +93,8 @@ export default {
     components:{VFileUpload},
     data(){
         return{
-            domain:'https://www.vapetocart.co.uk/',
+            domain:this.$store.state.shop.maindomain || this.$store.state.shop.subdomain,
+            shopName:this.$store.state.shop.shop_name || 'ShopName?',
             Policies:[],
             policy_title:'',
             quillContent:'',

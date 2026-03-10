@@ -1064,7 +1064,7 @@ export default {
         moveDown(section){
             this.selectedSection = JSON.parse(JSON.stringify(section));
             const section_id = this.selectedSection.section_id;
-            axios.post(`/api/sadmin/homepage/section/movedown/${section_id}`)
+            axios.post(`/sadmin/homepage/section/movedown/${section_id}`)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
                     this.getCategory();

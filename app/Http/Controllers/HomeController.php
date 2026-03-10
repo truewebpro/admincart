@@ -803,7 +803,6 @@ class HomeController extends Controller
     public function addProductView(Request $request)
     {
         $shopId = session('shop_id');
-        $poptions = Poptions::where('shop_id','=',$shopId)->get();
         $location = Location::firstOrCreate(
             ['shop_id' => $shopId],
             [
@@ -813,7 +812,6 @@ class HomeController extends Controller
                 'shop_id' => $shopId
             ]);
         return response()->json([
-            'poptions' => $poptions,
             'location' => $location,
         ]);
     }
@@ -1237,6 +1235,7 @@ class HomeController extends Controller
                 'message' => 'Product added successfully',
                 'shop_id' => $shopId,
                 'product_id' => $product->product_id,
+                'product' => $product,
             ]);
 
         } catch (\Exception $e) {
@@ -2481,7 +2480,7 @@ class HomeController extends Controller
             ['shop_id' => $shopId],
             [
                 'home_title' => 'Home Page',
-                'home_desc' => 'Home Page Description',
+                'home_description' => 'Home Page Description',
                 'home_image' => null,
                 'shop_logo' => null,
                 'social_links' => [],
@@ -2491,7 +2490,7 @@ class HomeController extends Controller
         return response()->json([
             'success' => true,
             'preferences' => $preferences,
-            'shop' => $this->shop,
+            'shop' => $shopId,
             'shopdetail'=> Shop::find($shopId),
         ]);
     }

@@ -45,7 +45,7 @@
                         <v-card-title>Search engine listing</v-card-title>
                         <v-card-subtitle>Add a title and description to see how this blog post might appear in a search engine listing</v-card-subtitle>
                         <v-card-text>
-                            <div class="font-weight-medium text-h6">Vapetocart</div>
+                            <div class="font-weight-medium text-h6">{{shopName}}</div>
                             <div class="text-body-2 text-grey-darken-4 mb-2">{{domain}}</div>
                             <div class="font-weight-medium text-h5 text-blue-darken-2">{{meta_title || blog_title}}</div>
                             <div class="text-body-1">{{meta_desc || blog_excerpt}}</div>

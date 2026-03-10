@@ -206,7 +206,7 @@ export default {
             }
         },
         getPreferences(){
-            axios.get('/api/sadmin/shop/preferences')
+            axios.get('/sadmin/shop/preferences')
                 .then((resp)=>{
                     this.pref_id = resp.data.preferences.preference_id;
                     this.prefs = resp.data.preferences;
@@ -233,7 +233,7 @@ export default {
                 home_image:this.ogimage,
                 shop_logo:this.logo,
             }
-            axios.post('/api/sadmin/shop/preference/update',uprefs,uheaders)
+            axios.post('/sadmin/shop/preference/update',uprefs,uheaders)
                 .then((resp)=>{
                     this.getPreferences();
                     window.Toast.success(resp.data.message);
@@ -260,7 +260,7 @@ export default {
                 slinks:ulinks,
             }
             console.log('ulinks',slinks);
-            axios.post('/api/sadmin/shop/social/update',slinks,uheaders)
+            axios.post('/sadmin/shop/social/update',slinks,uheaders)
                 .then((resp)=>{
                     this.getPreferences();
                     window.Toast.success(resp.data.message);

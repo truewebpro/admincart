@@ -46,7 +46,7 @@
                         <v-card-title>Search engine listing</v-card-title>
                         <v-card-subtitle>Add a title and description to see how this blog post might appear in a search engine listing</v-card-subtitle>
                         <v-card-text>
-                            <div class="font-weight-medium text-h6">Vapetocart</div>
+                            <div class="font-weight-medium text-h6">{{shopName}}</div>
                             <div class="text-body-2 text-grey-darken-4 mb-2">{{domain}}</div>
                             <div class="font-weight-medium text-h5 text-blue-darken-2">{{sblog.meta_title || sblog.blog_title}}</div>
                             <div class="text-body-1">{{sblog.meta_desc || sblog.blog_excerpt}}</div>
@@ -256,6 +256,7 @@ export default {
             },
             cdn:this.$store.state.cdn,
             domain:this.$store.state.shop.maindomain || this.$store.state.shop.subdomain,
+            shopName:this.$store.state.shop.shop_name || 'ShopName?',
             blog_image:null,
             user_id:this.$store.state.user,
             user:this.$store.state.user,
@@ -330,7 +331,7 @@ export default {
                shop_id:this.$store.state.shop.shop_id,
             }
             console.log('nblog',nblog);
-            axios.post('/api/sadmin/blogs/update',nblog,uheaders)
+            axios.post('/sadmin/blogs/update',nblog,uheaders)
                 .then((resp)=>{
                     this.getBlogByID();
                     window.Toast.success('Blog Updated Successfully')
@@ -358,7 +359,7 @@ export default {
                 // sort_order:1,
                 // selected_item:this.selectToAdd.stype_id
             }
-            axios.post('/api/sadmin/blog/section/add/new',sdata)
+            axios.post('/sadmin/blog/section/add/new',sdata)
                 .then((resp)=>{
                     this.getBlogByID();
                     window.Toast.success('section added successfully')
@@ -367,7 +368,7 @@ export default {
         },
         async updateSection(updated) {
             try {
-                await axios.post(`/api/sadmin/homepage/section/update/${updated.section_id}`, {
+                await axios.post(`/sadmin/homepage/section/update/${updated.section_id}`, {
                     section_json: updated.section_json,
                     sort_order: updated.sort_order,
                     section_status: updated.section_status
@@ -413,7 +414,7 @@ export default {
         },
         confirmDelete(){
             const section_id = this.selectedSection.section_id;
-            axios.post(`/api/sadmin/homepage/section/delete/${section_id}`)
+            axios.post(`/sadmin/homepage/section/delete/${section_id}`)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
                     this.deleteSectionDialog = false;
@@ -430,7 +431,7 @@ export default {
         hideOrShowSection(section){
             this.selectedSection = JSON.parse(JSON.stringify(section));
             const section_id = this.selectedSection.section_id;
-            axios.post(`/api/sadmin/homepage/section/hideorshow/${section_id}`)
+            axios.post(`/sadmin/homepage/section/hideorshow/${section_id}`)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
                     this.getBlogByID();
@@ -445,7 +446,7 @@ export default {
         moveUp(section){
             this.selectedSection = JSON.parse(JSON.stringify(section));
             const section_id = this.selectedSection.section_id;
-            axios.post(`/api/sadmin/homepage/section/moveup/${section_id}`)
+            axios.post(`/sadmin/homepage/section/moveup/${section_id}`)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
                     this.getBlogByID();
@@ -460,7 +461,7 @@ export default {
         moveDown(section){
             this.selectedSection = JSON.parse(JSON.stringify(section));
             const section_id = this.selectedSection.section_id;
-            axios.post(`/api/sadmin/homepage/section/movedown/${section_id}`)
+            axios.post(`/sadmin/homepage/section/movedown/${section_id}`)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
                     this.getBlogByID();

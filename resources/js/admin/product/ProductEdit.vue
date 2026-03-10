@@ -1819,11 +1819,11 @@ export default {
                 .then((resp)=>{
                     if(resp.data.success && resp.data.ptype){
                         const newType = resp.data.ptype;
-                        this.$store.commit('UPDATE_PRODUCT_TYPE',newType)
-                        const exists = this.mptypes.some(pt => pt.product_type_id === newType.product_type_id);
-                        if (!exists) {
-                            this.mptypes.push(newType);
-                        }
+                        this.$store.commit('ADD_PRODUCT_TYPE',newType)
+                        // const exists = this.mptypes.some(pt => pt.product_type_id === newType.product_type_id);
+                        // if (!exists) {
+                        //     this.mptypes.push(newType);
+                        // }
                         this.pro.product_type_id = newType.product_type_id;
                         this.typedPtype = '';
                         const inputEl = this.$refs.ptypeInputRef?.$el?.querySelector('input');
@@ -1858,11 +1858,11 @@ export default {
                 .then((resp)=>{
                     if(resp.data.success && resp.data.brand){
                         const newBrand = resp.data.brand;
-                        this.$store.commit('UPDATE_BRAND',newBrand)
-                        const exists = this.mbrands.some(pt => pt.brand_id === newBrand.brand_id);
-                        if (!exists) {
-                            this.mbrands.push(newBrand);
-                        }
+                        this.$store.commit('ADD_BRAND',newBrand)
+                        // const exists = this.mbrands.some(pt => pt.brand_id === newBrand.brand_id);
+                        // if (!exists) {
+                        //     this.mbrands.push(newBrand);
+                        // }
                         this.pro.brand_id = newBrand.brand_id;
                         this.typedBrand = '';
                         const inputEl = this.$refs.brandInputRef?.$el?.querySelector('input');
@@ -1897,14 +1897,14 @@ export default {
                 .then((resp)=>{
                     if(resp.data.success && resp.data.tag){
                         const newTag = resp.data.tag;
-                        this.$store.commit('UPDATE_TAG',newTag)
-                        const exists = this.mtags.some(tag => tag.tag_id === newTag.tag_id);
-                        if (!exists) {
-                            this.mtags.push(newTag);
-                        }
-                        if (!this.pro.tags.includes(newTag.tag_name)) {
-                            this.pro.tags.push(newTag.tag_name);
-                        }
+                        this.$store.commit('ADD_TAG',newTag)
+                        // const exists = this.mtags.some(tag => tag.tag_id === newTag.tag_id);
+                        // if (!exists) {
+                        //     this.mtags.push(newTag);
+                        // }
+                        // if (!this.pro.tags.includes(newTag.tag_name)) {
+                        //     this.pro.tags.push(newTag.tag_name);
+                        // }
                         this.typedTag = '';
                         const inputEl = this.$refs.tagInputRef?.$el?.querySelector('input');
                         if (inputEl) inputEl.value = '';
