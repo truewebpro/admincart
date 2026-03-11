@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ShopController;
 use Illuminate\Http\Request;
@@ -47,6 +48,13 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/footer', [ShopController::class, 'getFooter']);
     Route::get('/customer/exists',[ShopController::class,'exitingCustomer']);
     Route::post('/reset-password',[ShopController::class,'resetPassword']);
+
+    Route::prefix('cart')->group(function () {
+        Route::get('/', [CartController::class, 'getCart']);
+        Route::post('/event', [CartController::class, 'event']);
+
+        Route::post('/checkout',[CartController::class,'checkout']);
+    });
 
     Route::prefix('customer')->group(function () {
         Route::post('/login',[CustomerController::class,'customerLogin'])->name('customer.login');

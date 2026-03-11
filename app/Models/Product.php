@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
@@ -29,7 +30,7 @@ class Product extends Model
         'tags' => 'array',
     ];
 
-    public function variants()
+    public function variants():HasMany
     {
         return $this->hasMany(Variant::class, 'product_id', 'product_id')
             ->join('stocks', 'stocks.variant_id', '=', 'variants.variant_id')
