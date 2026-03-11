@@ -1,6 +1,6 @@
 <template>
-    <v-container>
-        <v-row>
+    <v-container class="pa-2">
+        <v-row dense>
             <v-col cols="12" md="6">
                 <h2>
                     <v-icon>mdi-bank</v-icon>
@@ -8,38 +8,35 @@
                 </h2>
             </v-col>
             <v-col cols="12" md="6" class="text-md-end">
-<!--                <v-btn color="grey-darken-4" density="compact">Add New</v-btn>-->
             </v-col>
-            <v-col cols="6">
+            <v-col cols="12" md="6">
                 <v-card>
                     <v-card-title>Shop Payment Methods</v-card-title>
-                    <v-card-text>
-                        <v-list nav v-model:selected="editedItem" base-color="black" active-class="primary">
-                            <v-list-item v-for="(item, index) in spmethods" :key="index"
-                                         class="border-b"
-                                         :prepend-avatar="cdn+item.payment_icon" append-icon="mdi-plus">
-                                <template #prepend>
-                                    <v-icon>mdi-drag-vertical</v-icon>
-                                    <v-avatar><v-img :src="cdn+item.payment_icon"></v-img></v-avatar>
-                                </template>
-                                <template #append>
-                                    <v-btn color="success" density="compact" class="text-none" @click.stop="editExistingMethod(item)">Edit</v-btn>
-                                </template>
-                                <template #subtitle>
-                                    <v-btn v-if="item.payment_options.test_mode === 'true'" append-icon="mdi-check-circle" color="red" size="small" density="compact">Test Mode</v-btn>
-                                    <v-btn v-if="item.payment_options.test_mode === 'false'" append-icon="mdi-close-circle" color="success" size="small" density="compact">Test Mode</v-btn>
-                                    <v-btn v-if="item.payment_status === 'inactive'" append-icon="mdi-close-circle" color="red" size="small" density="compact" class="ms-1">Status</v-btn>
-                                    <v-btn v-if="item.payment_status === 'active'" append-icon="mdi-check-circle" color="success" size="small" density="compact" class="ms-1">Status</v-btn>
-                                </template>
-                                <template #title>
-                                    <v-btn variant="text" color="black">{{item.payment_name}}</v-btn>
-                                </template>
-                            </v-list-item>
-                        </v-list>
-                    </v-card-text>
+                    <v-list nav v-model:selected="editedItem" base-color="black" active-class="primary">
+                        <v-list-item v-for="(item, index) in spmethods" :key="index"
+                                     class="border-b"
+                                     :prepend-avatar="cdn+item.payment_icon" append-icon="mdi-plus">
+                            <template #prepend>
+                                <v-icon>mdi-drag-vertical</v-icon>
+                                <v-avatar><v-img :src="cdn+item.payment_icon"></v-img></v-avatar>
+                            </template>
+                            <template #append>
+                                <v-btn color="success" density="compact" class="text-none" @click.stop="editExistingMethod(item)">Edit</v-btn>
+                            </template>
+                            <template #subtitle>
+                                <v-btn v-if="item.payment_options.test_mode === 'true'" append-icon="mdi-check-circle" color="red" size="small" density="compact">Test Mode</v-btn>
+                                <v-btn v-if="item.payment_options.test_mode === 'false'" append-icon="mdi-close-circle" color="success" size="small" density="compact">Test Mode</v-btn>
+                                <v-btn v-if="item.payment_status === 'inactive'" append-icon="mdi-close-circle" color="red" size="small" density="compact" class="ms-1">Status</v-btn>
+                                <v-btn v-if="item.payment_status === 'active'" append-icon="mdi-check-circle" color="success" size="small" density="compact" class="ms-1">Status</v-btn>
+                            </template>
+                            <template #title>
+                                <v-btn variant="text" color="black">{{item.payment_name}}</v-btn>
+                            </template>
+                        </v-list-item>
+                    </v-list>
                 </v-card>
             </v-col>
-            <v-col cols="6">
+            <v-col cols="12" md="6">
                 <v-card>
                     <v-card-title class="d-flex align-center">
                         <v-avatar size="48" class="me-2">
@@ -258,9 +255,6 @@ export default {
     },
     mounted() {
         this.getShopPaymentMethods();
-    },
-    created() {
-        // this.selectedPmethod = this.availablePmethods[0];
     },
     methods:{
         initFormData(){

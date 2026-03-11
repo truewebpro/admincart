@@ -2428,7 +2428,9 @@ class HomeController extends Controller
     public function getAdminShopPaymentMethods()
     {
         $shopId = session('shop_id');
-        $spmethods = ShopPaymentMethod::where('shop_id', $shopId)->get();
+        $spmethods = ShopPaymentMethod::where('shop_id', $shopId)
+            ->orderBy('sort_order', 'asc')
+            ->get();
         if($spmethods->isEmpty()){
             return response()->json([
                 'success' => false,

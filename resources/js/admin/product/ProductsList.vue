@@ -1,5 +1,5 @@
 <template>
-    <v-container fluid class="pa-2">
+    <v-container class="pa-2">
         <v-row dense>
             <v-col cols="3" md="6">
                 <span class="text-h6">Products</span>
