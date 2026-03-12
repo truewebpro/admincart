@@ -130,27 +130,6 @@ export default {
                     window.location.href = '/login';
                 })
         },
-        // async logout() {
-        //     try {
-        //         // Call backend logout if using Laravel Sanctum/JWT
-        //         await fetch('/logout', {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json',
-        //                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        //             }
-        //         });
-        //
-        //     } catch (e) {
-        //         console.log('Logout request failed, continuing...');
-        //     }
-        //
-        //     // Clear store/localStorage
-        //     this.$store.commit('SET_USER', null);
-        //
-        //     // Redirect
-        //     window.location.href = '/login';
-        // },
         async boostfetchShopResources(){
             const [brands,productTypes,tags,poptions,cats] = await Promise.all([
                 axios.get('/sadmin/brands'),
