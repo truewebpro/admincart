@@ -111,6 +111,11 @@ class CartController extends Controller
                     'quantity'=>$request->newQty
                 ]);
                 break;
+            case "checkout_started":
+                $this->logEvent($cart,'checkout_started',[
+                    'process' => 'Reached to Checkout',
+                ]);
+                break;
 
             default:
                 return response()->json([
