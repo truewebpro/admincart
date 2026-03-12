@@ -32,6 +32,8 @@
                 <v-list-item link :to="{name:'InventoryList'}" color="primary" prepend-icon="mdi-format-list-numbered"
                              title="Inventory" subtitle="All Products">
                 </v-list-item>
+                <v-list-item link :to="{name:'customers'}" color="primary" prepend-icon="mdi-account" title="Customers">
+                </v-list-item>
                 <v-list-group value="pros">
                     <template v-slot:activator="{ props }">
                         <v-list-item v-bind="props" prepend-icon="mdi-tag-multiple-outline" title="Product Settings" />
@@ -43,10 +45,6 @@
                     <v-list-item :to="{name:'poptions'}" color="primary" title="Options" prepend-icon="mdi-filter-variant" link/>
                     <v-list-item :to="{name:'Features'}" color="primary" title="Features" prepend-icon="mdi-feature-search-outline" link/>
                 </v-list-group>
-                <v-list-item link :to="{name:'customers'}" color="primary" prepend-icon="mdi-account" title="Customers">
-                </v-list-item>
-                <v-list-item link :to="{name:'ShopHome'}" color="primary" prepend-icon="mdi-store-cog" title="Theme Settings">
-                </v-list-item>
                 <v-list-group value="themes">
                     <template v-slot:activator="{props}">
                         <v-list-item v-bind="props" prepend-icon="mdi-store-settings" title="Shop Settings"></v-list-item>
@@ -58,6 +56,8 @@
                     <v-list-item link :to="{name:'BlogsList'}" title="Blogs" color="primary" prepend-icon="mdi-post-outline"></v-list-item>
                     <v-list-item link :to="{name:'PoliciesList'}" title="Policies" color="primary" prepend-icon="mdi-file-sign"></v-list-item>
                 </v-list-group>
+                <v-list-item link :to="{name:'ShopHome'}" color="primary" prepend-icon="mdi-store-cog" title="Theme Settings">
+                </v-list-item>
                 <v-spacer/>
                 <v-list-item link :to="{name:'Settings'}" color="primary" prepend-icon="mdi-cog" title="Settings">
                 </v-list-item>

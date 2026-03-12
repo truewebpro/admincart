@@ -69,10 +69,10 @@
                                         <div class="font-weight-medium">{{dayjs(item.placed_at).format('D MMM [at] h:mm a')}}</div>
                                     </td>
                                     <td>
-                                        <div class="font-weight-medium">£{{item.order_total}}</div>
+                                        <div class="font-weight-regular">{{item.shipping_name}}</div>
                                     </td>
                                     <td>
-                                        <div class="font-weight-regular">{{item.shipping_name}}</div>
+                                        <div class="font-weight-medium">£{{item.order_total}}</div>
                                     </td>
                                     <td>
                                         <div class="d-flex ga-2 align-center">
