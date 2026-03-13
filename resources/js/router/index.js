@@ -51,6 +51,7 @@ import MenuAdd from "@/admin/menus/MenuAdd.vue";
 import MenusList from "@/admin/menus/MenusList.vue";
 import Preferences from "@/admin/theme/Preferences.vue";
 import ThemeView from "@/admin/theme/ThemeView.vue";
+import IntegrateList from "@/admin/integrate/IntegrateList.vue";
 
 
 
@@ -108,6 +109,10 @@ const routes = [
     {path: '/settings/inventory',name: 'SettingsInventory',component: SettingsInventory},
     {path: '/settings/review',name: 'SettingsReview',component: SettingsReview},
     {path: '/settings/account',name: 'SettingsAccount',component: SettingsAccount},
+    {path: '/integrate',name:'IntegrateList',component: IntegrateList,
+        children: [
+            {path: '/list',name:'IntegrateLists',component: IntegrateList}
+        ]}
 ]
 
 const router = createRouter({

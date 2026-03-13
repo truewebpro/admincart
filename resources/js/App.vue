@@ -59,6 +59,8 @@
                 <v-list-item link :to="{name:'ShopHome'}" color="primary" prepend-icon="mdi-store-cog" title="Theme Settings">
                 </v-list-item>
                 <v-spacer/>
+                <v-list-item link :to="{name:'IntegrateList'}" color="primary" prepend-icon="mdi-apps" title="Integration">
+                </v-list-item>
                 <v-list-item link :to="{name:'Settings'}" color="primary" prepend-icon="mdi-cog" title="Settings">
                 </v-list-item>
                 <v-divider class="my-1"></v-divider>
