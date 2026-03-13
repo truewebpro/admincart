@@ -1,100 +1,147 @@
 <template>
-    <v-container class="settings">
+    <v-container class="settings pa-2">
         <h2>Settings</h2>
         <v-row>
             <v-col cols="12" md="4">
-                <v-card class="border-sm" :to="{name:'SettingsGeneral'}">
-                    <v-card-title>
-                        <v-icon>mdi-cog</v-icon>
-                        General
-                    </v-card-title>
-                    <v-card-text>
-                        <div class="text-body-1">
-                            Set Company  default Address, Phone and Other details for store and more
+                <v-card class="border-sm rounded-lg" :to="{name:'SettingsGeneral'}">
+                    <v-card-text class="d-flex flex align-center">
+                        <div class="bg-grey-lighten-3 rounded-lg pa-1 me-2 elevation-1">
+                            <v-icon size="45" class="rounded-lg">mdi-cog</v-icon>
+                        </div>
+                        <div>
+                            <div class="font-weight-bold text-h6">General</div>
+                            <div class="text-body-1">
+                                Set Company Informational Details
+                            </div>
+                        </div>
+                        <div class="ms-auto">
+                            <v-icon size="x-large">mdi-chevron-right</v-icon>
                         </div>
                     </v-card-text>
                 </v-card>
             </v-col>
             <v-col cols="12" md="4">
-                <v-card class="border-sm" :to="{name:'SettingsShipping'}">
-                    <v-card-title>
-                        <v-icon>mdi-truck</v-icon>
-                        Shipping Methods</v-card-title>
-                    <v-card-text>
-                        <div class="text-body-1">
-                            Set Store Shipping Methods e.g: Royal Mail, DPD or more
+                <v-card class="border-sm rounded-lg" :to="{name:'SettingsShipping'}">
+                    <v-card-text class="d-flex flex align-center">
+                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                            <v-icon size="45" class="rounded-lg">mdi-truck-fast</v-icon>
+                        </div>
+                        <div>
+                            <div class="font-weight-bold text-h6">Shipping Methods</div>
+                            <div class="text-body-1">
+                                Set Store Shipping Methods
+                            </div>
+                        </div>
+                        <div class="ms-auto">
+                            <v-icon size="x-large">mdi-chevron-right</v-icon>
                         </div>
                     </v-card-text>
                 </v-card>
             </v-col>
             <v-col cols="12" md="4">
                 <v-card class="border-sm" :to="{name:'SettingsPayment'}">
-                    <v-card-title>
-                        <v-icon>mdi-account-credit-card-outline</v-icon>
-                        Payment Methods</v-card-title>
-                    <v-card-text>
-                        <div class="text-body-1">
-                            Set company / Store Payment Methods e.g: Bank Transfer, Stripe, Viva Wallet or more
+                    <v-card-text class="d-flex flex align-center">
+                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                            <v-icon size="45">mdi-account-credit-card-outline</v-icon>
+                        </div>
+                        <div>
+                            <div class="font-weight-bold text-h6">Payment Methods</div>
+                            <div class="text-body-1">
+                                Set Bank Transfer, Stripe, Viva etc
+                            </div>
+                        </div>
+                        <div class="ms-auto">
+                            <v-icon size="x-large">mdi-chevron-right</v-icon>
                         </div>
                     </v-card-text>
                 </v-card>
             </v-col>
             <v-col cols="12" md="4">
-                <v-card class="border-sm" :to="{name:'SettingsPrinting'}">
-                    <v-card-title>
-                        <v-icon>mdi-printer</v-icon>
-                        Printing Templates</v-card-title>
-                    <v-card-text>
-                        <div class="text-body-1">
-                            Set Order Picking, Packing, Shipping Invoices, Notes Templates and more
+                <v-card class="border-sm rounded-lg" :to="{name:'SettingsPrinting'}">
+                    <v-card-text class="d-flex flex align-center">
+                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                            <v-icon size="45">mdi-printer</v-icon>
+                        </div>
+                        <div>
+                            <div class="font-weight-bold text-h6">Printing Templates</div>
+                            <div class="text-body-1">
+                                Set Order Picking, Packing, Templates
+                            </div>
+                        </div>
+                        <div class="ms-auto">
+                            <v-icon size="x-large">mdi-chevron-right</v-icon>
                         </div>
                     </v-card-text>
                 </v-card>
             </v-col>
             <v-col cols="12" md="4">
-                <v-card class="border-sm" :to="{name:'SettingsMarketing'}">
-                    <v-card-title>
-                        <v-icon>mdi-sale</v-icon>
-                        Marketing</v-card-title>
-                    <v-card-text>
-                        <div class="text-body-1">
-                            Set Store Marketing Campaigns with Coupons. Applicable with logical conditions.
+                <v-card class="border-sm rounded-lg" :to="{name:'SettingsMarketing'}">
+                    <v-card-text class="d-flex flex align-center">
+                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                            <v-icon size="45">mdi-sale</v-icon>
+                        </div>
+                        <div>
+                            <div class="font-weight-bold text-h6">Marketing</div>
+                            <div class="text-body-1">
+                                Set Marketing Campaigns, Coupons
+                            </div>
+                        </div>
+                        <div class="ms-auto">
+                            <v-icon size="x-large">mdi-chevron-right</v-icon>
                         </div>
                     </v-card-text>
                 </v-card>
             </v-col>
             <v-col cols="12" md="4">
-                <v-card class="border-sm" :to="{name:'SettingsInventory'}">
-                    <v-card-title>
-                        <v-icon>mdi-tag</v-icon>
-                        Inventory</v-card-title>
-                    <v-card-text>
-                        <div class="text-body-1">
-                            Location and Inventory settings with Tier Logic for B2B Portals
+                <v-card class="border-sm rounded-lg" :to="{name:'SettingsInventory'}">
+                    <v-card-text class="d-flex flex align-center">
+                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                            <v-icon size="45">mdi-tag</v-icon>
+                        </div>
+                        <div>
+                            <div class="font-weight-bold text-h6">Inventory</div>
+                            <div class="text-body-1">
+                                Locations & Stock Tier Logic
+                            </div>
+                        </div>
+                        <div class="ms-auto">
+                            <v-icon size="x-large">mdi-chevron-right</v-icon>
                         </div>
                     </v-card-text>
                 </v-card>
             </v-col>
             <v-col cols="12" md="4">
-                <v-card class="border-sm" :to="{name:'SettingsReview'}">
-                    <v-card-title>
-                        <v-icon>mdi-star-check-outline</v-icon>
-                        Reviews</v-card-title>
-                    <v-card-text>
-                        <div class="text-body-1">
-                            Manage Product Reviews by the customers. Interactions for existing reviews and more.
+                <v-card class="border-sm rounded-lg" :to="{name:'SettingsReview'}">
+                    <v-card-text class="d-flex flex align-center">
+                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                            <v-icon size="45">mdi-star-check-outline</v-icon>
+                        </div>
+                        <div>
+                            <div class="font-weight-bold text-h6">Reviews</div>
+                            <div class="text-body-1">
+                                Manage Product Reviews & Ratings
+                            </div>
+                        </div>
+                        <div class="ms-auto">
+                            <v-icon size="x-large">mdi-chevron-right</v-icon>
                         </div>
                     </v-card-text>
                 </v-card>
             </v-col>
             <v-col cols="12" md="4">
-                <v-card class="border-sm" :to="{name:'SettingsAccount'}">
-                    <v-card-title>
-                        <v-icon>mdi-account-sync-outline</v-icon>
-                        Accounts</v-card-title>
-                    <v-card-text>
-                        <div class="text-body-1">
-                            Manage Store Subscription and Payouts with Truewebcart.
+                <v-card class="border-sm rounded-lg" :to="{name:'SettingsAccount'}">
+                    <v-card-text class="d-flex flex align-center">
+                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                            <v-icon size="45">mdi-account-sync-outline</v-icon>
+                        </div>
+                        <div>
+                            <div class="font-weight-bold text-h6">Accounts</div>
+                            <div class="text-body-1">
+                                Manage Store Subscription & Payouts.
+                            </div>
+                        </div>
+                        <div class="ms-auto">
+                            <v-icon size="x-large">mdi-chevron-right</v-icon>
                         </div>
                     </v-card-text>
                 </v-card>
