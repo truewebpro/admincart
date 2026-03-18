@@ -56,6 +56,7 @@ class ShopController extends Controller
                 $catId = $sectionArray['section_json']['stype_json']['cat_id'];
                 $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
                 $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                    ->where('shop_id','=',$shopId)
                     ->withCount('reviews')->withAvg('reviews','rating')
                     ->whereIn('product_id', function ($query) use ($catId) {
                         $query->select('product_id')
