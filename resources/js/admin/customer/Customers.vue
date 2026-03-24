@@ -158,14 +158,16 @@ export default {
                 })
         },
         exportToCSV() {
-            const headers = ['Name', 'Email', 'Location', 'Orders', 'Amount Spent', 'Tags'];
+            const headers = ['FirstName','LastName' ,'Email', 'Location','Country', 'Orders', 'Amount Spent', 'Tags'];
             const rows = this.filteredCusts.map((cust) => {
                 return [
-                    `${cust.fname} ${cust.lname}`,
+                    `${cust.fname}`,
+                    `${cust.lname}`,
                     cust.email || '',
-                    `${cust.defaultaddress?.city || ''}, ${cust.defaultaddress?.country || ''}`,
+                    `${cust.defaultaddress?.city || ' '}`,
+                    `${cust.defaultaddress?.country || ' '}`,
                     cust.ordercount || 0,
-                    `£${cust.amount_spent}`,
+                    `${cust.amount_spent}`,
                     (cust.ctags || []).join(', ')
                 ];
             });
