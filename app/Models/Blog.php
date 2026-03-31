@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Blog extends Model
 {
@@ -48,6 +49,11 @@ class Blog extends Model
             ->where('sections.section_status','=','show')
             ->where('sections.sectionable_type',Blog::class)
             ->orderBy('sort_order', 'ASC');
+    }
+
+    public function comments():HasMany
+    {
+        return $this->hasMany(Comment::class, 'blog_id', 'blog_id');
     }
 
 }

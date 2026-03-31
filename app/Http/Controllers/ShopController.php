@@ -524,7 +524,26 @@ class ShopController extends Controller
     public function getBlogbySlug(Request $request,$shopname,$blog_slug)
     {
         $shopId = $request->shop_id;
-        $blog = Blog::where('shop_id','=',$shopId)->where('blog_slug','=',$blog_slug)->first();
+        $blog = Blog::with([
+            'comments' => function ($q) use ($shopId) {
+                $q->where('shop_id', $shopId)
+                    ->approved()
+                    ->whereNull('parent_id')
+                    ->with(['customer', 'replies' => function ($q) {
+                        $q->approved()->with('customer'); // ✅ replies also approved
+                    }])
+                    ->latest();
+            },
+        ])
+            ->withCount([
+                'comments as comments_count' => function ($q) use ($shopId) {
+                    $q->where('shop_id', $shopId)
+                        ->approved()
+                        ->whereNull('parent_id'); // only main comments
+                }])
+            ->where('shop_id','=',$shopId)
+            ->where('blog_slug','=',$blog_slug)
+            ->first();
         $blogsections = Section::where('sectionable_id','=',$blog->blog_id)
             ->where('sectionable_type',Blog::class)
             ->join('stypes','stypes.stype_id','=','sections.stype_id')

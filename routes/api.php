@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ShopController;
 use Illuminate\Http\Request;
@@ -38,6 +39,7 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/pmethods',[ShopController::class,'paymentOptions']);
     Route::get('/blogs/all',[ShopController::class,'allBlogs']);
     Route::get('/blogs/{blog_slug}',[ShopController::class,'getBlogbySlug']);
+    Route::get('/blogs/comments/{blogId}', [CommentController::class, 'getBlogComments']);
     Route::get('/policies/{policy_slug}',[ShopController::class,'getPolicyBySlug']);
     Route::get('/homemenu',[ShopController::class,'getHomeMenu']);
     Route::get('/page/{page_slug}',[ShopController::class,'getPageBySlug']);
