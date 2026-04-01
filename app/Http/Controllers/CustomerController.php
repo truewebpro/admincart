@@ -203,6 +203,41 @@ class CustomerController extends Controller
         ]);
     }
 
+    public function accountUpdate(Request $request)
+    {
+        $customer = auth()->guard('customer')->user();
+        $validated = $request->validate([
+            'fname' => 'required|string|max:255',
+            'lname'  => 'string|max:255',
+            'email' => 'required|email|unique:customers,email,' . $customer->customer_id . ',customer_id',
+            'phone'      => 'nullable|string|max:20',
+
+            // Password validation only if attempting to change it
+            'current_password'      => 'nullable|string',
+            'new_password'          => 'nullable|string|min:8|confirmed',
+        ]);
+
+        // Update basic fields
+        $customer->fname = $validated['fname'];
+        $customer->lname  = $validated['lname'] ?? $customer->lname;
+        $customer->email      = $validated['email'];
+        $customer->phone      = $validated['phone'] ?? null;
+        // If trying to change password
+        if ($request->filled('current_password') || $request->filled('new_password')) {
+            if (!Hash::check($request->current_password, $customer->password)) {
+                return response()->json(['error' => 'Current password is incorrect'], 422);
+            }
+
+            $customer->password = bcrypt($request->new_password);
+        }
+        $customer->save();
+
+        return response()->json([
+            'message' => 'Account updated successfully',
+            'customer' => $customer,
+        ]);
+    }
+
     public function recentOrders(Request $request)
     {
         $shopId = $request->shop_id;

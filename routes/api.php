@@ -3,7 +3,9 @@
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\SendcloudWebhookController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\VivaWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,7 +24,13 @@ use Illuminate\Support\Facades\Route;
 //    return $request->user();
 //});
 
+Route::post('/shop/vapecraze/sendcloud/webhook',[SendcloudWebhookController::class,'handleSendcloudWebhook']);
+Route::post('/shop/vapeportwholesale/sendcloud/webhook',[SendcloudWebhookController::class,'handleVapeportSendcloudWebhook']);
+
 Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () {
+    Route::get('/viva/gettoken',[VivaWebhookController::class,'getConfigToken']);
+    Route::get('/viva/webhook/verify', [VivaWebhookController::class, 'verifyWebhook']);
+    Route::post('/viva/webhook/verify',[VivaWebhookController::class,'handleWebhook']);
     Route::get('/homemetas', [ShopController::class, 'homeMetas']);
     Route::get('/homesections', [ShopController::class, 'homeSections']);
     Route::get('/brands', [ShopController::class, 'allBrands']);
@@ -65,6 +73,7 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
 
         Route::middleware('auth:customer')->group(function () {
             Route::get('/me',[CustomerController::class,'me']);
+            Route::post('/account/update',[CustomerController::class,'accountUpdate']);
             Route::get('/orders',[CustomerController::class,'recentOrders']);
             Route::get('/address/default',[CustomerController::class,'getDefaultAddress']);
             Route::post('/address/default',[CustomerController::class,'markAsDefaultAddress']);
