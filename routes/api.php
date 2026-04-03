@@ -70,6 +70,7 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
         Route::post('/login',[CustomerController::class,'customerLogin'])->name('customer.login');
         Route::post('/register',[CustomerController::class,'customerRegister'])->name('customer.register');
         Route::post('/cregister',[CustomerController::class,'registerOnCheckout'])->name('customer.cregister');
+        Route::get('/order/placed/detail',[CartController::class,'orderPlacedDetail']);
 
         Route::middleware('auth:customer')->group(function () {
             Route::get('/me',[CustomerController::class,'me']);
