@@ -22,7 +22,7 @@ class VivaWebhookController extends Controller
 //        $this->middleware('auth:api', ['except' => ['webhookTransactionCreated']]);
 //    }
 
-    public function handleWebhook(Request $request)
+    public function handleWebhook(Request $request,$shopname)
     {
         Log::info('✅ Viva Webhook Received:', $request->all());
         $rdata = $request->all();
@@ -49,95 +49,96 @@ class VivaWebhookController extends Controller
             ]);
         try {
             DB::beginTransaction();
-            $cart = Cart::where('checkout_id', $payload['OrderCode'])
-                ->lockForUpdate()
-                ->with('cartItems')
-                ->first();
-            if (!$cart) {
-                DB::rollBack();
-                Log::warning('Cart not found for OrderCode: ' . $payload['OrderCode']);
-                return response()->json(['no_cart' => true]);
-            }
-            if ($cart->order_id) {
-                DB::rollBack();
-                return response()->json(['already_processed' => true]);
-            }
+//            $cart = Cart::where('checkout_id', $payload['OrderCode'])
+//                ->lockForUpdate()
+//                ->with('cartItems')
+//                ->first();
+//            if (!$cart) {
+//                DB::rollBack();
+//                Log::warning('Cart not found for OrderCode: ' . $payload['OrderCode']);
+//                return response()->json(['no_cart' => true]);
+//            }
+//            if ($cart->order_id) {
+//                DB::rollBack();
+//                return response()->json(['already_processed' => true]);
+//            }
             if (Order::withTrashed()->where('checkout_id', $payload['OrderCode'])->exists()) {
                 DB::rollBack();
                 return response()->json(['duplicate' => true]);
             }
-            $prefix = Shop::where('shop_id', $cart->shop_id)
-                ->value('order_prefix') ?? '#';
-            $lastOrder = Order::withTrashed()->where('shop_id', $cart->shop_id)
-                ->lockForUpdate()
-                ->orderByDesc('order_id')
-                ->first();
-            $lastOrderNumber = $lastOrder
-                ? intval(preg_replace('/[^0-9]/', '', $lastOrder->order_number))
-                : 1000;
-            $orderNumber = $prefix . ($lastOrderNumber + 1);
-            $placedAt = now();
-            $order = Order::create([
-                'order_number' => $orderNumber,
-                'payment_status' => 'paid',
-                'order_status' => 'processing',
-                'shop_id' => $cart->shop_id,
-                'customer_id' => $cart->customer_id,
-                'address_id' => $cart->address_id,
-                'is_guest_order' => $cart->is_guest_order,
-                'shipping_method' => $cart->shipping_method,
-                'payment_method' => $cart->payment_method,
-                'shipping_name' => $cart->shipping_name,
-                'shipping_phone' => $cart->shipping_phone,
-                'shipping_address_line1' => $cart->shipping_address_line1,
-                'shipping_address_line2' => $cart->shipping_address_line2,
-                'shipping_city' => $cart->shipping_city,
-                'shipping_postcode' => $cart->shipping_postcode,
-                'shipping_country' => $cart->shipping_country,
-                'shipping_cost' => $cart->shipping_cost,
-                'discount_amount' => $cart->discount_amount,
-                'subtotal' => $cart->subtotal,
-                'order_total' => $cart->order_total,
-                'tax_amount' => $cart->tax_amount,
-                'notes' => $cart->notes,
-                'checkout_id' => $cart['checkout_id'],
-                'placed_at' => $placedAt,
-            ]);
-            foreach ($cart->cartItems as $cartItem) {
-                $stock = Stock::where('variant_id', $cartItem->variant_id)
-                    ->where('shop_id', $cart->shop_id)
-                    ->lockForUpdate()
-                    ->first();
-                $available = $stock ? $stock->quantity : 0;
-                $ordered = $cartItem->quantity;
-                $allocated = min($available, $ordered);
-                $backorder = $ordered - $allocated;
-                $shipped = 0;
-                // Deduct only allocated
-                if ($stock && $allocated > 0) {
-                    $stock->decrement('quantity', $allocated);
-                }
-                OrderItem::create([
-                    'order_id' => $order->order_id,
-                    'product_id' => $cartItem->product_id,
-                    'variant_id' => $cartItem->variant_id,
-                    'title' => $cartItem->title,
-                    'options' => $cartItem->options,
-                    'quantity' => $ordered,
-                    'price' => $cartItem->price,
-                    'total' => $cartItem->total,
-                    'allocated_quantity' => $allocated,
-                    'backorder_quantity' => $backorder,
-                    'shipped_quantity' => $shipped,
-                ]);
-            }
-            $cart->update([
-                'order_id' => $order->order_id,
-                'is_active' => 0,
-                'payment_status' => 'paid',
-                'order_status' => 'processing',
-                'placed_at' => $placedAt,
-            ]);
+//            $prefix = Shop::where('shop_id', $cart->shop_id)
+//                ->value('order_prefix') ?? '#';
+//            $lastOrder = Order::withTrashed()->where('shop_id', $cart->shop_id)
+//                ->lockForUpdate()
+//                ->orderByDesc('order_id')
+//                ->first();
+//            $lastOrderNumber = $lastOrder
+//                ? intval(preg_replace('/[^0-9]/', '', $lastOrder->order_number))
+//                : 1000;
+//            $orderNumber = $prefix . ($lastOrderNumber + 1);
+//            $placedAt = now();
+//            $order = Order::create([
+//                'order_number' => $orderNumber,
+//                'payment_status' => 'paid',
+//                'order_status' => 'processing',
+//                'shop_id' => $cart->shop_id,
+//                'customer_id' => $cart->customer_id,
+//                'address_id' => $cart->address_id,
+//                'is_guest_order' => $cart->is_guest_order,
+//                'shipping_method' => $cart->shipping_method,
+//                'payment_method' => $cart->payment_method,
+//                'shipping_name' => $cart->shipping_name,
+//                'shipping_phone' => $cart->shipping_phone,
+//                'shipping_address_line1' => $cart->shipping_address_line1,
+//                'shipping_address_line2' => $cart->shipping_address_line2,
+//                'shipping_city' => $cart->shipping_city,
+//                'shipping_postcode' => $cart->shipping_postcode,
+//                'shipping_country' => $cart->shipping_country,
+//                'shipping_cost' => $cart->shipping_cost,
+//                'discount_amount' => $cart->discount_amount,
+//                'subtotal' => $cart->subtotal,
+//                'order_total' => $cart->order_total,
+//                'tax_amount' => $cart->tax_amount,
+//                'notes' => $cart->notes,
+//                'checkout_id' => $cart['checkout_id'],
+//                'placed_at' => $placedAt,
+//            ]);
+//            foreach ($cart->cartItems as $cartItem) {
+//                $stock = Stock::where('variant_id', $cartItem->variant_id)
+//                    ->where('shop_id', $cart->shop_id)
+//                    ->lockForUpdate()
+//                    ->first();
+//                $available = $stock ? $stock->quantity : 0;
+//                $ordered = $cartItem->quantity;
+//                $allocated = min($available, $ordered);
+//                $backorder = $ordered - $allocated;
+//                $shipped = 0;
+//                // Deduct only allocated
+//                if ($stock && $allocated > 0) {
+//                    $stock->decrement('quantity', $allocated);
+//                }
+//                OrderItem::create([
+//                    'order_id' => $order->order_id,
+//                    'product_id' => $cartItem->product_id,
+//                    'variant_id' => $cartItem->variant_id,
+//                    'title' => $cartItem->title,
+//                    'options' => $cartItem->options,
+//                    'quantity' => $ordered,
+//                    'price' => $cartItem->price,
+//                    'total' => $cartItem->total,
+//                    'allocated_quantity' => $allocated,
+//                    'backorder_quantity' => $backorder,
+//                    'shipped_quantity' => $shipped,
+//                ]);
+//            }
+//            $cart->update([
+//                'order_id' => $order->order_id,
+//                'is_active' => 0,
+//                'payment_status' => 'paid',
+//                'order_status' => 'processing',
+//                'placed_at' => $placedAt,
+//            ]);
+            $order = Order::withTrashed()->where('checkout_id', $payload['OrderCode'])->first();
             DB::commit();
             broadcast(new OrderUpdated($order));
             return response()->json(['success'=>true]);
