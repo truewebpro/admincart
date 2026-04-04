@@ -6,7 +6,7 @@
                     <v-btn link to="/carts" icon variant="tonal" density="compact" class="me-2">
                         <v-icon>mdi-arrow-left</v-icon>
                     </v-btn>
-                    <span class="me-2">#D{{cartDetail.cart_id}}</span>
+                    <span class="me-2">#D{{cartDetail.acart_id}}</span>
                     <v-chip v-if="pstatus === 'pending' || pstatus === 'unpaid'" color="yellow" variant="flat" density="compact" class="text-capitalize">{{pstatus}}</v-chip>
                     <v-chip v-if="pstatus === 'refunded' || pstatus === 'partially_refunded'" color="yellow" variant="flat" density="compact" class="text-capitalize">{{pstatus}}</v-chip>
                     <v-chip v-if="pstatus === 'paid' || pstatus === 'partially_paid'" color="green" variant="flat" density="compact" class="text-capitalize">{{pstatus}}</v-chip>
@@ -60,7 +60,7 @@
                         </v-chip>
                         <v-chip v-if="fstatus === 'picked'" variant="flat" color="green" prepend-icon="mdi-playlist-check" density="comfortable">{{fstatus}}</v-chip>
                         <v-chip v-if="fstatus === 'packed'" variant="flat" color="green" prepend-icon="mdi-package-variant-closed-plus" density="comfortable">{{fstatus}}</v-chip>
-                        <v-chip density="compact" class="font-weight-medium">{{cartDetail.cart_items_count}}</v-chip>
+                        <v-chip density="compact" class="font-weight-medium">{{cartDetail.items_count}}</v-chip>
                     </v-card-title>
                     <v-card-subtitle class="font-weight-medium">{{dayjs(cartDetail.placed_at).format('D MMMM [at] h:mm a')}}</v-card-subtitle>
                     <v-card-text>
@@ -89,7 +89,7 @@
                                 <div><b>SKU: </b>{{oitem?.variant?.sku}}</div>
                             </v-col>
                             <v-col cols="12" md="2" class="text-end">£{{oitem.price}} x {{oitem.quantity}}</v-col>
-                            <v-col cols="12" md="2" class="text-end">£{{oitem.total}}</v-col>
+                            <v-col cols="12" md="2" class="text-end">£{{oitem.line_total}}</v-col>
                         </v-row>
                     </v-card-text>
                     <v-card-actions>
@@ -135,7 +135,7 @@
                             <div class="d-flex justify-lg-space-between my-1">
                                 <h4>Subtotal</h4>
                                 <div>{{ oitems.length }} item<span v-if="oitems.length > 1">s</span></div>
-                                <div>£{{ cartDetail.subtotal }}</div>
+                                <div>£{{order?.subtotal || cartDetail.subtotal }}</div>
                             </div>
                             <div class="d-flex justify-lg-space-between my-1">
                                 <h4>Shipping</h4>
@@ -145,17 +145,17 @@
                             <div class="d-flex justify-lg-space-between my-1">
                                 <h4>Discount</h4>
                                 <div></div>
-                                <div>- £{{ cartDetail.discount_amount}}</div>
+                                <div>- £{{ order?.discount_amount || cartDetail.discount_amount}}</div>
                             </div>
                             <div class="d-flex justify-lg-space-between my-1 border-b-sm">
                                 <h4>VAT @ 20%</h4>
                                 <div></div>
-                                <div>£{{ cartDetail.tax_amount }}</div>
+                                <div>£{{ order?.tax_amount || cartDetail.tax_amount }}</div>
                             </div>
                             <div class="d-flex justify-lg-space-between my-1 border-b-sm font-weight-medium">
                                 <h3>Total</h3>
                                 <div></div>
-                                <div>£{{ cartDetail.order_total }}</div>
+                                <div>£{{ order?.order_total || cartDetail.cart_total }}</div>
                             </div>
                             <div v-if="pstatus === 'pending'" class="d-flex justify-lg-space-between py-1 border-b-sm">
                                 <h4>Paid</h4>
@@ -165,7 +165,7 @@
                             <div v-if="pstatus === 'pending'" class="bg-red-accent-1 px-2 d-flex justify-lg-space-between py-1 border-b-sm">
                                 <h4>Balance</h4>
                                 <div></div>
-                                <div>£{{ cartDetail.order_total.toFixed(2) }}</div>
+                                <div>£{{ order?.order_total || cartDetail.cart_total }}</div>
                             </div>
                         </div>
                     </v-card-text>
@@ -199,14 +199,13 @@
                         <div class="font-weight-medium">{{customer.email}}</div>
                         <div class="font-weight-medium">+44 {{customer?.phone}}</div>
                         <h3 class="small my-2">Shipping Address</h3>
-                        <div class="font-weight-medium">{{cartDetail.shipping_name}}</div>
-                        <div class="font-weight-medium">{{cartDetail.shipping_address_line1}}</div>
-                        <div class="font-weight-medium">{{cartDetail.shipping_address_line2}}</div>
-                        <div class="font-weight-medium">{{cartDetail.shipping_city}}</div>
-                        <div class="font-weight-medium">{{cartDetail.shipping_postcode}}</div>
-                        <div class="font-weight-medium">{{cartDetail.shipping_country}}</div>
-                        <div class="font-weight-medium">+44 {{cartDetail.shipping_phone}}</div>
-
+                        <div class="font-weight-medium">{{order?.shipping_name}}</div>
+                        <div class="font-weight-medium">{{order?.shipping_address_line1}}</div>
+                        <div class="font-weight-medium">{{order?.shipping_address_line2}}</div>
+                        <div class="font-weight-medium">{{order?.shipping_city}}</div>
+                        <div class="font-weight-medium">{{order?.shipping_postcode}}</div>
+                        <div class="font-weight-medium">{{order?.shipping_country}}</div>
+                        <div class="font-weight-medium">+44 {{order?.shipping_phone}}</div>
                     </v-card-text>
                 </v-card>
             </v-col>
@@ -215,7 +214,7 @@
 <!--            <v-card>-->
 <!--                <v-card-title>Payment Status</v-card-title>-->
 <!--                <v-card-text class="text-center">-->
-<!--                    Mark this order as paid if you received £{{ cartDetail.order_total }} from another payment method.-->
+<!--                    Mark this order as paid if you received £{{ cartDetail.cart_total }} from another payment method.-->
 <!--                </v-card-text>-->
 <!--                <v-card-actions>-->
 <!--                    <v-btn @click="markPaidDialog = false" variant="outlined" density="compact">cancel</v-btn>-->
@@ -248,7 +247,7 @@ export default {
             lstatuses:['no_label','pending','created','printed','cancelled'],
             lstatus:'',
             markPaidDialog:false,
-            order:null,
+            order:0,
         }
     },
     created() {
@@ -261,13 +260,13 @@ export default {
                 .then((resp)=>{
                     const carDetail = resp.data.cart;
                     this.order = carDetail.order;
-                    this.cartDetail = resp.data.cart;
-                    this.customer = resp.data.cart.customer;
-                    this.oitems = resp.data.cart.cart_items;
-                    this.ostatus = resp.data.cart.order_status;
-                    this.pstatus = resp.data.cart.payment_status;
-                    this.fstatus = resp.data.cart.fulfillment_status;
-                    this.lstatus = resp.data.cart.label_status;
+                    this.cartDetail = carDetail || [];
+                    this.customer = carDetail.customer || {};
+                    this.oitems = carDetail.items || [];
+                    this.ostatus = carDetail.order?.order_status || 'pending';
+                    this.pstatus = carDetail.order?.payment_status || 'pending';
+                    this.fstatus = carDetail.order?.fulfillment_status || 'unfulfilled';
+                    this.lstatus = carDetail.order?.label_status || 'no_label';
                 })
         },
         // markAsPaid(){
@@ -332,7 +331,7 @@ export default {
         //                 "country": 'GB',
         //                 "email": this.customer.email,
         //                 "telephone": this.cartDetail.shipping_phone,
-        //                 "total_order_value": this.cartDetail.order_total,
+        //                 "total_order_value": this.cartDetail.cart_total,
         //                 "total_order_value_currency": this.cartDetail.currency_code,
         //                 parcel_items,
         //             },

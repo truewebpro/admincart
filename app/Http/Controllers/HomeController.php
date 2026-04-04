@@ -6,6 +6,7 @@ use App\Events\OrderUpdated;
 use App\Exports\ProductsExport;
 use App\Imports\ProductsImport;
 use App\Mail\OrderPlacedMail;
+use App\Models\Acart;
 use App\Models\Announcement;
 use App\Models\Blog;
 use App\Models\Brand;
@@ -691,9 +692,14 @@ class HomeController extends Controller
             ->where('shop_id','=',$shopId)
             ->orderByDesc('created_at')
             ->get();
+        $acarts = Acart::with('order','customer')->withCount('items')
+            ->where('shop_id','=',$shopId)
+            ->orderByDesc('created_at')
+            ->get();
         return response()->json([
             'success' => true,
-            'carts' => $carts
+            'carts' => $carts,
+            'acarts' => $acarts,
         ]);
     }
 
@@ -701,8 +707,14 @@ class HomeController extends Controller
     {
         $shop = session('shop');
         $shopId = session('shop_id');
-        $cart = Cart::with('order','cartItems.product','cartItems.variant','customer')->withCount('cartItems')
-            ->where('cart_id','=',$cart_id)
+//        $cart = Cart::with('order','cartItems.product','cartItems.variant','customer')
+//            ->withCount('cartItems')
+//            ->where('cart_id','=',$cart_id)
+//            ->where('shop_id','=',$shopId)
+//            ->first();
+        $cart = Acart::with('order.orderItems','items.product','items.variant','customer')
+            ->withCount('items')
+            ->where('acart_id','=',$cart_id)
             ->where('shop_id','=',$shopId)
             ->first();
         if($cart){

@@ -45,4 +45,14 @@ class Acart extends Model
     public function items(){
         return $this->hasMany(AcartItem::class, 'acart_id', 'acart_id');
     }
+
+    public function order()
+    {
+        return $this->hasOne(Order::class, 'order_id', 'order_id');
+    }
+
+    public function customer()
+    {
+        return $this->hasOne(Customer::class, 'customer_id', 'customer_id');
+    }
 }
