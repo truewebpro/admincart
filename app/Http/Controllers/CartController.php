@@ -141,6 +141,23 @@ class CartController extends Controller
                 $this->attachCustomer($cart, $request);
                 break;
 
+            case "start_viva_payment":
+                $this->startVivaPayment($cart, $request);
+                $this->logEvent($cart,'start_viva_payment',[
+                    'orderCode' => $request->checkout_id,
+                    'checkout_id' => $request->checkout_id,
+                    'order_items' => $request['order_items'],
+                    'cart_data' => $request['cart_data'],
+                ]);
+                break;
+
+            case "viva_cancel_payment":
+                $this->vivaCancelPayment($cart, $request);
+                $this->logEvent($cart,'viva_cancel_payment',[
+                    'orderCode' => $request->checkout_id,
+                ]);
+                break;
+
             case "pay_bank_transfer":
                 return $this->bankCheckout($cart, $request);
 
@@ -262,6 +279,21 @@ class CartController extends Controller
         ]);
     }
 
+    private function startVivaPayment($cart, $request)
+    {
+        $cart->update([
+            'checkout_id' => $request->checkout_id,
+            'cart_status' => 'start_viva_payment',
+        ]);
+    }
+
+    private function vivaCancelPayment($cart, $request)
+    {
+        $cart->update([
+            'cart_status' => 'viva_cancel_payment'
+        ]);
+    }
+
     private function bankCheckout($cart, $request)
     {
         if($cart->order_id){
@@ -305,6 +337,7 @@ class CartController extends Controller
                 'currency_code' => $cart->currency,
                 'is_guest_order' => $cartData['is_guest_order'],
                 'shipping_name' => $cartData['shipping_name'],
+                'shipping_phone' => $cartData['shipping_phone'],
                 'shipping_address_line1' => $cartData['shipping_address_line1'],
                 'shipping_address_line2' => $cartData['shipping_address_line2'],
                 'shipping_city' => $cartData['shipping_city'],
