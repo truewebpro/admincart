@@ -1,6 +1,26 @@
 import { createStore } from "vuex"
 import axios from "axios";
 
+function calculateOrderStats(orders) {
+    return orders.reduce((acc, o) => {
+        acc.total++;
+
+        if (o.fulfillment_status === 'unfulfilled') acc.unfulfilled++;
+        if (o.fulfillment_status === 'fulfilled') acc.fulfilled++;
+
+        if (o.payment_status === 'paid') acc.paid++;
+        if (o.payment_status === 'pending') acc.pendingPayment++;
+
+        return acc;
+    }, {
+        total: 0,
+        unfulfilled: 0,
+        fulfilled: 0,
+        paid: 0,
+        pendingPayment: 0
+    });
+}
+
 const store = createStore({
     state:{
         user: window.APP_USER || JSON.parse(localStorage.getItem('user') || 'null'),
@@ -20,6 +40,15 @@ const store = createStore({
         instocksLoaded:false,
         products:[],
         productsLoaded:false,
+        orders:[],
+        ordersLoaded:false,
+        orderStats: {
+            total: 0,
+            unfulfilled: 0,
+            fulfilled: 0,
+            paid: 0,
+            pendingPayment: 0
+        },
     },
     mutations:{
         SET_SHOP(state, shop){
@@ -136,7 +165,6 @@ const store = createStore({
                 state.instocks[index] = {...state.instocks[index], ...updatedInstock}
             }
         },
-
         SET_PRODUCTS(state,products){
             state.products = products
             state.productsLoaded = true
@@ -192,7 +220,32 @@ const store = createStore({
         DELETE_PRODUCTS(state, ids) {
             state.products = state.products.filter(p => !ids.includes(p.product_id))
         },
-
+        SET_ORDERS(state,orders){
+            state.orders = orders;
+            state.ordersLoaded = true
+        },
+        UPDATE_ORDER(state,updatedOrder){
+            const index = state.orders.findIndex(
+                o => o.order_id === updatedOrder.order_id
+            )
+            if(index !== -1) {
+                state.orders[index] = {
+                    ...state.orders[index],
+                    ...updatedOrder
+                }
+            }
+            state.orderStats = calculateOrderStats(state.orders);
+        },
+        SET_ORDER_STATS(state, stats) {
+            state.orderStats = stats;
+        },
+        ADD_ORDER(state, order) {
+            const exists = state.orders.find(o => o.order_id === order.order_id);
+            if (!exists) {
+                state.orders.unshift(order);
+                state.orderStats = calculateOrderStats(state.orders);
+            }
+        },
         SET_USER(state, user){
             state.user = user
             localStorage.setItem('user', JSON.stringify(user))
@@ -213,6 +266,7 @@ const store = createStore({
         cats: state => state.cats,
         instocks:state => state.instocks,
         products:state=> state.products,
+        orders:state=>state.orders,
     },
     actions:{
         async fetchBrands({state,commit},force = false){
@@ -278,20 +332,38 @@ const store = createStore({
                 console.error('Failed to fetch products', e)
             }
         },
+        async fetchOrders({state,commit},force = false){
+            if(state.ordersLoaded && !force) return
+            try {
+                const resp = await axios.get('/sadmin/orders')
+                const orders = resp.data.orders
+                commit('SET_ORDERS',orders)
+                const stats = calculateOrderStats(orders);
+                commit('SET_ORDER_STATS', stats);
+            } catch (e) {
+                console.error('Failed to fetch orders', e)
+            }
+        },
         async fetchShopResources({ dispatch, state }) {
             if (state.brandsLoaded &&
-                state.productTypesLoaded &&
                 state.tagsLoaded &&
+                state.productTypesLoaded &&
                 state.poptionsLoaded &&
-                state.catsLoaded
+                state.catsLoaded &&
+                state.instocksLoaded &&
+                stat.productsLoaded &&
+                state.ordersLoaded
             ) return
             try {
                 await Promise.all([
                     dispatch('fetchBrands'),
-                    dispatch('fetchPtypes'),
                     dispatch('fetchTags'),
+                    dispatch('fetchPtypes'),
                     dispatch('fetchPoptions'),
-                    dispatch('fetchCats')
+                    dispatch('fetchCats'),
+                    dispatch('fetchInstocks'),
+                    dispatch('fetchProducts'),
+                    dispatch('fetchOrders')
                 ])
             } catch (e) {
                 console.error('Failed to fetch shop resources:', e)

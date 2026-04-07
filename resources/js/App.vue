@@ -19,14 +19,18 @@
                 </v-list-item>
                 <v-list-group value="acarts">
                     <template v-slot:activator="{ props }">
-                        <v-list-item v-bind="props" prepend-icon="mdi-invoice-text-clock-outline" title="All Orders">
-                            <div class="d-flex ga-3 align-center">
-                               <v-chip size="small" color="primary" class="bg-light-subtle font-weight-bold">22</v-chip>
-                            </div>
+                        <v-list-item v-bind="props" prepend-icon="mdi-cart-check">
+                            <template #title>
+                                All Orders
+                                <v-chip size="small" color="primary" class="bg-light-subtle font-weight-bold">
+                                   {{orderStats.unfulfilled}}
+                                </v-chip>
+                            </template>
                         </v-list-item>
                     </template>
-                    <v-list-item link :to="{name:'AdminOrders'}" color="primary" prepend-icon="mdi-invoice-text-clock" title="Orders"></v-list-item>
-                    <v-list-item link :to="{name:'AdminCarts'}" color="primary" prepend-icon="mdi-cart-check" title="Drafts"></v-list-item>
+                    <v-list-item link :to="{name:'AdminOrders'}" color="primary" prepend-icon="mdi-cart-check" title="Orders"></v-list-item>
+                    <v-list-item link :to="{name:'AdminCarts'}" color="primary" prepend-icon="mdi-cart-arrow-up" title="Drafts"></v-list-item>
+                    <v-list-item link :to="{name:'AbandonedCarts'}" color="primary" prepend-icon="mdi-cart-remove" title="Abandoned Carts"></v-list-item>
                 </v-list-group>
                 <v-list-item link :to="{name:'products'}" color="primary" prepend-icon="mdi-tag-outline" title="Products"></v-list-item>
                 <v-list-item link :to="{name:'InventoryList'}" color="primary" prepend-icon="mdi-format-list-numbered"
@@ -113,6 +117,9 @@ export default {
     computed: {
         isDesktop() {
             return this.$vuetify.display.mdAndUp;
+        },
+        orderStats() {
+            return this.$store.state.orderStats;
         }
     },
     watch: {
@@ -121,8 +128,29 @@ export default {
         }
     },
     mounted() {
+        window.Echo.connector.pusher.connection.bind('connected', () => {
+            console.log('🔄 Reconnected');
+            this.$store.dispatch('fetchOrders', true);
+        });
+        const channel = window.Echo.channel('orders');
+
+        channel.listen('.order.created', (e) => {
+            this.$store.commit('ADD_ORDER', e.order);
+            window.Toast.success(`New Order: ${e.order.order_number}`);
+        });
+
+        channel.listen('.order.updated', (e) => {
+            this.$store.commit('UPDATE_ORDER', e.order);
+        });
         this.drawer = this.isDesktop;
-        this.boostfetchShopResources();
+        this.$store.dispatch('fetchBrands');
+        this.$store.dispatch('fetchTags');
+        this.$store.dispatch('fetchPtypes');
+        this.$store.dispatch('fetchPoptions');
+        this.$store.dispatch('fetchCats');
+        this.$store.dispatch('fetchInstocks');
+        this.$store.dispatch('fetchProducts');
+        this.$store.dispatch('fetchOrders');
     },
     methods: {
         async logout(){
@@ -132,20 +160,22 @@ export default {
                     window.location.href = '/login';
                 })
         },
-        async boostfetchShopResources(){
-            const [brands,productTypes,tags,poptions,cats] = await Promise.all([
-                axios.get('/sadmin/brands'),
-                axios.get('/sadmin/ptypes'),
-                axios.get('/sadmin/tags'),
-                axios.get('/sadmin/poptions'),
-                axios.get('/sadmin/categories'),
-            ])
-            this.$store.commit('SET_BRANDS', brands.data.brands)
-            this.$store.commit('SET_PRODUCT_TYPES', productTypes.data.ptypes)
-            this.$store.commit('SET_TAGS', tags.data.tags)
-            this.$store.commit('SET_POPTIONS', poptions.data.poptions)
-            this.$store.commit('SET_CATS',cats.data.cats)
-        },
+        // async boostfetchShopResources(){
+        //     const [brands,productTypes,tags,poptions,cats,orders] = await Promise.all([
+        //         axios.get('/sadmin/brands'),
+        //         axios.get('/sadmin/ptypes'),
+        //         axios.get('/sadmin/tags'),
+        //         axios.get('/sadmin/poptions'),
+        //         axios.get('/sadmin/categories'),
+        //         axios.get('/sadmin/orders'),
+        //     ])
+        //     this.$store.commit('SET_BRANDS', brands.data.brands)
+        //     this.$store.commit('SET_PRODUCT_TYPES', productTypes.data.ptypes)
+        //     this.$store.commit('SET_TAGS', tags.data.tags)
+        //     this.$store.commit('SET_POPTIONS', poptions.data.poptions)
+        //     this.$store.commit('SET_CATS',cats.data.cats)
+        //     this.$store.commit('SET_ORDERS',orders.data.orders)
+        // },
     }
 }
 

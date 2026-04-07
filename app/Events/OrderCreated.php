@@ -10,7 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class OrderUpdated implements ShouldBroadcast
+class OrderCreated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -18,7 +18,7 @@ class OrderUpdated implements ShouldBroadcast
 
     public function __construct($order)
     {
-        $this->order = $order;
+       $this->order = $order;
     }
 
     public function broadcastOn(): array
@@ -28,8 +28,8 @@ class OrderUpdated implements ShouldBroadcast
         ];
     }
 
-    public function broadcastAs()
+    public function broadcastAs(): string
     {
-        return 'order.updated';
+       return 'order.created';
     }
 }

@@ -293,6 +293,10 @@ export default {
             }
             axios.post('/sadmin/order/update',mpaid)
                 .then((resp)=>{
+                    this.$store.commit('UPDATE_ORDER',{
+                        order_id:Number(this.order_id),
+                        payment_status:'paid'
+                    })
                     window.Toast.success(resp.data.message);
                     this.getOrderDetail();
                     this.markPaidDialog = false;
@@ -306,6 +310,10 @@ export default {
             }
             axios.post('/sadmin/order/update',mpicked)
                 .then((resp)=>{
+                    this.$store.commit('UPDATE_ORDER',{
+                        order_id:Number(this.order_id),
+                        fulfillment_status:'picked'
+                    })
                     window.Toast.success(resp.data.message);
                     this.getOrderDetail();
                 })
@@ -318,6 +326,10 @@ export default {
             }
             axios.post('/sadmin/order/update',mpacked)
                 .then((resp)=>{
+                    this.$store.commit('UPDATE_ORDER',{
+                        order_id:Number(this.order_id),
+                        fulfillment_status:'packed'
+                    })
                     window.Toast.success(resp.data.message);
                     this.getOrderDetail();
                 })
@@ -329,6 +341,11 @@ export default {
             }
             axios.post('/sadmin/order/update',mdeleted)
                 .then((resp)=>{
+                    const now = new Date().toISOString();
+                    this.$store.commit('UPDATE_ORDER',{
+                        order_id:Number(this.order_id),
+                        deleted_at:now
+                    })
                     window.Toast.success(resp.data.message);
                     this.getOrderDetail();
                 })
@@ -340,6 +357,10 @@ export default {
             }
             axios.post('/sadmin/order/update',mrestore)
                 .then((resp)=>{
+                    this.$store.commit('UPDATE_ORDER',{
+                        order_id:Number(this.order_id),
+                        deleted_at:null
+                    })
                     window.Toast.success(resp.data.message);
                     this.getOrderDetail();
                 })
@@ -387,6 +408,9 @@ export default {
                     "request_label": true
                 })
                     .then((resp)=>{
+                        this.$store.commit('UPDATE_ORDER',{
+                            order_id:Number(this.order_id),
+                        })
                     this.getOrderDetail();
                     window.Toast.success('order send to SendCloud')
                 })

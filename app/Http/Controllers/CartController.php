@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderCreated;
 use App\Models\Acart;
 use App\Models\AcartEvent;
 use App\Models\AcartItem;
@@ -269,14 +270,6 @@ class CartController extends Controller
             'cart_status' => 'customer_attached'
         ]);
 
-        // optional: store address snapshot (recommended)
-//        $cart->meta = [
-//            'address_id' => $request->address_id,
-//            'email' => $request->email
-//        ];
-//
-//        $cart->save();
-
         $this->logEvent($cart, 'customer_attached', [
             'customer_id' => $request->customer_id,
             'address_id' => $request->address_id
@@ -498,6 +491,7 @@ class CartController extends Controller
                 'order_id' => $order->order_id
             ]);
             DB::commit();
+            broadcast(new OrderCreated($order));
             return response()->json([
                 'success'=>true,
                 'order_id'=>$order->order_id

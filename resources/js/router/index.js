@@ -52,6 +52,7 @@ import MenusList from "@/admin/menus/MenusList.vue";
 import Preferences from "@/admin/theme/Preferences.vue";
 import ThemeView from "@/admin/theme/ThemeView.vue";
 import IntegrateList from "@/admin/integrate/IntegrateList.vue";
+import AbandonedCarts from "@/admin/order/AbandonedCarts.vue";
 
 
 
@@ -59,6 +60,7 @@ const routes = [
     {path:'/dashboard',name:"AdminDashboard",component:AdminDashboard},
     {path:'/orders',name:"AdminOrders",component:AdminOrders},
     {path:'/carts',name:"AdminCarts",component:AdminCarts},
+    {path:'/abandoned/carts',name:"AbandonedCarts",component: AbandonedCarts},
     {path: '/orders/:order_id',name: 'OrderView',component:OrderView,props:true},
     {path: '/carts/:cart_id',name: 'CartView',component:CartView,props:true},
     {path: '/products',name: 'products',component:ProductsList},

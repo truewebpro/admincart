@@ -10,7 +10,7 @@
             <v-col cols="12">
                 <v-card flat class="border">
                     <v-toolbar density="default" height="44" color="white">
-                        <v-tabs v-model="status" color="primary" grow density="compact" show-arrows class="w-100">
+                        <v-tabs v-model="status" color="primary" density="compact" show-arrows class="w-100">
                             <v-tab v-for="(stat, index) in ostatuses" :key="index" :value="stat.value"
                                    class="text-capitalize text-body-1" :color="stat.color" backgroundColor="red">
                                 {{ stat.title }}
@@ -208,21 +208,23 @@ export default {
             const searchTerms = search.toLowerCase().split(' ');
             return searchTerms.every(term => title.includes(term));
         },
-        getAllOrders(){
+         async getAllOrders(){
             this.isLoading = true;
-            axios.get('/sadmin/orders')
-                .then((resp)=>{
-                    const aorders = resp.data.orders;
-                    this.orders = aorders?.map((item) => {
-                        if (item.deleted_at !== null) {
-                            return {...item, order_status: "archived"};
-                        }
-                        return item;
-                    });
-                })
-                .finally(()=>{
-                    this.isLoading = false;
-                })
+            try {
+               await this.$store.dispatch('fetchOrders');
+                const aorders = this.$store.state.orders;
+                this.orders = aorders?.map((item) => {
+                    if (item.deleted_at !== null) {
+                        return {...item, order_status: "archived"};
+                    }
+                    return item;
+                });
+
+            } catch (e) {
+                console.error("Failed to load orders", e);
+            } finally {
+                this.isLoading = false;
+            }
         }
     }
 }
