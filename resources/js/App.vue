@@ -29,7 +29,6 @@
                         </v-list-item>
                     </template>
                     <v-list-item link :to="{name:'AdminOrders'}" color="primary" prepend-icon="mdi-cart-check" title="Orders"></v-list-item>
-                    <v-list-item link :to="{name:'AdminCarts'}" color="primary" prepend-icon="mdi-cart-arrow-up" title="Drafts"></v-list-item>
                     <v-list-item link :to="{name:'AbandonedCarts'}" color="primary" prepend-icon="mdi-cart-remove" title="Abandoned Carts"></v-list-item>
                 </v-list-group>
                 <v-list-item link :to="{name:'products'}" color="primary" prepend-icon="mdi-tag-outline" title="Products"></v-list-item>

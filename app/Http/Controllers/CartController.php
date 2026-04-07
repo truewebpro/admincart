@@ -344,6 +344,8 @@ class CartController extends Controller
                     'notes' => $cartData['notes'],
                     'checkout_id' => $request->checkout_id,
                     'placed_at' => now(),
+                    'shipping_protection_fee' => $cartData['shipping_protection_fee'] ?? 0,
+                    'payment_fee' => $cartData['payment_fee'] ?? 0,
                 ]);
                 foreach ($items as $item) {
                     $stock = Stock::where('variant_id', $item['variant_id'])
@@ -451,6 +453,8 @@ class CartController extends Controller
                 'notes' => $cartData['notes'],
                 'checkout_id' => $request->checkout_id,
                 'placed_at' => now(),
+                'shipping_protection_fee' => $cartData['shipping_protection_fee'] ?? 0,
+                'payment_fee' => $cartData['payment_fee'] ?? 0,
             ]);
             foreach ($items as $item) {
                 $stock = Stock::where('variant_id', $item['variant_id'])

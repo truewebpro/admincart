@@ -105,13 +105,25 @@
                     <v-card-title>Shop Settings</v-card-title>
                     <v-card-text>
                         <v-form v-model="settingValid" @submit.prevent="updateSetting">
-                            <v-number-input v-model="setting.min_checkout_price" label="Min Checkout Price" variant="outlined" control-variant="split"
+                            <v-number-input v-model="setting.min_checkout_price"
+                                            label="Min Checkout Price" variant="outlined" control-variant="split"
                                             density="compact" :min="0.99" :precision="2" prefix="GBP"></v-number-input>
-                            <v-radio-group v-model="setting.vat_included" inline label="Vat Included on Checkout">
+                            <h4>Shipping Protection enabled</h4>
+                            <v-radio-group v-model="setting.shipping_protection_enabled" inline>
                                 <v-radio :value="true" label="Yes" color="green"></v-radio>
                                 <v-radio :value="false" label="No" color="red"></v-radio>
                             </v-radio-group>
-                            <v-radio-group v-model="setting.hide_price" inline label="Hide Price">
+                            <v-number-input v-model="setting.shipping_protection_fee"
+                                            label="Shipping Protection Fee" variant="outlined" control-variant="split"
+                                            density="compact" :min="0" :precision="2" prefix="GBP"></v-number-input>
+
+                            <h4>Vat Included on Checkout</h4>
+                            <v-radio-group v-model="setting.vat_included" inline>
+                                <v-radio :value="true" label="Yes" color="green"></v-radio>
+                                <v-radio :value="false" label="No" color="red"></v-radio>
+                            </v-radio-group>
+                            <h4>Hide Prices (B2B)</h4>
+                            <v-radio-group v-model="setting.hide_price" inline>
                                 <v-radio :value="true" label="Yes" color="green"></v-radio>
                                 <v-radio :value="false" label="No" color="red"></v-radio>
                             </v-radio-group>
@@ -220,6 +232,8 @@ export default {
                 min_checkout_price:0.99,
                 vat_included:true,
                 hide_price:false,
+                shipping_protection_enabled:false,
+                shipping_protection_fee:0,
             },
             settingValid:false,
         }
@@ -259,6 +273,8 @@ export default {
                 min_checkout_price:this.setting.min_checkout_price,
                 vat_included:this.setting.vat_included,
                 hide_price:this.setting.hide_price,
+                shipping_protection_enabled:this.setting.shipping_protection_enabled,
+                shipping_protection_fee:this.setting.shipping_protection_fee,
             }
             axios.post('/sadmin/shop/setting/update',sdata)
                 .then((resp)=>{

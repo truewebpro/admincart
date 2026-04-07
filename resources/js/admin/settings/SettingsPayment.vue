@@ -9,7 +9,7 @@
             </v-col>
             <v-col cols="12" md="6" class="text-md-end">
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="7">
                 <v-card>
                     <v-card-title>Shop Payment Methods</v-card-title>
                     <v-list nav v-model:selected="editedItem" base-color="black" active-class="primary">
@@ -36,7 +36,7 @@
                     </v-list>
                 </v-card>
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="5">
                 <v-card>
                     <v-card-title class="d-flex align-center">
                         <v-avatar size="48" class="me-2">
@@ -67,6 +67,14 @@
                                         <v-radio :value="false" label="False" density="default" color="red"></v-radio>
                                     </v-radio-group>
                                 </div>
+                            </div>
+                            <div class="d-flex ga-2">
+                                <v-text-field v-model="selectedPmethod.handling_fee" placeholder="0" density="compact"
+                                              label="Handling Fee" variant="outlined" persistentPlaceholder/>
+                                <v-radio-group v-model="selectedPmethod.fee_type" inline>
+                                    <v-radio value="fixed" label="Fixed" color="success"></v-radio>
+                                    <v-radio value="percentage" label="Percentage" color="red"></v-radio>
+                                </v-radio-group>
                             </div>
                             <v-btn @click="addShopPaymentMethod" :disabled="!favalid" density="compact" prepend-icon="mdi-plus" color="success">Add</v-btn>
                         </v-form>
@@ -100,14 +108,24 @@
                                 <v-text-field label="API key" v-model="editedItem.payment_options.api_key" variant="outlined"
                                               density="compact" :rules="apiRule"></v-text-field>
                             </div>
+                            <v-text-field v-model="editedItem.handling_fee" placeholder="0" density="compact"
+                                          label="Handling Fee" variant="outlined" persistentHint
+                                          hint="Add Fixed Charges or Percentage value of order"
+                                          persistentPlaceholder/>
+                            <h4>Fee Type</h4>
+                            <v-radio-group density="compact"
+                                           v-model="editedItem.fee_type" inline>
+                                <v-radio value="fixed" label="Fixed" color="success"></v-radio>
+                                <v-radio value="percentage" label="Percentage" color="red"></v-radio>
+                            </v-radio-group>
                             <v-text-field label="Note" v-model="editedItem.payment_options.note" variant="outlined"
                                           density="compact" :rules="noteRule"></v-text-field>
-                            <div class="font-weight-medium">Test Mode</div>
+                            <h4>Test Mode</h4>
                             <v-radio-group v-model="editedItem.payment_options.test_mode" inline hide-details>
                                 <v-radio value="true" label="True" color="success"></v-radio>
                                 <v-radio value="false" label="False" color="red"></v-radio>
                             </v-radio-group>
-                            <div class="font-weight-medium">Payment Status</div>
+                            <h4>Payment Status</h4>
                             <v-radio-group v-model="editedItem.payment_status" inline hide-details>
                                 <v-radio value="active" label="Active" color="green"></v-radio>
                                 <v-radio value="inactive" label="inactive" color="red"></v-radio>
@@ -142,7 +160,9 @@ export default {
             editedItem:{},
             selectedPmethod:{},
             pmethods:[
-                {payment_name:'Bank Transfer',payment_method:'bank_transfer',payment_icon:'payment/bank_transfer.png',payment_options:{
+                {payment_name:'Bank Transfer',payment_method:'bank_transfer',payment_icon:'payment/bank_transfer.png',
+                    handling_fee:"0.00",fee_type:"fixed",
+                    payment_options:{
                         environment:'dev',
                         company_name:'',
                         bank_name:'',
@@ -152,28 +172,36 @@ export default {
                         test_mode:true,
                     },
                 },
-                {payment_name:'Viva Smart',payment_method:'viva_smart',payment_icon:'payment/viva_smart.png',payment_options:{
+                {payment_name:'Viva Smart',payment_method:'viva_smart',payment_icon:'payment/viva_smart.png',
+                    handling_fee:"0.00",fee_type:"fixed",
+                    payment_options:{
                         environment:'dev',
                         client_id:'',
                         secret_key:'',
                         note:'',
                         test_mode:true,
                     },},
-                {payment_name:'World Pay',payment_method:'world_pay',payment_icon:'payment/world_pay.png',payment_options:{
+                {payment_name:'World Pay',payment_method:'world_pay',payment_icon:'payment/world_pay.png',
+                    handling_fee:"0.00",fee_type:"fixed",
+                    payment_options:{
                         environment:'dev',
                         merchant_id:'',
                         api_key:'',
                         note:'',
                         test_mode:true,
                     }},
-                {payment_name:'Credit Card',payment_method:'credit_card',payment_icon:'payment/credit_card.png',payment_options:{
+                {payment_name:'Credit Card',payment_method:'credit_card',payment_icon:'payment/credit_card.png',
+                    handling_fee:"0.00",fee_type:"fixed",
+                    payment_options:{
                         environment:'dev',
                         merchant_id:'',
                         api_key:'',
                         note:'',
                         test_mode:true,
                     }},
-                {payment_name:'Others',payment_method:'others',payment_icon:'payment/others.png',payment_options:{
+                {payment_name:'Others',payment_method:'others',payment_icon:'payment/others.png',
+                    handling_fee:"0.00",fee_type:"fixed",
+                    payment_options:{
                         environment:'dev',
                         merchant_id:'',
                         api_key:'',
@@ -272,6 +300,8 @@ export default {
                 payment_name:this.selectedPmethod.payment_name,
                 payment_method:this.selectedPmethod.payment_method,
                 payment_icon:this.selectedPmethod.payment_icon,
+                handling_fee:this.selectedPmethod.handling_fee,
+                fee_type:this.selectedPmethod.fee_type,
                 payment_options:this.formData,
                 payment_status:'inactive',
                 sort_order:'0',

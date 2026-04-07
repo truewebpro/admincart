@@ -14,11 +14,14 @@ class Setting extends Model
         'min_checkout_price',
         'vat_included',
         'hide_price',
+        'shipping_protection_enabled',
+        'shipping_protection_fee',
     ];
 
     protected $casts = [
         'vat_included' => 'boolean',
         'hide_price' => 'boolean',
+        'shipping_protection_enabled' => 'boolean',
     ];
 
     public $hidden = ['created_at', 'updated_at'];

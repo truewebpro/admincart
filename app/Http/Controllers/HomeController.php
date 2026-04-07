@@ -93,6 +93,8 @@ class HomeController extends Controller
                     'min_checkout_price' => 0.99,
                     'vat_included' => true,
                     'hide_price' => false,
+                    'shipping_protection_enabled' => false,
+                    'shipping_protection_fee' => 0,
                 ]
             );
             return response()->json([
@@ -174,6 +176,8 @@ class HomeController extends Controller
         $setting->min_checkout_price = $request->min_checkout_price;
         $setting->vat_included = $request->vat_included;
         $setting->hide_price = $request->hide_price;
+        $setting->shipping_protection_enabled = $request->shipping_protection_enabled ?? false;
+        $setting->shipping_protection_fee = $request->shipping_protection_fee ?? 0;
         $setting->update();
         return response()->json([
             'success' => true,
@@ -2482,6 +2486,8 @@ class HomeController extends Controller
                     'payment_name' => $request->payment_name,
                     'payment_method' => $request->payment_method,
                     'payment_icon' => $request->payment_icon,
+                    'handling_fee' => $request->handling_fee ?? 0,
+                    'fee_type' => $request->fee_type ?? "fixed",
                     'payment_options' => $request->payment_options,
                     'payment_status' => $request->payment_status,
                     'sort_order' => $request->sort_order,

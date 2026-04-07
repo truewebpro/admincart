@@ -46,6 +46,8 @@ class Order extends Model
         'shipment_id',
         'shipment_name',
         'placed_at',
+        'payment_fee',
+        'shipping_protection_fee',
     ];
 
     protected $casts = [

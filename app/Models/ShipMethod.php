@@ -22,4 +22,6 @@ class ShipMethod extends Model
     {
        return $this->belongsTo(Courier::class, 'courier_id', 'courier_id');
     }
+
+    public $hidden = ['created_at', 'updated_at'];
 }

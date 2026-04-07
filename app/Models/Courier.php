@@ -20,4 +20,6 @@ class Courier extends Model
     {
         return $this->hasMany(ShippingMethod::class, 'courier_id', 'courier_id');
     }
+
+    public $hidden = ['created_at', 'updated_at'];
 }

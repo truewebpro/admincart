@@ -14,6 +14,8 @@ class ShopPaymentMethod extends Model
         'payment_name',
         'payment_method',
         'payment_icon',
+        'handling_fee',
+        'fee_type',
         'payment_options',
         'payment_status',
         'sort_order',
