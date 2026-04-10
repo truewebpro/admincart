@@ -38,6 +38,20 @@ class CustomerController extends Controller
             ->exists();
 
         if (!$linked) {
+            $linkedtoShop = CustomerShop::create([
+                'customer_id' => $customer->customer_id,
+                'shop_id' => $shopId,
+                'registered_at' => now(),
+                'status' => 'active',
+                'ctags' => ['b2c'],
+            ]);
+            if ($linkedtoShop) {
+                return response()->json([
+                    'success' => true,
+                    'token' => JWTAuth::fromUser($customer),
+                    'customer' => $customer,
+                ]);
+            }
             return response()->json(['error' => 'Customer not registered with this shop'], 403);
         }
         $token = JWTAuth::fromUser($customer);
