@@ -58,6 +58,7 @@ use App\Models\SubscribeSection;
 use App\Models\Tag;
 use App\Models\User;
 use App\Models\Variant;
+use App\Models\VivaPayment;
 use App\Services\SmartCategoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -694,12 +695,20 @@ class HomeController extends Controller
         $shopId = session('shop_id');
         $carts = Cart::with('order')->withCount('cartItems')
             ->where('shop_id','=',$shopId)
-            ->orderByDesc('created_at')
+            ->orderByDesc('updated_at')
             ->get();
         $acarts = Acart::with('order','customer')->withCount('items')
             ->where('shop_id','=',$shopId)
             ->orderByDesc('created_at')
             ->get();
+        foreach($acarts as $acart){
+            $vpay = VivaPayment::where('order_code','=',$acart->checkout_id)->first();
+            if($vpay){
+                $acart['vpayment_id'] = $vpay;
+            } else{
+                $acart['vpayment_id'] = null;
+            }
+        }
         return response()->json([
             'success' => true,
             'carts' => $carts,
@@ -716,11 +725,17 @@ class HomeController extends Controller
 //            ->where('cart_id','=',$cart_id)
 //            ->where('shop_id','=',$shopId)
 //            ->first();
-        $cart = Acart::with('order.orderItems','items.product','items.variant','customer')
+        $cart = Acart::with('order.orderItems','items.product','items.variant','customer','aevents')
             ->withCount('items')
             ->where('acart_id','=',$cart_id)
             ->where('shop_id','=',$shopId)
             ->first();
+        $vpay = VivaPayment::where('order_code','=',$cart->checkout_id)->first();
+        if($vpay){
+            $cart['vpayment_id'] = $vpay;
+        } else{
+            $cart['vpayment_id'] = null;
+        }
         if($cart){
             return response()->json([
                 'success' => true,

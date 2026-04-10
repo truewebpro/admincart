@@ -3,7 +3,7 @@
         <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
             <v-col cols="12" md="6">
                 <h2 class="text-h6">
-                    <v-btn link to="/carts" icon variant="tonal" density="compact" class="me-2">
+                    <v-btn link to="/abandoned/carts" icon variant="tonal" density="compact" class="me-2">
                         <v-icon>mdi-arrow-left</v-icon>
                     </v-btn>
                     <span class="me-2">#D{{cartDetail.acart_id}}</span>
@@ -208,6 +208,32 @@
                         <div class="font-weight-medium">+44 {{order?.shipping_phone}}</div>
                     </v-card-text>
                 </v-card>
+                <v-card class="border-sm mt-3">
+                    <v-card-title>Cart Events</v-card-title>
+                    <v-card-text>
+                        <div>Ip Address : {{cartDetail.ip_address}}</div>
+                        <div>Device Type : {{cartDetail.device_type}}</div>
+                        <div>Browser : {{cartDetail.browser}}</div>
+                        <div>Platform : {{cartDetail.platform}}</div>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col cols="12" md="12">
+                <v-card>
+                    <v-data-table :items="aevents" :headers="aeventHeaders">
+                        <template v-slot:item.created_at="{item}">
+                            <span>{{dayjs(item.created_at)}}</span>
+                        </template>
+                        <template v-slot:item.event_data="{item}">
+                            <div v-if="item.event_data['process']">{{item.event_data['process']}}</div>
+                            <div v-if="item.event_data['orderCode']">{{item.event_data['orderCode']}}</div>
+                            <span>{{item.event_data}}</span>
+                        </template>
+                    </v-data-table>
+                </v-card>
+
             </v-col>
         </v-row>
 <!--        <v-dialog v-model="markPaidDialog" max-width="350">-->
@@ -236,6 +262,12 @@ export default {
         return{
             cdn:this.$store.state.cdn,
             cartDetail:[],
+            aevents:[],
+            aeventHeaders:[
+                {title:'Date / Time',key:'created_at'},
+                {title:'Event Type',key:'event_type'},
+                {title:'Event Data',key:'event_data'}
+            ],
             customer:[],
             oitems:[],
             ostatuses:['pending', 'processing', 'completed', 'archived'],
@@ -259,6 +291,7 @@ export default {
             axios.get('/sadmin/cart/'+this.cart_id)
                 .then((resp)=>{
                     const carDetail = resp.data.cart;
+                    this.aevents = carDetail.aevents;
                     this.order = carDetail.order;
                     this.cartDetail = carDetail || [];
                     this.customer = carDetail.customer || {};

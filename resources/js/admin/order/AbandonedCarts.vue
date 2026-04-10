@@ -65,6 +65,7 @@
                                         <span>#D{{item.acart_id}}</span>
                                     </router-link>
                                 </div>
+                                <div class="font-weight-medium">{{item.checkout_id}}</div>
                             </template>
                             <template v-slot:item.created_at="{item}">
                                 <div class="font-weight-medium">{{dayjs(item.created_at).format('D MMM [at] h:mm a')}}</div>
@@ -91,6 +92,9 @@
                                             color="green" density="compact" variant="outlined" class="text-capitalize font-weight-medium">Paid</v-chip>
                                     <v-chip v-else color="red" density="compact" variant="outlined" class="text-capitalize font-weight-medium">pending</v-chip>
                                 </div>
+                                <v-btn class="mt-1" v-if="item.order_id === null && item.vpayment_id !== null" density="compact" size="small" color="red">
+                                    Order Error
+                                </v-btn>
                             </template>
                             <template v-slot:item.cart_status="{item}">
                                 <v-chip class="text-capitalize font-weight-medium" density="compact"

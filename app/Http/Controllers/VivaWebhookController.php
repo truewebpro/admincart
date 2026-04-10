@@ -34,7 +34,7 @@ class VivaWebhookController extends Controller
         }
         $payload = $rdata['EventData'];
         $shopId = $request->shop_id;
-        VivaPayment::updateOrCreate(
+        $vpay = VivaPayment::updateOrCreate(
             [
                 'order_code' => $payload['OrderCode'],
                 'shop_id' => $shopId,
@@ -50,13 +50,13 @@ class VivaWebhookController extends Controller
                 'payload' => $payload,
             ]);
         $cart =  Acart::where('shop_id', $shopId)
-            ->where('checkout_id', $payload['orderCode'])
+            ->where('checkout_id', $vpay->order_code)
             ->where('is_active', true)
             ->first();
         if($cart->order_id){return response()->json(['success'=>true, 'order_id'=>$cart->order_id]);}
         $acartEvent = AcartEvent::where('acart_id',$cart->acart_id)
             ->where('event_type','=','start_viva_payment')
-            ->where('event_data->orderCode','=',$payload['orderCode'])
+            ->where('event_data->orderCode','=',$vpay->order_code)
             ->first();
         if($acartEvent){
             try {
@@ -102,7 +102,7 @@ class VivaWebhookController extends Controller
                     'shipping_postcode' => $cartData['shipping_postcode'],
                     'shipping_country' => $cartData['shipping_country'],
                     'notes' => $cartData['notes'],
-                    'checkout_id' =>$payload['orderCode'],
+                    'checkout_id' =>$cart->checkout_id,
                     'placed_at' => now(),
                     'shipping_protection_fee' => $cartData['shipping_protection_fee'] ?? 0,
                     'payment_fee' => $cartData['payment_fee'] ?? 0,
@@ -137,10 +137,10 @@ class VivaWebhookController extends Controller
                 }
                 $cart->update([
                     'order_id' => $order->order_id,
-                    'checkout_id' => $payload['orderCode'],
+                    'checkout_id' => $cart->checkout_id,
                     'cart_status' => 'converted',
                     'is_active'=>false,
-                    'cart_token'=>$payload['orderCode'],
+                    'cart_token'=>$cart->checkout_id,
                 ]);
                 $this->logEvent($cart, 'order_created', [
                     'order_id' => $order->order_id

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Acart extends Model
 {
@@ -54,5 +55,10 @@ class Acart extends Model
     public function customer()
     {
         return $this->hasOne(Customer::class, 'customer_id', 'customer_id');
+    }
+
+    public function aevents(): HasMany
+    {
+        return $this->hasMany(AcartEvent::class, 'acart_id', 'acart_id')->orderBy('created_at', 'DESC');
     }
 }
