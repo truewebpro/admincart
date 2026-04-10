@@ -322,7 +322,7 @@ class CartController extends Controller
                     'order_status' => 'pending',
                     'label_status' => 'no_label',
                     'payment_method' => $cart->payment_method,
-                    'payment_status' => 'pending',
+                    'payment_status' => 'paid',
                     'fulfillment_status' => 'unfulfilled',
                     'shipping_method' => $cart->shipping_method,
                     'shipping_cost' => $cart->shipping_cost,

@@ -150,36 +150,39 @@ class ShopController extends Controller
         $brand = Brand::where('shop_id','=',$shopId)
             ->where('brand_slug','=',$brand_slug)
             ->first();
-        $brandsections = Section::where('sectionable_id','=',$brand->brand_id)
-            ->where('sectionable_type',Brand::class)
-            ->join('stypes','stypes.stype_id','=','sections.stype_id')
-            ->select('sections.section_id','sections.sectionable_id','sections.section_json',
-                'sections.sort_order','sections.section_status','sections.stype_id','stypes.stype_slug')
-            ->where('sections.section_status','=','show')
-            ->orderBy('sections.sort_order', 'ASC')
-            ->get();
-        $sectionsWithExtras = [];
-        foreach ($brandsections as $section){
-            $sectionArray = $section->toArray();
-            if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
-                $catId = $sectionArray['section_json']['stype_json']['cat_id'];
-                $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
-                $products = Product::with(['variants.astock', 'brand', 'ptype'])
-                    ->where('shop_id','=',$shopId)
-                    ->withCount('reviews')->withAvg('reviews','rating')
-                    ->whereIn('product_id', function ($query) use ($catId) {
-                        $query->select('product_id')
-                            ->from('catpros')
-                            ->where('cat_id', $catId);
-                    })
-                    ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
-                    ->get();
-                $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
-                $sectionArray['section_json']['stype_json']['catpros'] = $products;
+        if($brand != null){
+            $brandsections = Section::where('sectionable_id','=',$brand->brand_id)
+                ->where('sectionable_type',Brand::class)
+                ->join('stypes','stypes.stype_id','=','sections.stype_id')
+                ->select('sections.section_id','sections.sectionable_id','sections.section_json',
+                    'sections.sort_order','sections.section_status','sections.stype_id','stypes.stype_slug')
+                ->where('sections.section_status','=','show')
+                ->orderBy('sections.sort_order', 'ASC')
+                ->get();
+            $sectionsWithExtras = [];
+            foreach ($brandsections as $section){
+                $sectionArray = $section->toArray();
+                if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
+                    $catId = $sectionArray['section_json']['stype_json']['cat_id'];
+                    $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
+                    $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                        ->where('shop_id','=',$shopId)
+                        ->withCount('reviews')->withAvg('reviews','rating')
+                        ->whereIn('product_id', function ($query) use ($catId) {
+                            $query->select('product_id')
+                                ->from('catpros')
+                                ->where('cat_id', $catId);
+                        })
+                        ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
+                        ->get();
+                    $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
+                    $sectionArray['section_json']['stype_json']['catpros'] = $products;
+                }
+                $sectionsWithExtras[] = $sectionArray;
             }
-            $sectionsWithExtras[] = $sectionArray;
+            $brand->asections = $sectionsWithExtras;
         }
-        $brand->asections = $sectionsWithExtras;
+
         if($brand != null){
             $brand_products = Product::with('brand','variants.astock')
                 ->withCount('reviews')->withAvg('reviews','rating')
