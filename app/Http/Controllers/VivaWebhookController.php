@@ -265,7 +265,7 @@ class VivaWebhookController extends Controller
             return response()->json(['success'=>true]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Webhook order creation failed', [
+            Log::error('Webhook main order creation failed', [
                 'error' => $e->getMessage()
             ]);
             return response()->json([

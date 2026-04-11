@@ -161,6 +161,9 @@ class CartController extends Controller
                 break;
 
             case "viva_payment_confirm":
+                $this->logEvent($cart,'viva_payment_confirm',[
+                    'orderCode' => $request->checkout_id,
+                ]);
                 return $this->vivaPaymentConfirm($cart, $request);
 
             case "pay_bank_transfer":
