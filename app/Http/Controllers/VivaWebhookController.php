@@ -53,114 +53,119 @@ class VivaWebhookController extends Controller
             ->where('checkout_id', $vpay->order_code)
             ->where('is_active', true)
             ->first();
-        if($cart->order_id){return response()->json(['success'=>true, 'order_id'=>$cart->order_id]);}
-        $acartEvent = AcartEvent::where('acart_id',$cart->acart_id)
-            ->where('event_type','=','start_viva_payment')
-            ->where('event_data->orderCode','=',$vpay->order_code)
-            ->first();
-        if($acartEvent){
-            try {
-                DB::beginTransaction();
-                $eventData = $acartEvent->event_data;
-                $items = $eventData['order_items'];
-                $cartData = $eventData['cart_data'];
-                if (empty($items)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Cart is empty'
-                    ], 400);
-                }
-                $prefix = Shop::where('shop_id', $cart->shop_id)->value('order_prefix') ?? "#";
-                $lastOrder = Order::withTrashed()->where('shop_id', $cart->shop_id)->orderByDesc('order_id')->first();
-                $lastOrderNumber = $lastOrder ? intval(preg_replace('/[^0-9]/', '', $lastOrder->order_number)): 1000;
-                $orderNumber = $prefix . ($lastOrderNumber + 1);
-                $order = Order::create([
-                    'order_number' => $orderNumber,
-                    'shop_id' => $cart->shop_id,
-                    'customer_id' => $cart->customer_id,
-                    'address_id' => $cartData['address_id'],
-                    'order_status' => 'pending',
-                    'label_status' => 'no_label',
-                    'payment_method' => $cartData['payment_method'],
-                    'payment_status' => 'paid',
-                    'fulfillment_status' => 'unfulfilled',
-                    'shipping_method' => $cartData['shipping_method'],
-                    'shipping_cost' => $cartData['shipping_cost'],
-                    'coupon_id' => $cartData['coupon_id'],
-                    'coupon_code' => $cartData['coupon_code'],
-                    'discount_amount' => $cartData['discount_amount'],
-                    'subtotal' => $cartData['subtotal'],
-                    'order_total' => $cartData['order_total'],
-                    'tax_amount' => $cartData['tax_amount'],
-                    'currency_code' => $cart->currency,
-                    'is_guest_order' => $cartData['is_guest_order'],
-                    'shipping_name' => $cartData['shipping_name'],
-                    'shipping_phone' => $cartData['shipping_phone'],
-                    'shipping_address_line1' => $cartData['shipping_address_line1'],
-                    'shipping_address_line2' => $cartData['shipping_address_line2'],
-                    'shipping_city' => $cartData['shipping_city'],
-                    'shipping_postcode' => $cartData['shipping_postcode'],
-                    'shipping_country' => $cartData['shipping_country'],
-                    'notes' => $cartData['notes'],
-                    'checkout_id' =>$cart->checkout_id,
-                    'placed_at' => now(),
-                    'shipping_protection_fee' => $cartData['shipping_protection_fee'] ?? 0,
-                    'payment_fee' => $cartData['payment_fee'] ?? 0,
-                ]);
-                foreach ($items as $item) {
-                    $stock = Stock::where('variant_id', $item['variant_id'])
-                        ->where('shop_id', $cart->shop_id)
-                        ->lockForUpdate()
-                        ->first();
-                    $available = $stock ? $stock->quantity : 0;
-                    $ordered = $item['quantity'];
-                    $allocated = min($available, $ordered);
-                    $backorder = $ordered - $allocated;
-                    $shipped = 0;
-                    // Deduct only allocated
-                    if ($stock && $allocated > 0) {
-                        $stock->decrement('quantity', $allocated);
-                    }
-                    OrderItem::create([
-                        'order_id' => $order->order_id,
-                        'product_id' => $item['product_id'],
-                        'variant_id' => $item['variant_id'],
-                        'title' => $item['title'],
-                        'options' => $item['options'],
-                        'price' => $item['price'],
-                        'quantity' => $ordered,
-                        'total' => $item['total'],
-                        'allocated_quantity' => $allocated,
-                        'backorder_quantity' => $backorder,
-                        'shipped_quantity' => $shipped,
-                    ]);
-                }
-                $cart->update([
-                    'order_id' => $order->order_id,
-                    'checkout_id' => $cart->checkout_id,
-                    'cart_status' => 'converted',
-                    'is_active'=>false,
-                    'cart_token'=>$cart->checkout_id,
-                ]);
-                $this->logEvent($cart, 'order_created', [
-                    'order_id' => $order->order_id
-                ]);
-                DB::commit();
-                return response()->json([
-                    'success'=>true,
-                    'order_id'=>$order->order_id
-                ]);
-            }  catch (\Exception $e) {
-                DB::rollBack();
-                Log::error('Webhook order creation failed', [
-                    'error' => $e->getMessage()
-                ]);
-                return response()->json([
-                    'error' => 'Order failed',
-                    'details' => $e->getMessage()
-                ], 500);
+        if($cart){
+            if($cart->order_id){
+                return response()->json(['success'=>true, 'order_id'=>$cart->order_id]);
             }
         }
+
+//        $acartEvent = AcartEvent::where('acart_id',$cart->acart_id)
+//            ->where('event_type','=','start_viva_payment')
+//            ->where('event_data->orderCode','=',$vpay->order_code)
+//            ->first();
+//        if($acartEvent){
+//            try {
+//                DB::beginTransaction();
+//                $eventData = $acartEvent->event_data;
+//                $items = $eventData['order_items'];
+//                $cartData = $eventData['cart_data'];
+//                if (empty($items)) {
+//                    return response()->json([
+//                        'success' => false,
+//                        'message' => 'Cart is empty'
+//                    ], 400);
+//                }
+//                $prefix = Shop::where('shop_id', $cart->shop_id)->value('order_prefix') ?? "#";
+//                $lastOrder = Order::withTrashed()->where('shop_id', $cart->shop_id)->orderByDesc('order_id')->first();
+//                $lastOrderNumber = $lastOrder ? intval(preg_replace('/[^0-9]/', '', $lastOrder->order_number)): 1000;
+//                $orderNumber = $prefix . ($lastOrderNumber + 1);
+//                $order = Order::create([
+//                    'order_number' => $orderNumber,
+//                    'shop_id' => $cart->shop_id,
+//                    'customer_id' => $cart->customer_id,
+//                    'address_id' => $cartData['address_id'],
+//                    'order_status' => 'pending',
+//                    'label_status' => 'no_label',
+//                    'payment_method' => $cartData['payment_method'],
+//                    'payment_status' => 'paid',
+//                    'fulfillment_status' => 'unfulfilled',
+//                    'shipping_method' => $cartData['shipping_method'],
+//                    'shipping_cost' => $cartData['shipping_cost'],
+//                    'coupon_id' => $cartData['coupon_id'],
+//                    'coupon_code' => $cartData['coupon_code'],
+//                    'discount_amount' => $cartData['discount_amount'],
+//                    'subtotal' => $cartData['subtotal'],
+//                    'order_total' => $cartData['order_total'],
+//                    'tax_amount' => $cartData['tax_amount'],
+//                    'currency_code' => $cart->currency,
+//                    'is_guest_order' => $cartData['is_guest_order'],
+//                    'shipping_name' => $cartData['shipping_name'],
+//                    'shipping_phone' => $cartData['shipping_phone'],
+//                    'shipping_address_line1' => $cartData['shipping_address_line1'],
+//                    'shipping_address_line2' => $cartData['shipping_address_line2'],
+//                    'shipping_city' => $cartData['shipping_city'],
+//                    'shipping_postcode' => $cartData['shipping_postcode'],
+//                    'shipping_country' => $cartData['shipping_country'],
+//                    'notes' => $cartData['notes'],
+//                    'checkout_id' =>$cart->checkout_id,
+//                    'placed_at' => now(),
+//                    'shipping_protection_fee' => $cartData['shipping_protection_fee'] ?? 0,
+//                    'payment_fee' => $cartData['payment_fee'] ?? 0,
+//                ]);
+//                foreach ($items as $item) {
+//                    $stock = Stock::where('variant_id', $item['variant_id'])
+//                        ->where('shop_id', $cart->shop_id)
+//                        ->lockForUpdate()
+//                        ->first();
+//                    $available = $stock ? $stock->quantity : 0;
+//                    $ordered = $item['quantity'];
+//                    $allocated = min($available, $ordered);
+//                    $backorder = $ordered - $allocated;
+//                    $shipped = 0;
+//                    // Deduct only allocated
+//                    if ($stock && $allocated > 0) {
+//                        $stock->decrement('quantity', $allocated);
+//                    }
+//                    OrderItem::create([
+//                        'order_id' => $order->order_id,
+//                        'product_id' => $item['product_id'],
+//                        'variant_id' => $item['variant_id'],
+//                        'title' => $item['title'],
+//                        'options' => $item['options'],
+//                        'price' => $item['price'],
+//                        'quantity' => $ordered,
+//                        'total' => $item['total'],
+//                        'allocated_quantity' => $allocated,
+//                        'backorder_quantity' => $backorder,
+//                        'shipped_quantity' => $shipped,
+//                    ]);
+//                }
+//                $cart->update([
+//                    'order_id' => $order->order_id,
+//                    'checkout_id' => $cart->checkout_id,
+//                    'cart_status' => 'converted',
+//                    'is_active'=>false,
+//                    'cart_token'=>$cart->checkout_id,
+//                ]);
+//                $this->logEvent($cart, 'order_created', [
+//                    'order_id' => $order->order_id
+//                ]);
+//                DB::commit();
+//                return response()->json([
+//                    'success'=>true,
+//                    'order_id'=>$order->order_id
+//                ]);
+//            }  catch (\Exception $e) {
+//                DB::rollBack();
+//                Log::error('Webhook order creation failed', [
+//                    'error' => $e->getMessage()
+//                ]);
+//                return response()->json([
+//                    'error' => 'Order failed',
+//                    'details' => $e->getMessage()
+//                ], 500);
+//            }
+//        }
 
         try {
             DB::beginTransaction();
