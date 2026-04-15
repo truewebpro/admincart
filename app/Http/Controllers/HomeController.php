@@ -2683,7 +2683,7 @@ class HomeController extends Controller
                     'blog_status' => $request->blog_status ?? 'active',
                     'meta_title' => $request->meta_title,
                     'meta_desc' => $request->meta_desc,
-                    'user_id' => auth()->user(),
+                    'user_id' => $request->user_id ?? auth()->user()->id,
                     'shop_id' => $shopId,
                 ]
             );
@@ -2752,7 +2752,7 @@ class HomeController extends Controller
                     'blog_status' => $request->blog_status ?? 'active',
                     'meta_title' => $request->meta_title,
                     'meta_desc' => $request->meta_desc,
-                    'user_id' => auth()->user(),
+                    'user_id' => $request->user_id ?? auth()->user()->id,
                     'shop_id' => $shopId,
                 ]
             );
