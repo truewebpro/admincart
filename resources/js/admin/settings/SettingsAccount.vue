@@ -3,22 +3,142 @@
         <v-row>
             <v-col cols="12" md="6"><h2>Account</h2></v-col>
             <v-col cols="12" md="6" class="text-md-end">
-                <v-btn color="grey-darken-4" density="compact">Add New</v-btn>
             </v-col>
-            <v-col cols="12">
-                <v-card>
-                    <v-data-table></v-data-table>
+        </v-row>
+        <v-row>
+            <v-col cols="12" md="6">
+                <div v-if="billing?.subscribed || billing?.grace_period">
+                    <h3>Current Plan: {{ billing.plan?.name }}</h3>
+                    <p v-if="billing?.subscribed && !billing?.grace_period">
+                        Status: Active
+                    </p>
+                    <p v-if="billing?.grace_period">
+                        Status: Cancelling (Active until {{ billing.ends_at }})
+                    </p>
+                    <p v-if="!billing?.subscribed">
+                        No active subscription. Please choose a plan.
+                    </p>
+                    <div v-if="billing?.card?.last4">
+                        Card: {{ billing.card.brand }} **** {{ billing.card.last4 }}
+                    </div>
+                    <div v-if="billing?.grace_period">
+                        <v-alert type="warning">
+                            Your subscription will end on {{ new Date(billing.ends_at).toLocaleDateString() }}
+                        </v-alert>
+                    </div>
+                    <v-btn
+                        v-if="billing?.subscribed"
+                        color="red"
+                        @click="cancelSubscription"
+                    >
+                        Cancel Subscription
+                    </v-btn>
+                    <v-card class="mt-4">
+                        <v-card-title>Invoices</v-card-title>
+                        <v-list v-if="billing.invoices?.length">
+                            <v-list-item v-for="inv in billing.invoices" :key="inv.id">
+                                <div class="d-flex justify-space-between w-100">
+                                    <span>{{ inv.date }} - £{{ inv.total / 100 }}</span>
+                                    <a :href="inv.url" target="_blank">Download</a>
+                                </div>
+                            </v-list-item>
+                        </v-list>
+                        <div v-else class="pa-4">No invoices yet</div>
+                    </v-card>
+                </div>
+            </v-col>
+            <v-col cols="12" md="6">
+            </v-col>
+        </v-row>
+        <v-row v-if="plans?.length > 0">
+            <v-col v-for="(plan,index) in plans" cols="12" md="6" lg="3">
+                <v-card :elevation="currentPlan?.slug === plan.slug ? 10 : 2">
+                    <v-chip density="compact" v-if="plan.is_popular" color="primary">
+                        Popular
+                    </v-chip>
+                    <v-card-title>{{plan.name}}</v-card-title>
+                    <v-card-text>
+                        <div class="d-flex align-end ga-2">
+                            <h2 class="dd">£{{(plan.price/100)}}</h2>
+                            <div>{{plan.interval}}</div>
+                        </div>
+                        <div><span class="font-weight-medium text-body-1">Products</span> : {{plan.features?.products_limit}}</div>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-btn
+                               :color="currentPlan?.slug === plan.slug ? 'grey' : 'success'"
+                               block
+                               @click="subscribe(plan.slug)"
+                               :disabled="currentPlan?.slug === plan.slug"
+                               variant="elevated" density="comfortable">
+                            {{ currentPlan?.slug === plan.slug ? 'Current Plan' : (billing?.subscribed ? 'Change Plan' : 'Subscribe') }}
+                        </v-btn>
+                    </v-card-actions>
                 </v-card>
             </v-col>
         </v-row>
     </v-container>
 </template>
 <script>
+
 export default {
     name:"SettingsAccount",
     data(){
         return{
-
+            stripe: null,
+            card: null,
+            billing: null,
+            cardComplete: false,
+            plans:[],
+            currentPlan: null,
+            isSubscribed: false
+        }
+    },
+    async mounted() {
+        await this.init();
+    },
+    methods:{
+        async init(){
+            await this.getPlans();
+            await this.getCurrentPlan();
+            await this.getBilling();
+        },
+        async getCurrentPlan(){
+            try {
+                const respo = await axios.get('/subscription');
+                this.currentPlan = respo.data.plan;
+                this.isSubscribed = respo.data.subscribed;
+            } catch (e){
+                console.log(e)
+            }
+        },
+        async getPlans(){
+            try {
+                const res = await axios.get('/plans')
+                this.plans = res.data;
+            } catch (e){
+                console.log(e)
+            }
+        },
+        async getBilling(){
+            const res = await axios.get('/billing');
+            this.billing = res.data;
+        },
+        async cancelSubscription(){
+            if (!confirm("Are you sure you want to cancel your subscription?")) return;
+            await axios.post('/subscription/cancel');
+            await this.getBilling();
+        },
+        async subscribe(planSlug){
+            const res = await axios.post('/subscribe', {
+                plan: planSlug
+            });
+            if (res.data.url) {
+                window.location.href = res.data.url;
+            } else {
+                await this.getBilling();
+                await this.getCurrentPlan();
+            }
         }
     }
 }

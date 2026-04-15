@@ -28,6 +28,7 @@ Route::post('/shop/vapecraze/sendcloud/webhook',[SendcloudWebhookController::cla
 Route::post('/shop/vapeportwholesale/sendcloud/webhook',[SendcloudWebhookController::class,'handleVapeportSendcloudWebhook']);
 
 Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () {
+    Route::get('/shop',[ShopController::class,'shopSetting']);
     Route::get('/viva/gettoken',[VivaWebhookController::class,'getConfigToken']);
     Route::get('/viva/webhook/verify', [VivaWebhookController::class, 'verifyWebhook']);
     Route::post('/viva/webhook/verify',[VivaWebhookController::class,'handleWebhook']);

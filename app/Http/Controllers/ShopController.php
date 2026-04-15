@@ -29,6 +29,61 @@ use Illuminate\Support\Facades\Hash;
 
 class ShopController extends Controller
 {
+    public function shopSetting(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $preference = Preference::where('shop_id',$shopId)->first();
+        $shop = Shop::where('shop_id',$shopId)->first();
+        $shop['domains'] = [
+            'subdomain' => $shop->subdomain,
+            'maindomain' => $shop->maindomain,
+            ];
+        $shop['branding'] = ['logo' => "https://cdn.truewebcart.com/".$preference->shop_logo];
+        $shop['theme'] = [
+            'colors' => [
+                'primary' => "#ed1b24",
+                'secondary' => "#0e0e0e",
+                'background' => "#ffffff",
+                'foreground' => "#171717",
+            ],
+        ];
+        $shop['settings'] = [
+            'currency' => $shop->currency ?? 'GBP',
+        ];
+//        $shop['preference'] = $preference;
+        return response()->json($shop);
+//        return [
+//            'shop' => $shop,
+//            'id' => $shop->shop_id,
+//            'name' => $shop->shop_name,
+//            'slug' => $shop->shop_slug,
+//            'status' => $shop->shop_status,
+//            'order_prefix' => $shop->order_prefix,
+//
+//            'domains' => [
+//                'subdomain' => $shop->subdomain,
+//                'custom' => $shop->maindomain,
+//            ],
+//
+//            'branding' => [
+//                'logo' => "https://cdn.truewebcart.com/".$preference->shop_logo,
+//            ],
+//
+//            'theme' => [
+//                'colors' => [
+//                    'primary' => "#ed1b24",
+//                    'secondary' => "#0e0e0e",
+//                    'background' => "#ffffff",
+//                    'foreground' => "#171717",
+//                ],
+//            ],
+//
+//            'settings' => [
+//                'currency' => $shop->currency ?? 'GBP',
+//            ],
+//        ];
+    }
+
     public function homeMetas(Request $request)
     {
         $shopId = $request->shop_id;

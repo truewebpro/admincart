@@ -3,11 +3,20 @@
 @source "../views/**/*.blade.php";
 @source "../js/**/*.js";
 
-@layer theme {
-    :root{
-        --font-sans: "Roboto",sans-serif;
-    }
+:root{
+    --font-sans: "Roboto",sans-serif;
 }
+
+/*@layer theme {*/
+/*    :root{*/
+/*        --font-sans: "Roboto",sans-serif;*/
+/*    }*/
+/*}*/
+
+@theme inline {
+    --font-sans:var(--font-sans) ;
+}
+
 @layer base {
     html {
         font-size:1rem !important;

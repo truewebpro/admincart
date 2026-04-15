@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\StripeWebhookController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -37,8 +39,18 @@ Route::get('/google/details', function (Request $request) {
 
 Auth::routes();
 
+Route::post('/stripe/webook',[StripeWebhookController::class,'handleWebhook']);
+
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
+Route::middleware('auth')->group(function () {
+    Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);
+    Route::get('/subscription', [SubscriptionController::class, 'current']);
+    Route::get('/billing', [SubscriptionController::class, 'billing']);
+    Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel']);
+});
+
+Route::get('/plans',[SubscriptionController::class,'plans']);
 Route::middleware(['auth','resolve.admin.shop'])->group(function(){
     Route::prefix('sadmin')->group(function(){
         Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
