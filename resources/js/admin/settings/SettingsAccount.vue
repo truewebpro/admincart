@@ -7,7 +7,7 @@
         </v-row>
         <v-row>
             <v-col cols="12" md="6">
-                <div v-if="billing?.subscribed || billing?.grace_period">
+                <div v-if="billing">
                     <h3>Current Plan: {{ billing.plan?.name }}</h3>
                     <p v-if="billing?.subscribed && !billing?.grace_period">
                         Status: Active
@@ -51,9 +51,17 @@
             </v-col>
         </v-row>
         <v-row v-if="plans?.length > 0">
+            <v-col cols="12" md="12">
+                <v-alert type="info" class="mb-4" v-if="!billing?.subscribed">
+                    You are not subscribed to any plan yet.
+                </v-alert>
+            </v-col>
+
             <v-col v-for="(plan,index) in plans" cols="12" md="6" lg="3">
-                <v-card :elevation="currentPlan?.slug === plan.slug ? 10 : 2">
-                    <v-chip density="compact" v-if="plan.is_popular" color="primary">
+                <v-card :elevation="currentPlan?.slug === plan.slug ? 10 : 2"
+                        :variant="plan.is_popular ? 'outlined' : 'flat' " class="border-sm">
+                    <v-chip density="compact" v-if="plan.is_popular"
+                            color="primary" variant="outlined" class="position-absolute right-0 top-0">
                         Popular
                     </v-chip>
                     <v-card-title>{{plan.name}}</v-card-title>
