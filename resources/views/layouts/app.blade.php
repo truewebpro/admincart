@@ -29,7 +29,7 @@
 {{--    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>--}}
 
     <!-- Scripts -->
-    @vite(['resources/sass/app.scss'])
+{{--    @vite(['resources/sass/app.scss'])--}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@latest/css/materialdesignicons.min.css" />
 </head>
 <body class="min-h-screen">
@@ -48,7 +48,7 @@
                         <a href="/" class="text-slate-600">Home</a>
                         <a href="/" class="text-slate-600">Solutions</a>
                         <a href="/" class="text-slate-600">About</a>
-                        <a href="/" class="text-slate-600">Plan</a>
+                        <a href="{{route('plansPage')}}" class="text-slate-600">Plans</a>
                         <a href="/" class="text-slate-600">Contact</a>
                     </div>
                     <!-- Mobile Toggle -->

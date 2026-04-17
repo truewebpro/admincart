@@ -14,7 +14,10 @@
 /*}*/
 
 @theme inline {
-    --font-sans:var(--font-sans) ;
+    --font-sans:var(--font-sans);
+    --color-primary:rgba(var(--v-theme-primary));
+    --color-dblu:rgb(3, 43, 95);
+    --color-lblu:rgb(62, 169, 245);
 }
 
 @layer base {

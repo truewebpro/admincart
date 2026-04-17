@@ -1,6 +1,6 @@
 
 import './bootstrap';
-import '../sass/app.scss';
+// import '../sass/app.scss';
 // import "vuetify/dist/vuetify.min.css";
 import '../css/tailwind.css';
 

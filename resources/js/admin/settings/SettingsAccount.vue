@@ -122,7 +122,7 @@ export default {
         },
         async getPlans(){
             try {
-                const res = await axios.get('/plans')
+                const res = await axios.get('/sadmin/plans')
                 this.plans = res.data;
             } catch (e){
                 console.log(e)

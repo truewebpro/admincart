@@ -12,7 +12,8 @@ use App\Http\Controllers\FrontController;
 //    return view('auth.login');
 //});
 
-Route::get('/',[FrontController::class,'homePage']);
+Route::get('/',[FrontController::class,'homePage'])->name('homePage');
+Route::get('/plans',[FrontController::class,'plansPage'])->name('plansPage');
 
 Route::get('/google/autocomplete',function (Request $request){
     $input = $request->input('query');
@@ -53,7 +54,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel']);
 });
 
-Route::get('/plans',[SubscriptionController::class,'plans']);
 Route::middleware(['auth','resolve.admin.shop'])->group(function(){
     Route::prefix('sadmin')->group(function(){
         Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
@@ -168,6 +168,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/reviews/list',[HomeController::class,'getAdminReviewsList']);
         Route::post('/review/update',[HomeController::class,'updateAdminProductReview']);
         Route::post('/generate/ai',[HomeController::class,'allContentFromAi']);
+        Route::get('/plans',[SubscriptionController::class,'plans']);
     });
 });
 
