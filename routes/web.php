@@ -6,10 +6,13 @@ use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\FrontController;
 
-Route::get('/', function () {
-    return view('auth.login');
-});
+//Route::get('/', function () {
+//    return view('auth.login');
+//});
+
+Route::get('/',[FrontController::class,'homePage']);
 
 Route::get('/google/autocomplete',function (Request $request){
     $input = $request->input('query');

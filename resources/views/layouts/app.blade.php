@@ -32,10 +32,10 @@
     @vite(['resources/sass/app.scss'])
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@latest/css/materialdesignicons.min.css" />
 </head>
-<body>
-    <v-app id="app" v-cloak>
-        <nav class="shadow fixed top-0 w-full bg-white">
-            <div class="container mx-auto px-4">
+<body class="min-h-screen">
+    <v-app id="app" v-cloak class="min-h-screen flex flex-col">
+        <nav class="shadow sticky top-0 w-full bg-white">
+            <div class="max-w-7xl mx-auto px-4">
                 <div class="flex justify-between h-16 items-center">
 
                     <!-- Logo -->
@@ -52,7 +52,7 @@
                         <a href="/" class="text-slate-600">Contact</a>
                     </div>
                     <!-- Mobile Toggle -->
-                    <button id="menuBtn" class="md:hidden p-2 p-1 border border-gray-200 rounded-xl cursor-pointer">
+                    <button id="menuBtn" class="md:hidden p-2 border border-gray-200 rounded-xl cursor-pointer">
                         <span class="iconify text-2xl" data-icon="mdi-menu"></span>
                     </button>
 
@@ -107,7 +107,7 @@
                 </div>
             </div>
         </nav>
-        <main class="bg-slate-50">
+        <main class="bg-slate-50 flex-1">
             @yield('content')
         </main>
     </v-app>

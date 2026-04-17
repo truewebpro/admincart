@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="min-h-screen flex items-center justify-center px-4 bg-slate-900">
+    <div class="flex items-center justify-center px-4 bg-slate-900 min-h-[calc(100vh-4rem)]">
 
         <div class="w-full max-w-md">
             <!-- Card -->
