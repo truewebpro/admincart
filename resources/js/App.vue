@@ -184,7 +184,7 @@ export default {
 .v-list-group__items {
     --indent-padding: -6px !important;
 }
-html{font-size: 0.875rem;}
+html{font-size: 0.875rem !important;}
 
 .v-list-group__items .v-list-item {
     padding-inline-start: calc(5px + var(--indent-padding)) !important;
