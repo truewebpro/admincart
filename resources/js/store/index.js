@@ -351,7 +351,7 @@ const store = createStore({
                 state.poptionsLoaded &&
                 state.catsLoaded &&
                 state.instocksLoaded &&
-                stat.productsLoaded &&
+                state.productsLoaded &&
                 state.ordersLoaded
             ) return
             try {

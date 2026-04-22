@@ -63,7 +63,7 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::prefix('cart')->group(function () {
         Route::get('/', [CartController::class, 'getCart']);
         Route::post('/event', [CartController::class, 'event']);
-
+        Route::get('/coupons', [CartController::class, 'getAvailableCoupons']);
         Route::post('/checkout',[CartController::class,'checkout']);
     });
 

@@ -92,6 +92,8 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/product/highlight/update',[HomeController::class,'updateOrCreateHighlights']);
         Route::post('/product/highlight/delete',[HomeController::class,'deleteHighlight']);
         Route::post('/product/review/add',[HomeController::class,'addAdminProductReview']);
+        Route::post('/product/update-unit-pack',[HomeController::class,'updateUnitPack']);
+        Route::post('/product/save-tier-pricing',[HomeController::class,'saveTierPricing']);
         Route::get('/categories',[HomeController::class,'allCats']);
         Route::get('/cats/new',[HomeController::class,'addCatView']);
         Route::post('/cat/new',[HomeController::class,'addCatNew']);
@@ -165,6 +167,11 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/subscribe/section/update',[HomeController::class,'updateShopSubscribeSection']);
         Route::get('/search/alinks',[HomeController::class,'getAllLinks']);
         Route::get('/coupons/list',[HomeController::class,'getAdminCouponsList']);
+        Route::post('/coupon/save',[HomeController::class,'saveAdminCoupon']);
+        Route::post('/coupon/delete',[HomeController::class,'deleteAdminCoupon']);
+        Route::get('/pricing-rules/list',[HomeController::class,'getAdminPricingRules']);
+        Route::post('/pricing-rule/save',[HomeController::class,'saveAdminPricingRule']);
+        Route::post('/pricing-rule/delete',[HomeController::class,'deleteAdminPricingRule']);
         Route::get('/reviews/list',[HomeController::class,'getAdminReviewsList']);
         Route::post('/review/update',[HomeController::class,'updateAdminProductReview']);
         Route::post('/generate/ai',[HomeController::class,'allContentFromAi']);

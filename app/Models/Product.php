@@ -25,6 +25,8 @@ class Product extends Model
         'shop_id',
         'meta_title',
         'meta_desc',
+        'unit_name',
+        'unit_pack_qty'
     ];
     protected $casts = [
         'tags' => 'array',
@@ -95,6 +97,12 @@ class Product extends Model
     public function specifics()
     {
         return $this->hasMany(Specific::class, 'product_id', 'product_id');
+    }
+
+    public function tiers():HasMany
+    {
+        return $this->hasMany(ProductPriceTier::class , 'product_id', 'product_id')
+            ->orderBy('min_qty', 'ASC');
     }
 
 }

@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Events\OrderCreated;
 use App\Models\Acart;
+use App\Models\AcartCoupon;
 use App\Models\AcartEvent;
 use App\Models\AcartItem;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Models\Stock;
 use App\Models\Variant;
+use App\Services\PricingEngine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -624,5 +627,160 @@ class CartController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getAvailableCoupons(Request $request,$shopname)
+    {
+        $shopId = $request->shop_id;
+        $acart = Acart::where('cart_token', $request->cart_token)
+            ->where('shop_id', $shopId)
+            ->first();
+
+        if (!$acart) {
+            return response()->json(['success' => false]);
+        }
+
+        $result = app(PricingEngine::class)->calculate($acart);
+
+        $cartItems = $result['items'];
+        $subtotal = $result['subtotal'];
+
+        $coupons = Coupon::with(['products','cats'])
+            ->where('shop_id', $shopId)
+            ->orderBy('priority','asc')
+            ->get()
+            ->filter(function($coupon) use($subtotal,$cartItems){
+                // min order check
+                if ($coupon->min_order_amount && $subtotal < $coupon->min_order_amount) {
+                    return false;
+                }
+
+                // scope check
+                if ($coupon->applies_to === 'products') {
+                    $ids = $coupon->products->pluck('product_id')->toArray();
+
+                    return collect($cartItems)->contains(fn($i) =>
+                    in_array($i['product_id'], $ids)
+                    );
+                }
+
+                if ($coupon->applies_to === 'cats') {
+                    $catIds = $coupon->cats->pluck('cat_id')->toArray();
+
+                    return collect($cartItems)->contains(fn($i) =>
+                        count(array_intersect($i['cat_ids'], $catIds)) > 0
+                    );
+                }
+
+                return true;
+            })
+            ->values()
+            ->map(function($c){
+                return [
+                    'coupon_id' => $c->coupon_id,
+                    'code' => $c->code,
+                    'type' => $c->type,
+                    'value' => $c->value,
+                    'is_stackable' => $c->is_stackable,
+                    'label' => $c->type === 'fixed'
+                        ? "£{$c->value} off"
+                        : "{$c->value}% off"
+                ];
+            });
+        return response()->json([
+            'success' => true,
+            'coupons' => $coupons
+        ]);
+    }
+
+    public function applyCouponToCart(Request $request,$shopname)
+    {
+        $shopId = $request->shop_id;
+        $request->validate([
+            'cart_token' => 'required',
+            'code' => 'required'
+        ]);
+
+        $code = strtoupper(preg_replace('/\s+/', '', $request->code));
+
+        $acart = Acart::where('cart_token', $request->cart_token)
+            ->where('shop_id', $shopId)
+            ->firstOrFail();
+
+        $coupon = Coupon::where('shop_id', $shopId)
+            ->where('code', $code)
+            ->active()
+            ->first();
+
+        if (!$coupon) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid coupon'
+            ]);
+        }
+
+        // ❗ handle stackable
+        if (!$coupon->is_stackable) {
+            AcartCoupon::where('acart_id', $acart->acart_id)->delete();
+        }
+
+        // prevent duplicate
+        AcartCoupon::updateOrCreate(
+            [
+                'acart_id' => $acart->acart_id,
+                'coupon_code' => $code
+            ],
+            [
+                'coupon_id' => $coupon->coupon_id,
+                'shop_id' => $shopId,
+                'type' => $coupon->type,
+                'value' => $coupon->value,
+                'priority' => $coupon->priority
+            ]
+        );
+
+        // 🔥 recalc cart
+        $this->recalculateCouponCart($acart);
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
+    private function recalculateCouponCart($acart)
+    {
+        $codes = AcartCoupon::where('acart_id', $acart->acart_id)
+            ->pluck('coupon_code')
+            ->toArray();
+
+        $result = app(PricingEngine::class)
+            ->calculate($acart, $codes);
+
+        $acart->update([
+            'discount_amount' => $result['total_discount'],
+            'cart_total' => $result['final_total']
+        ]);
+
+        // update breakdown
+        foreach ($result['coupon_breakdown'] as $c) {
+            AcartCoupon::where('acart_id', $acart->acart_id)
+                ->where('coupon_code', $c['code'])
+                ->update([
+                    'discount_amount' => $c['discount']
+                ]);
+        }
+    }
+
+    public function removeCoupon(Request $request)
+    {
+        $acart = Acart::where('cart_token', $request->cart_token)->first();
+
+        AcartCoupon::where('acart_id', $acart->acart_id)
+            ->where('coupon_code', $request->code)
+            ->delete();
+
+        $this->recalculateCart($acart);
+
+        return response()->json(['success' => true]);
     }
 }

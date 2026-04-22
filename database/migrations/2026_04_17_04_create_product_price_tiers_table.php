@@ -11,16 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('coupon_products', function (Blueprint $table) {
-            $table->id('coupon_product_id')->index();
-            $table->foreignId('coupon_id')
-                ->constrained('coupons','coupon_id')
-                ->onDelete('cascade');
+        Schema::create('product_price_tiers', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('product_id')
                 ->constrained('products','product_id')
                 ->onDelete('cascade');
+            $table->foreignId('shop_id')
+                ->constrained('shops','shop_id')
+                ->onDelete('cascade');
+            $table->integer('min_qty'); // 1, 5, 10
+            $table->decimal('price', 10, 2);
+            $table->enum('pricing_type', ['fixed', 'percentage'])->default('fixed');
             $table->timestamps();
-            $table->unique(['coupon_id', 'product_id']);
+
+            $table->unique(['product_id', 'min_qty']);
         });
     }
 
@@ -29,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('coupon_products');
+        Schema::dropIfExists('product_price_tiers');
     }
 };

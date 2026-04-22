@@ -37,8 +37,10 @@ use App\Models\Page;
 use App\Models\Policy;
 use App\Models\Poptions;
 use App\Models\Preference;
+use App\Models\PricingRule;
 use App\Models\Product;
 use App\Models\Productgrid;
+use App\Models\ProductPriceTier;
 use App\Models\ProductType;
 use App\Models\Proreview;
 use App\Models\RelatedCat;
@@ -778,7 +780,7 @@ class HomeController extends Controller
     {
         $shopId = session('shop_id');
         $product = Product::withTrashed()->where('product_id','=', $product_id)
-            ->with('brand','ptype','variants.astock','sections','highs','specifics')
+            ->with('brand','ptype','variants.astock','sections','highs','specifics','tiers')
             ->where('shop_id','=',$shopId)
             ->first();
         $ptypes = ProductType::select('product_type_id','product_type_name')
@@ -1335,6 +1337,116 @@ class HomeController extends Controller
         );
 
         return response()->json(['success' => true,'message' => 'Review added successfully']);
+    }
+
+    public function updateUnitPack(Request $request)
+    {
+        $shopId = session('shop_id');
+        $unitPackQty = null;
+        if($request->unit_pack_qty <= 0){
+            $unitPackQty = null;
+        } else {
+            $unitPackQty = $request->unit_pack_qty;
+        }
+        $product = Product::where('product_id',$request->product_id)
+            ->where('shop_id', $shopId)
+            ->update([
+                'unit_name' => $request->unit_name ?? "Unit",
+                'unit_pack_qty' => $unitPackQty ?? null,
+            ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Unit Pack updated successfully',
+            'product' => $product,
+        ]);
+    }
+
+    public function saveTierPricing(Request $request)
+    {
+        $shopId = session('shop_id');
+        // ✅ Basic validation
+        $request->validate([
+            'product_id' => 'required|exists:products,product_id',
+            'tiers' => 'nullable|array',
+        ]);
+
+        // ✅ Validate tiers only if present
+        if (!empty($request->tiers)) {
+            $request->validate([
+                'tiers.*.min_qty' => 'required|integer|min:2',
+                'tiers.*.price' => 'required|numeric|min:0.01',
+                'tiers.*.pricing_type' => 'required|in:fixed,percentage',
+            ]);
+        }
+        $product = Product::where('product_id', $request->product_id)
+            ->where('shop_id', $shopId)
+            ->first();
+
+        if (!$product) {return response()->json(['success' => false, 'message' => 'Product not found']);}
+
+        // ✅ Normalize tiers (important for empty case)
+        $tiers = collect($request->input('tiers', []))
+            ->map(function ($t) {
+                return [
+                    'min_qty' => (int) $t['min_qty'],
+                    'price' => (float) $t['price'],
+                    'pricing_type' => $t['pricing_type'],
+                ];
+            })
+            ->sortBy('min_qty')
+            ->values()
+            ->toArray(); // 👈 important (avoid collection issues in loops)
+
+        // ✅ Backend validation (sequence + price logic)
+        for ($i = 0; $i < count($tiers); $i++) {
+            $current = $tiers[$i];
+            if ($i > 0) {
+                $prev = $tiers[$i - 1];
+                if ($current['min_qty'] <= $prev['min_qty']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Tier " . ($i + 1) . " qty must be greater than previous"
+                    ]);
+                }
+                if ($current['price'] >= $prev['price']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Tier " . ($i + 1) . " price must be less than previous"
+                    ]);
+                }
+            }
+        }
+
+        DB::transaction(function () use ($tiers, $product, $shopId) {
+
+            // delete old
+            ProductPriceTier::where('product_id', $product->product_id)->delete();
+
+            // ✅ If empty → just return (means remove all tiers)
+            if (empty($tiers)) {
+                return;
+            }
+            // ✅ Insert new tiers
+            foreach ($tiers as $tier) {
+                ProductPriceTier::create([
+                    'product_id' => $product->product_id,
+                    'shop_id' => $shopId,
+                    'min_qty' => $tier['min_qty'],
+                    'price' => $tier['price'],
+                    'pricing_type' => $tier['pricing_type'],
+                ]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => empty($tiers)
+                ? 'Tier pricing removed successfully'
+                : 'Tier pricing saved successfully',
+            'product'=> $product,
+        ]);
+
+
     }
 
     public function allCats()
@@ -3586,13 +3698,462 @@ class HomeController extends Controller
 
     }
 
+    public function getAdminPricingRules()
+    {
+        $shopId = session('shop_id');
+        $rules = PricingRule::with(['products', 'cats'])
+            ->where('shop_id',$shopId)
+            ->orderBy('priority', 'asc')
+            ->get()
+            ->map(function ($rule) {
+                return [
+                    'id' => $rule->id,
+                    'name' => $rule->name,
+                    'type' => $rule->type,
+                    'scope' => $rule->scope,
+                    'min_qty' => $rule->min_qty,
+                    'price' => $rule->price,
+                    'discount_percent' => $rule->discount_percent,
+                    'priority' => $rule->priority,
+                    'is_active' => $rule->is_active,
+                    'starts_at' => $rule->starts_at,
+                    'expires_at' => $rule->expires_at,
+
+                    // 👇 important for UI editing
+                    'products' => $rule->products->pluck('product_id'),
+                    'cats' => $rule->cats->pluck('cat_id'),
+                    'is_currently_active' => $rule->isCurrentlyActive(),
+                    'label' => $rule->type === 'bundle'
+                        ? "Buy {$rule->min_qty} for £{$rule->price}"
+                        : "{$rule->discount_percent}% off {$rule->min_qty}+",
+                ];
+            });
+        ;
+        return response([
+            'success'=>true,
+            'rules'=> $rules
+        ]);
+    }
+
+    public function saveAdminPricingRule(Request $request)
+    {
+        $shopId = session('shop_id');
+        // ✅ Base validation
+        $request->validate([
+            'id' => 'nullable|exists:pricing_rules,id',
+            'name' => 'nullable|string|max:255',
+            'type' => 'required|in:bundle,volume',
+            'scope' => 'required|in:all,products,cats',
+            'min_qty' => 'required|integer|min:2',
+            'price' => 'nullable|numeric|min:0',
+            'discount_percent' => 'nullable|numeric|min:1|max:100',
+            'products' => 'nullable|array',
+            'cats' => 'nullable|array',
+            'priority' => 'nullable|integer|min:0',
+            'starts_at' => 'nullable|date',
+            'expires_at' => 'nullable|date|after_or_equal:starts_at',
+            'is_active' => 'boolean'
+        ]);
+
+        // ✅ Type-specific validation
+        if ($request->type === 'bundle' && !$request->price) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bundle price is required'
+            ]);
+        }
+
+        if ($request->type === 'volume' && !$request->discount_percent) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Discount percent is required'
+            ]);
+        }
+
+        // ✅ Auto name (fallback)
+        $name = $request->name ?: (
+        $request->type === 'bundle'
+            ? "Buy {$request->min_qty} for £{$request->price}"
+            : "{$request->discount_percent}% off {$request->min_qty}+"
+        );
+//        dd($name,$request->all());
+
+        DB::transaction(function () use ($request, $shopId, $name) {
+
+            // ✅ Create or Update
+            $rule = PricingRule::updateOrCreate(
+                [
+                    'id' => $request->id,
+                    'shop_id' => $shopId
+                ],
+                [
+                    'name' => $name,
+                    'type' => $request->type,
+                    'scope' => $request->scope,
+                    'min_qty' => $request->min_qty,
+                    'price' => $request->price,
+                    'discount_percent' => $request->discount_percent,
+                    'priority' => $request->priority ?? 0,
+                    'starts_at' => $request->starts_at,
+                    'expires_at' => $request->expires_at,
+                    'is_active' => $request->is_active ?? true,
+                ]
+            );
+            // ✅ Sync Products
+            if ($request->scope === 'products') {
+                $rule->products()->sync($request->products ?? []);
+            } else {
+                $rule->products()->detach();
+            }
+
+            // ✅ Sync Categories
+            if ($request->scope === 'cats') {
+                $rule->cats()->sync($request->cats ?? []);
+            } else {
+                $rule->cats()->detach();
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pricing rule saved successfully',
+        ]);
+    }
+
+    public function deleteAdminPricingRule(Request $request)
+    {
+        $shopId = session('shop_id');
+        $request->validate([
+            'id' => 'required|exists:pricing_rules,id'
+        ]);
+
+        $rule = PricingRule::where('id', $request->id)
+            ->where('shop_id', $shopId)
+            ->first();
+
+        if (!$rule) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Rule not found'
+            ]);
+        }
+
+        DB::transaction(function () use ($rule) {
+            // detach relations (optional but clean)
+            $rule->products()->detach();
+            $rule->cats()->detach();
+
+            // delete rule
+            $rule->delete();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pricing rule deleted successfully'
+        ]);
+    }
+
     public function getAdminCouponsList()
     {
         $shopId = session('shop_id');
-        $coupons = Coupon::where('shop_id', $shopId)->get();
+        $coupons = Coupon::with(['products','cats'])
+            ->where('shop_id', $shopId)
+            ->orderBy('priority', 'asc')
+            ->get()
+            ->map(function ($c) {
+                return [
+                    'coupon_id' => $c->coupon_id,
+                    'code' => $c->code,
+                    'title' => $c->title,
+                    'display_title' => $c->display_title ?? $this->makeLabel($c),
+                    'is_auto' => $c->is_auto,
+                    'is_editable_code' => !$c->is_auto,
+                    'type' => $c->type,
+                    'type_label' => ucfirst($c->type),
+                    'value' => $c->value,
+                    'applies_to' => $c->applies_to,
+                    'min_order_amount' => $c->min_order_amount,
+                    'usage_limit' => $c->usage_limit,
+                    'per_customer_limit' => $c->per_customer_limit,
+                    'is_active' => $c->is_active,
+                    'is_stackable' => $c->is_stackable,
+                    'priority' => $c->priority,
+                    'starts_at' => $c->starts_at,
+                    'expires_at' => $c->expires_at,
+
+                    // ✅ relations (for form binding)
+                    'products' => $c->products->pluck('product_id')->toArray(),
+                    'cats' => $c->cats->pluck('cat_id')->toArray(),
+
+                    // ✅ conditions (critical)
+                    'conditions' => $c->conditions ?? [],
+                    'has_conditions' => !empty($c->conditions),
+
+                    // ✅ UI helpers
+                    'label' => $this->makeLabel($c),
+                    'is_currently_active' => $this->isActiveNow($c),
+
+                ];
+            });
         return response()->json([
             'success' => true,
             'coupons' => $coupons,
+        ]);
+    }
+
+    private function makeLabel($c)
+    {
+        if ($c->type === 'fixed') {
+            return "£{$c->value} off";
+        }
+
+        if ($c->type === 'percentage') {
+            return "{$c->value}% off";
+        }
+
+        if ($c->type === 'bogo') {
+            return "Buy One Get One";
+        }
+
+        if ($c->type === 'bundle') {
+            return "Bundle Offer";
+        }
+
+        return '';
+    }
+
+    private function isActiveNow($c)
+    {
+        $now = now();
+
+        return $c->is_active &&
+            (!$c->starts_at || $c->starts_at <= $now) &&
+            (!$c->expires_at || $c->expires_at >= $now);
+    }
+
+    public function saveAdminCoupon(Request $request)
+    {
+        $shopId = session('shop_id');
+        // ✅ validation
+        $request->validate([
+            'coupon_id' => 'nullable|exists:coupons,coupon_id',
+            'code' => 'nullable|string|max:50',
+            'title' => 'nullable|string|max:255',
+            'display_title' => 'nullable|string|max:255',
+            'is_auto' => 'boolean',
+            'type' => 'required|in:fixed,percentage,bogo,bundle',
+            'value' => 'nullable|numeric|min:0',
+            'applies_to' => 'required|in:entire_order,products,cats',
+            'products' => 'nullable|array',
+            'cats' => 'nullable|array',
+            'min_order_amount' => 'nullable|numeric|min:0',
+            'usage_limit' => 'nullable|integer|min:1',
+            'per_customer_limit' => 'nullable|integer|min:1',
+            'priority' => 'nullable|integer|min:0',
+            'starts_at' => 'nullable|date',
+            'expires_at' => 'nullable|date|after_or_equal:starts_at',
+            'is_active' => 'boolean',
+            'is_stackable' => 'boolean',
+            'conditions' => 'nullable|array',
+            'conditions.min_qty' => 'nullable|integer|min:1',
+            'conditions.product_ids' => 'nullable|array',
+            'conditions.category_ids' => 'nullable|array',
+            'conditions.buy_qty' => 'nullable|integer|min:1',
+            'conditions.get_qty' => 'nullable|integer|min:1',
+            'conditions.bundle_qty' => 'nullable|integer|min:1',
+            'conditions.bundle_price' => 'nullable|numeric|min:0.01',
+        ]);
+        $isAuto = $request->is_auto ?? false;
+        $code = $request->code
+            ? strtoupper(preg_replace('/\s+/', '', $request->code))
+            : null;
+        if ($isAuto && !$code) {
+            if($request->type === 'bogo'){
+                $code = 'BOGO_' . strtoupper(substr(md5(uniqid()), 0, 8));
+            } elseif ($request->type === 'bundle') {
+                $code = 'BUNDLE_' . strtoupper(substr(md5(uniqid()), 0, 8));
+            } else {
+                $code = 'AUTO_' . strtoupper(substr(md5(uniqid()), 0, 8));
+            }
+        }
+        if ($code) {
+            $exists = Coupon::where('shop_id', $shopId)
+                ->where('code', $code)
+                ->when($request->coupon_id, function ($q) use ($request) {
+                    $q->where('coupon_id', '!=', $request->coupon_id);
+                })
+                ->exists();
+
+            if ($exists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Coupon code already exists'
+                ]);
+            }
+        }
+        $conditions = $request->conditions ?? [];
+        if ($request->type === 'bogo') {
+            if (empty($conditions['buy_qty']) || empty($conditions['get_qty'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'BOGO requires buy & get qty'
+                ]);
+            }
+        }
+
+        if ($request->type === 'bundle') {
+            if (empty($conditions['bundle_qty']) || empty($conditions['bundle_price'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bundle requires qty & price'
+                ]);
+            }
+        }
+
+
+        // ✅ type-specific validation
+        if (in_array($request->type, ['fixed', 'percentage']) && !$request->value) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Coupon value is required'
+            ]);
+        }
+        if ($request->applies_to === 'products' && empty($request->products)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Select at least one product'
+            ]);
+        }
+
+        if ($request->applies_to === 'cats' && empty($request->cats)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Select at least one category'
+            ]);
+        }
+
+        DB::transaction(function () use ($request, $shopId, $code, $isAuto) {
+
+            $conditions = $request->conditions ?? null;
+
+            if ($conditions) {
+                $conditions = collect($conditions)
+                    ->filter(function ($v) {
+                        return !is_null($v) && $v !== '' && $v !== [];
+                    })
+                    ->toArray();
+            }
+            // clean by type
+            if ($request->type !== 'bogo') {
+                unset($conditions['buy_qty'], $conditions['get_qty']);
+            }
+
+            if ($request->type !== 'bundle') {
+                unset($conditions['bundle_qty'], $conditions['bundle_price']);
+            }
+
+            $value = $request->value ?? 0;
+            if (in_array($request->type, ['bogo', 'bundle'])) {
+                $value = 0;
+            }
+            if($request->coupon_id){
+                $coupon = Coupon::where('coupon_id', $request->coupon_id)
+                    ->where('shop_id', $shopId)
+                    ->firstOrFail();
+                $coupon->update([
+                    'code' => $code,
+                    'title' => $request->title,
+                    'display_title' => $request->display_title,
+                    'is_auto' => $isAuto,
+                    'type' => $request->type,
+                    'value' => $value,
+                    'applies_to' => $request->applies_to,
+                    'min_order_amount' => $request->min_order_amount,
+                    'usage_limit' => $request->usage_limit,
+                    'per_customer_limit' => $request->per_customer_limit,
+                    'is_active' => $request->is_active ?? true,
+                    'is_stackable' => $request->is_stackable ?? false,
+                    'priority' => $request->priority ?? 0,
+                    'starts_at' => $request->starts_at,
+                    'expires_at' => $request->expires_at,
+                    'conditions' => !empty($conditions) ? $conditions : null,
+                ]);
+            } else {
+                $coupon = Coupon::create([
+                    'shop_id' => $shopId,
+                    'code' => $code,
+                    'title' => $request->title,
+                    'display_title' => $request->display_title,
+                    'is_auto' => $isAuto,
+                    'type' => $request->type,
+                    'value' => $value,
+                    'applies_to' => $request->applies_to,
+                    'min_order_amount' => $request->min_order_amount,
+                    'usage_limit' => $request->usage_limit,
+                    'per_customer_limit' => $request->per_customer_limit,
+                    'is_active' => $request->is_active ?? true,
+                    'is_stackable' => $request->is_stackable ?? false,
+                    'priority' => $request->priority ?? 0,
+                    'starts_at' => $request->starts_at,
+                    'expires_at' => $request->expires_at,
+                    'conditions' => !empty($conditions) ? $conditions : null,
+                ]);
+            }
+
+            // ✅ sync products
+            if ($request->applies_to === 'products') {
+                $coupon->products()->sync($request->products ?? []);
+            } else {
+                $coupon->products()->detach();
+            }
+
+            // ✅ sync categories
+            if ($request->applies_to === 'cats') {
+                $coupon->cats()->sync($request->cats ?? []);
+            } else {
+                $coupon->cats()->detach();
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Coupon saved successfully'
+        ]);
+    }
+
+    public function deleteAdminCoupon(Request $request)
+    {
+        $shopId = session('shop_id');
+        $request->validate([
+            'coupon_id' => 'required|exists:coupons,coupon_id'
+        ]);
+        $coupon = Coupon::where('coupon_id', $request->coupon_id)
+            ->where('shop_id', $shopId)
+            ->first();
+
+        if (!$coupon) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Coupon not found'
+            ]);
+        }
+
+        DB::transaction(function () use ($coupon) {
+
+            // ✅ detach relations
+            $coupon->products()->detach();
+            $coupon->cats()->detach();
+
+            // optional: clear usages (depends on your strategy)
+            // CouponUsage::where('coupon_id', $coupon->coupon_id)->delete();
+
+            // delete coupon
+            $coupon->delete();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Coupon deleted successfully'
         ]);
     }
 

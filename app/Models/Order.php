@@ -27,6 +27,7 @@ class Order extends Model
         'coupon_id',
         'coupon_code',
         'discount_amount',
+        'coupon_discount',
         'subtotal',
         'order_total',
         'tax_amount',

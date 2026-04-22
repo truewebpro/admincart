@@ -127,13 +127,13 @@ class ShopController extends Controller
             $sectionsWithExtras[] = $sectionArray;
         }
         $blogs = Blog::where('shop_id','=',$shopId)->where('blog_status','=','active')
-            ->orderBy('created_at','DESC')->get();
+            ->orderBy('created_at','DESC')->limit(6)->get();
         $reviews = Proreview::where('shop_id','=',$shopId)
             ->join('reviewers','reviewers.id','=','proreviews.reviewer_id')
             ->orderBy('proreviews.rating','desc')
             ->orderBy('proreviews.created_at','desc')
             ->select('proreviews.*','reviewers.first_name','reviewers.last_name')
-            ->limit(12)->get();
+            ->limit(6)->get();
         return response()->json([
             'hsections'=> $sectionsWithExtras,
             'reviews' => $reviews,
@@ -417,7 +417,7 @@ class ShopController extends Controller
     public function getProduct(Request $request,$shopname,$slug)
     {
         $shopId = $request->shop_id;
-        $sproduct = Product::with('variants.astock','brand','ptype','psections','highs','reviews','specifics')
+        $sproduct = Product::with('variants.astock','brand','ptype','psections','highs','reviews','specifics','tiers')
             ->withCount('reviews')->withSum('reviews','rating')
             ->withAvg('reviews','rating')
             ->where('shop_id','=',$shopId)

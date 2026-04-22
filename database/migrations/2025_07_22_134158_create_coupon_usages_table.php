@@ -13,9 +13,13 @@ return new class extends Migration
     {
         Schema::create('coupon_usages', function (Blueprint $table) {
             $table->id('coupon_usage_id')->index();
-            $table->foreignId('coupon_id')->constrained('coupons','coupon_id')->onDelete('cascade');
-            $table->foreignId('customer_id')->constrained('customers','customer_id')->onDelete('cascade');
-            $table->integer('times_used')->default(1); // increment this per use
+            $table->foreignId('coupon_id')
+                ->constrained('coupons','coupon_id')
+                ->onDelete('cascade');
+            $table->foreignId('customer_id')
+                ->constrained('customers','customer_id')
+                ->onDelete('cascade');
+            $table->integer('times_used')->default(0); // increment this per use
             $table->timestamps();
             $table->unique(['coupon_id', 'customer_id']);
         });

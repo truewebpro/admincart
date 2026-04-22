@@ -11,16 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('coupon_cats', function (Blueprint $table) {
-            $table->id('coupon_cat_id')->index();
-            $table->foreignId('coupon_id')
-                ->constrained('coupons','coupon_id')
+        Schema::create('pricing_rule_products', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('pricing_rule_id')
+                ->constrained('pricing_rules')
                 ->onDelete('cascade');
-            $table->foreignId('cat_id')
-                ->constrained('cats','cat_id')
+
+            $table->foreignId('product_id')
+                ->constrained('products', 'product_id')
                 ->onDelete('cascade');
+
             $table->timestamps();
-            $table->unique(['coupon_id', 'cat_id']);
+
+            $table->unique(['pricing_rule_id', 'product_id']);
         });
     }
 
@@ -29,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('coupon_cats');
+        Schema::dropIfExists('pricing_rule_products');
     }
 };
