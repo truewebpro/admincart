@@ -243,6 +243,7 @@ class ShopController extends Controller
                 ->withCount('reviews')->withAvg('reviews','rating')
                 ->where('brand_id','=',$brand->brand_id)
                 ->where('product_status','=','Active')
+                ->inRandomOrder()
                 ->get();
             $total_reviews = 0;
             $review_averages = [];
@@ -363,7 +364,10 @@ class ShopController extends Controller
     public function getCategory(Request $request,$shopname,$slug)
     {
         $shopId = $request->shop_id;
-        $cat = Cat::with('rcats','csections')->where('shop_id','=',$shopId)->where('cat_slug','=',$slug)->first();
+        $cat = Cat::with('rcats','csections')
+            ->where('shop_id','=',$shopId)
+            ->where('cat_slug','=',$slug)
+            ->first();
         if($cat != null){
             $catId = $cat->cat_id;
             $alpros = Product::with(['variants.astock', 'brand', 'ptype'])
@@ -372,7 +376,7 @@ class ShopController extends Controller
                     $query->select('product_id')
                         ->from('catpros')
                         ->where('cat_id', $catId);
-                })
+                })->inRandomOrder()
                 ->get();
             $cat['catpros'] = $alpros;
             $sectionsWithExtras = [];
