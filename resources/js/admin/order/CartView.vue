@@ -227,10 +227,10 @@
                             <span>{{dayjs(item.created_at)}}</span>
                         </template>
                         <template v-slot:item.event_type="{item}">
-                            <span>{{(item.event_type)}} asas</span>
+                            <div>{{(item.event_type)}}</div>
                             <div v-if="item.event_type === 'start_viva_payment' && item.vpayment != null">
                                 <v-btn color="success" variant="elevated" density="compact" v-if="order != null">Order Created</v-btn>
-                                <v-btn color="red" variant="elevated" density="compact" v-else>Create Order</v-btn>
+                                <v-btn @click="createVivaOrder(item)" color="red" variant="elevated" density="compact" v-else>Create Order</v-btn>
                             </div>
                         </template>
                         <template v-slot:item.event_data="{item}">
@@ -311,6 +311,9 @@ export default {
                     this.lstatus = carDetail.order?.label_status || 'no_label';
                 })
         },
+        createVivaOrder(item){
+            console.log('event',JSON.parse(JSON.stringify(item)));
+        }
         // markAsPaid(){
         //     const mpaid = {
         //         cart_id:this.cart_id,
