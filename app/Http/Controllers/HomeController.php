@@ -735,10 +735,13 @@ class HomeController extends Controller
         $vpay = VivaPayment::where('order_code','=',$cart->checkout_id)->first();
         $customer = $cart->customer;
         foreach ($cart->aevents as $aevent){
-            $ordercode = $aevent['orderCode'];
+            $eventdata = $aevent->event_data;
+            $ordercode = $eventdata['orderCode'];
             if($ordercode){
                 $vpay = VivaPayment::where('order_code','=',$ordercode)->first();
                 $aevent['vpayment'] = $vpay;
+            } else {
+                $aevent['vpayment'] = null;
             }
         }
         if($customer){
