@@ -313,10 +313,7 @@ export default {
         },
         createVivaOrder(item){
             console.log('event',JSON.parse(JSON.stringify(item)));
-            const mitem = {
-                item
-            }
-            axios.post('/sadmin//create-viva-missing-order',mitem)
+            axios.post('/sadmin/create-viva-missing-order',item)
                 .then((resp)=>{
                     if(resp.data.success){
                         const order = resp.data.order;
