@@ -228,7 +228,9 @@
                         </template>
                         <template v-slot:item.event_data="{item}">
                             <div v-if="item.event_data['process']">{{item.event_data['process']}}</div>
-                            <div v-if="item.event_data['orderCode']">{{item.event_data['orderCode']}}</div>
+                            <div v-if="item.event_data['orderCode']">
+                                {{item.event_data['orderCode']}}
+                            </div>
                             <span>{{item.event_data}}</span>
                         </template>
                     </v-data-table>
