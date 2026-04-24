@@ -55,6 +55,7 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/cartsections', [ShopController::class, 'cartSections']);
     Route::get('/announcements', [ShopController::class, 'getAnnouncements']);
     Route::get('/products/search',[ShopController::class,'webSearch']);
+    Route::get('/products/qsearch',[ShopController::class,'resultSearchPage']);
     Route::get('/searchtags', [ShopController::class, 'getSearchTags']);
     Route::get('/footer', [ShopController::class, 'getFooter']);
     Route::get('/customer/exists',[ShopController::class,'exitingCustomer']);

@@ -714,6 +714,26 @@ class ShopController extends Controller
         ]);
     }
 
+    public function resultSearchPage(Request $request,$shopname)
+    {
+        $shopId = $request->shop_id;
+        $query = $request->q;
+        $products = Product::with('variants.astock','brand','ptype')
+            ->withCount('reviews')->withAvg('reviews','rating')
+            ->where('shop_id', $shopId)
+            ->where(function($q) use ($query) {
+                foreach (explode(' ', $query) as $word) {
+                    $q->where('title', 'LIKE', "%{$word}%");
+                }
+            })
+            ->limit(24)->orderBy('updated_at','DESC')
+            ->get();
+        return response()->json([
+            'success' => !$products->isEmpty(),
+            'products' => $products->isEmpty() ? null : $products
+        ]);
+    }
+
     public function exitingCustomer(Request $request)
     {
         $customer = Customer::where('email','=',$request->email)->exists();
