@@ -222,7 +222,8 @@ const store = createStore({
         },
         SET_ORDERS(state,orders){
             state.orders = orders;
-            state.ordersLoaded = true
+            state.ordersLoaded = true;
+            state.orderStats = calculateOrderStats(state.orders);
         },
         UPDATE_ORDER(state,updatedOrder){
             const index = state.orders.findIndex(

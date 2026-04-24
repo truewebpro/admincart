@@ -313,6 +313,24 @@ export default {
         },
         createVivaOrder(item){
             console.log('event',JSON.parse(JSON.stringify(item)));
+            const mitem = {
+                item
+            }
+            axios.post('/sadmin//create-viva-missing-order',mitem)
+                .then((resp)=>{
+                    if(resp.data.success){
+                        const order = resp.data.order;
+                        this.$store.commit('ADD_ORDER',order);
+                        this.$store.commit('UPDATE_ORDER',{
+                            order_id:Number(order.order_id),
+                            payment_status:'paid'
+                        })
+                        this.getCartDetail();
+                    }
+                })
+                .catch((err)=>{
+                    window.Toast.error(err.message);
+                })
         }
         // markAsPaid(){
         //     const mpaid = {

@@ -14,6 +14,7 @@ use App\Models\Product;
 use App\Models\Shop;
 use App\Models\Stock;
 use App\Models\Variant;
+use App\Models\VivaPayment;
 use App\Services\PricingEngine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -395,6 +396,109 @@ class CartController extends Controller
                 return response()->json([
                     'success'=>true,
                     'order_id'=>$order->order_id
+                ]);
+
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        }
+    }
+
+    public function createMissingOrder(Request $request)
+    {
+        $acartEvent = AcartEvent::where('acart_event_id', $request->acart_event_id)->first();
+        if($acartEvent){
+            $cart = Acart::where('acart_id', $acartEvent->acart_id)->firstOrFail();
+            DB::beginTransaction();
+            try {
+                $eventData = $acartEvent->event_data;
+                $items = $eventData['order_items'];
+                $cartData = $eventData['cart_data'];
+                if (empty($items)) {return response()->json(['success' => false,'message' => 'Cart is empty'], 400);}
+                $prefix = Shop::where('shop_id', $cart->shop_id)->value('order_prefix') ?? "#";
+                $lastOrder = Order::withTrashed()->where('shop_id', $cart->shop_id)->orderByDesc('order_id')->first();
+                $lastOrderNumber = $lastOrder ? intval(preg_replace('/[^0-9]/', '', $lastOrder->order_number)): 1000;
+                $orderNumber = $prefix . ($lastOrderNumber + 1);
+                $order = Order::create([
+                    'order_number' => $orderNumber,
+                    'shop_id' => $cart->shop_id,
+                    'customer_id' => $cartData['customer_id'],
+                    'address_id' => $cartData['address_id'],
+                    'order_status' => 'pending',
+                    'label_status' => 'no_label',
+                    'payment_method' => $cartData['payment_method'],
+                    'payment_status' => 'paid',
+                    'fulfillment_status' => 'unfulfilled',
+                    'shipping_method' => $cartData['shipping_method'],
+                    'shipping_cost' => $cartData['shipping_cost'],
+                    'coupon_id' => $cartData['coupon_id'],
+                    'coupon_code' => $cartData['coupon_code'],
+                    'discount_amount' => $cartData['discount_amount'],
+                    'subtotal' => $cartData['subtotal'],
+                    'order_total' => $cartData['order_total'],
+                    'tax_amount' => $cartData['tax_amount'],
+                    'currency_code' => $cartData['currency_code'],
+                    'is_guest_order' => $cartData['is_guest_order'],
+                    'shipping_name' => $cartData['shipping_name'],
+                    'shipping_phone' => $cartData['shipping_phone'],
+                    'shipping_address_line1' => $cartData['shipping_address_line1'],
+                    'shipping_address_line2' => $cartData['shipping_address_line2'],
+                    'shipping_city' => $cartData['shipping_city'],
+                    'shipping_postcode' => $cartData['shipping_postcode'],
+                    'shipping_country' => $cartData['shipping_country'],
+                    'notes' => $cartData['notes'],
+                    'checkout_id' => $eventData['checkout_id'],
+                    'placed_at' => now(),
+                    'shipping_protection_fee' => $cartData['shipping_protection_fee'] ?? 0,
+                    'payment_fee' => $cartData['payment_fee'] ?? 0,
+                ]);
+                foreach ($items as $item) {
+                    $stock = Stock::where('variant_id', $item['variant_id'])
+                        ->where('shop_id', $cart->shop_id)
+                        ->lockForUpdate()
+                        ->first();
+                    $available = $stock ? $stock->quantity : 0;
+                    $ordered = $item['quantity'];
+                    $allocated = min($available, $ordered);
+                    $backorder = $ordered - $allocated;
+                    $shipped = 0;
+                    // Deduct only allocated
+                    if ($stock && $allocated > 0) {
+                        $stock->decrement('quantity', $allocated);
+                    }
+                    OrderItem::create([
+                        'order_id' => $order->order_id,
+                        'product_id' => $item['product_id'],
+                        'variant_id' => $item['variant_id'],
+                        'title' => $item['title'],
+                        'options' => $item['options'],
+                        'price' => $item['price'],
+                        'quantity' => $ordered,
+                        'total' => $item['total'],
+                        'allocated_quantity' => $allocated,
+                        'backorder_quantity' => $backorder,
+                        'shipped_quantity' => $shipped,
+                    ]);
+                }
+                $cart->update([
+                    'order_id' => $order->order_id,
+                    'checkout_id' => $eventData['checkout_id'],
+                    'cart_status' => 'converted',
+                    'is_active'=>false,
+                    'cart_token'=>$eventData['checkout_id'],
+                ]);
+                $this->logEvent($cart, 'order_created', [
+                    'order_id' => $order->order_id
+                ]);
+                DB::commit();
+                return response()->json([
+                    'success'=>true,
+                    'order_id'=> $order->order_id,
+                    'order'=> $order
                 ]);
 
             } catch (\Throwable $e) {
