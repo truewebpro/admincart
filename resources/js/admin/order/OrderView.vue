@@ -33,6 +33,12 @@
                         <v-list-item base-color="error">
                             <v-list-item-title><v-icon class="me-2">mdi-trash-can-outline</v-icon>Delete Order</v-list-item-title>
                         </v-list-item>
+                        <v-list-item base-color="dark" @click="generateInvoice(order_id)">
+                            <v-list-item-title><v-icon class="me-2">mdi-file-outline</v-icon>PDF Invoice</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item base-color="dark" @click="generateLabel(order_id)">
+                            <v-list-item-title><v-icon class="me-2">mdi-paper-roll-outline</v-icon>PDF Label</v-list-item-title>
+                        </v-list-item>
                     </v-list>
                 </v-menu>
                 <v-btn icon variant="tonal" density="compact">
@@ -272,6 +278,12 @@ export default {
     },
     methods:{
         dayjs,
+        generateInvoice(id){
+            window.open(`/sadmin/order-invoice/${id}`,"_blank");
+        },
+        generateLabel(id){
+            window.open(`/sadmin/order-label/${id}`,"_blank");
+        },
         getOrderDetail(){
             axios.get('/sadmin/order/'+this.order_id)
                 .then((resp)=>{

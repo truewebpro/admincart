@@ -81,6 +81,8 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/order/{order_id}',[HomeController::class,'getOrderById']);
         Route::post('/order/update',[HomeController::class,'updateAdminOrder']);
         Route::post('/order/sendtosendcloud/single',[HomeController::class,'sendToSendCloudSingle']);
+        Route::get('/order-invoice/{id}', [HomeController::class, 'invoice']);
+        Route::get('/order-label/{id}', [HomeController::class, 'label']);
         Route::get('/pros',[HomeController::class,'allProducts']);
         Route::get('/products/{product_id}',[HomeController::class,'getProductbyId']);
         Route::get('/pros/new',[HomeController::class,'addProductView']);

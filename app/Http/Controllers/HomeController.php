@@ -62,6 +62,7 @@ use App\Models\User;
 use App\Models\Variant;
 use App\Models\VivaPayment;
 use App\Services\SmartCategoryService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -4236,5 +4237,23 @@ class HomeController extends Controller
             ], 500);
         }
 
+    }
+
+    public function invoice($id)
+    {
+        $order = Order::with('items')->findOrFail($id);
+        $pdf = Pdf::loadView('pdf.invoice', compact('order'));
+
+        return $pdf->download("invoice-{$order->order_id}.pdf");
+    }
+
+    public function label($id)
+    {
+        $order = Order::findOrFail($id);
+
+        $pdf = Pdf::loadView('pdf.label', compact('order'))
+            ->setPaper([0, 0, 288, 432]); // 4x6 inch
+
+        return $pdf->download("label-{$order->order_id}.pdf");
     }
 }
