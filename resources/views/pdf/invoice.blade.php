@@ -79,7 +79,8 @@
                 <strong>Order #{{ $order->order_id }}</strong><br>
                 <strong>Invoice #{{ $order->order_number }}</strong><br>
                 Date: {{ $order->created_at->format('d M Y H:i') }}<br>
-                Payment: {{ $order->payment_method }}
+                Payment: {{ $order->payment_method }}<br>
+                Shipping: {{$order->tracking_number}} {{$order->shipment_name ?? $order->shipping_method}}
             </div>
         </td>
         <td width="60%" class="right">
