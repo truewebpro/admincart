@@ -4246,7 +4246,12 @@ class HomeController extends Controller
     public function invoice($id)
     {
         $order = Order::with('items')->findOrFail($id);
-        $pdf = Pdf::loadView('pdf.invoice', compact('order'));
+        $shop = Shop::find($order->shop_id);
+        $preference = Preference::find($order->shop_id);
+        $business = BusinessShop::leftjoin('businesses','businesses.business_id','=','business_shops.business_id')
+            ->where('business_shops.shop_id','=',$order->shop_id)
+            ->first();
+        $pdf = Pdf::loadView('pdf.invoice', compact('order','shop','preference','business'));
 
         return $pdf->download("invoice-{$order->order_id}.pdf");
     }
