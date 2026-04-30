@@ -13,6 +13,7 @@
                     :categories="categories"
                     :banners="banners"
                     :brands="brands"
+                    :alinks="alinks"
                 />
             </v-card-text>
             <v-divider />
@@ -41,6 +42,7 @@ import ReviewSliderEditor from "@/components/sections/editors/ReviewSliderEditor
 import ServicesPromoEditor from "@/components/sections/editors/ServicesPromoEditor.vue";
 import TextSectionEditor from "@/components/sections/editors/TextSectionEditor.vue";
 import FeaturedCollectionsEditor from "@/components/sections/editors/FeaturedCollectionsEditor.vue";
+import FeaturedLinksEditor from "@/components/sections/editors/FeaturedLinksEditor.vue";
 import SlideShowEditor from "@/components/sections/editors/SlideShowEditor.vue";
 import FeaturedOptionsEditor from "@/components/sections/editors/FeaturedOptionsEditor.vue";
 import PeopleSearchEditor from "@/components/sections/editors/PeopleSearchEditor.vue";
@@ -56,6 +58,7 @@ export default {
         categories: { type: Array, default: () => [] },
         banners: { type: Array, default: () => [] },
         brands: { type: Array, default: () => [] },
+        alinks: { type: Array, default: () => [] },
     },
     components: {
         BlogSliderEditor,
@@ -71,6 +74,7 @@ export default {
         ServicesPromoEditor,
         TextSectionEditor,
         FeaturedCollectionsEditor,
+        FeaturedLinksEditor,
         SlideShowEditor,
         FeaturedOptionsEditor,
         PeopleSearchEditor,
@@ -119,6 +123,7 @@ export default {
                 case "review_slider": return "ReviewSliderEditor"
                 case "text_section": return "TextSectionEditor"
                 case "featured_collections": return "FeaturedCollectionsEditor"
+                case "featured_links": return "FeaturedLinksEditor"
                 case "slide_show": return "SlideShowEditor"
                 case "featured_options": return "FeaturedOptionsEditor"
                 case "people_search": return "PeopleSearchEditor"

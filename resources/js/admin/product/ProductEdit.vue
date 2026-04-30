@@ -810,6 +810,7 @@
                 :categories="allCategories"
                 :banners="allBanners"
                 :brands="allBrands"
+                :alink="alinks"
                 @save="updateSection"
             />
             <v-dialog v-model="deleteSectionDialog" max-width="400" transition="dialog-bottom-transition">
@@ -870,6 +871,7 @@ import SlideShowPreview from "@/components/previews/SlideShowPreview.vue";
 import PeopleSearchPreview from "@/components/previews/PeopleSearchPreview.vue";
 import FeaturedOptionsPreview from "@/components/previews/FeaturedOptionsPreview.vue";
 import VideoWithTextPreview from "@/components/previews/VideoWithTextPreview.vue";
+import FeaturedLinksPreview from "@/components/previews/FeaturedLinksPreview.vue";
 
 export default {
     name:"ProductEdit",
@@ -886,6 +888,7 @@ export default {
         ServicesPromoPreview,
         TextSectionPreview,
         FeaturedCollectionsPreview,
+        FeaturedLinksPreview,
         SlideShowPreview,
         PeopleSearchPreview,
         FeaturedOptionsPreview,
@@ -1092,9 +1095,13 @@ export default {
         if (!this.$store.state.products.length) {
             await this.$store.dispatch('fetchProducts')
         }
-        this.getProductByID()
+        this.getProductByID();
+        this.$store.dispatch('fetchAlinks');
     },
     computed: {
+        alinks(){
+            return this.$store.state.alinks;
+        },
         mbrands(){
             return this.$store.state.brands;
         },
@@ -2152,6 +2159,7 @@ export default {
                 services_promo: "ServicesPromoPreview",
                 text_section: "TextSectionPreview",
                 featured_collections: "FeaturedCollectionsPreview",
+                featured_links: "FeaturedLinksPreview",
                 slide_show: "SlideShowPreview",
                 featured_options: "FeaturedOptionsPreview",
                 people_search: "PeopleSearchPreview",

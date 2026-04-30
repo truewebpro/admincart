@@ -256,6 +256,10 @@ class HomeController extends Controller
                 });
             }
 
+        } elseif ($request->stype === 'featured_links'){
+            $img = Image::make($file->getRealPath())->resize(800, 1000, function ($constraint) {
+                $constraint->aspectRatio();
+            });
         } elseif ($request->stype === 'featured_collections'){
             $img = Image::make($file->getRealPath())->resize(800, 1000, function ($constraint) {
                 $constraint->aspectRatio();

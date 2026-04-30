@@ -34,6 +34,7 @@
             :categories="allCategories"
             :banners="allBanners"
             :brands="allBrands"
+            :alinks="alinks"
             @save="updateSection"
         />
         <v-dialog v-model="deleteSectionDialog" max-width="400" transition="dialog-bottom-transition">
@@ -89,6 +90,7 @@ import ReviewSliderPreview from "@/components/previews/ReviewSliderPreview.vue";
 import ServicesPromoPreview from "@/components/previews/ServicesPromoPreview.vue";
 import TextSectionPreview from "@/components/previews/TextSectionPreview.vue";
 import FeaturedCollectionsPreview from "@/components/previews/FeaturedCollectionsPreview.vue";
+import FeaturedLinksPreview from "@/components/previews/FeaturedLinksPreview.vue";
 import SlideShowPreview from "@/components/previews/SlideShowPreview.vue";
 import FeaturedOptionsPreview from "@/components/previews/FeaturedOptionsPreview.vue";
 import PeopleSearchPreview from "@/components/previews/PeopleSearchPreview.vue";
@@ -109,11 +111,20 @@ export default {
         ServicesPromoPreview,
         TextSectionPreview,
         FeaturedCollectionsPreview,
+        FeaturedLinksPreview,
         SlideShowPreview,
         FeaturedOptionsPreview,
         PeopleSearchPreview,
         VideoWithTextPreview,
         SectionEditDialog
+    },
+    computed:{
+        alinks(){
+            return this.$store.state.alinks;
+        }
+    },
+    async mounted() {
+        this.$store.dispatch('fetchAlinks');
     },
     data(){
         return{
@@ -171,6 +182,7 @@ export default {
                 services_promo: "ServicesPromoPreview",
                 text_section: "TextSectionPreview",
                 featured_collections: "FeaturedCollectionsPreview",
+                featured_links: "FeaturedLinksPreview",
                 slide_show: "SlideShowPreview",
                 featured_options: "FeaturedOptionsPreview",
                 people_search: "PeopleSearchPreview",

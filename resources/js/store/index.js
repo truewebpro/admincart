@@ -49,11 +49,15 @@ const store = createStore({
             paid: 0,
             pendingPayment: 0
         },
+        alinks:[],
     },
     mutations:{
         SET_SHOP(state, shop){
             state.shop = shop
             localStorage.setItem('shop', JSON.stringify(shop))
+        },
+        SET_ALINKS(state,alinks){
+            state.alinks = alinks;
         },
         SET_BRANDS(state, brands){
             state.brands = brands
@@ -268,8 +272,17 @@ const store = createStore({
         instocks:state => state.instocks,
         products:state=> state.products,
         orders:state=>state.orders,
+        alinks:state=>state.alinks,
     },
     actions:{
+        async fetchAlinks({commit}){
+            try {
+                const resp = await axios.get('/sadmin/search/alinks')
+                commit('SET_ALINKS',resp.data.alinks)
+            } catch (e) {
+                console.error('Failed to fetch alinks', e)
+            }
+        },
         async fetchBrands({state,commit},force = false){
             if(state.brandsLoaded && !force) return
             try {
