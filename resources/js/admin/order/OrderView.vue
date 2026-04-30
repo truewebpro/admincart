@@ -41,11 +41,13 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <v-btn icon variant="tonal" density="compact">
-                    <v-icon>mdi-arrow-up</v-icon>
-                </v-btn>
-                <v-btn icon variant="tonal" density="compact" class="ms-1">
+                <v-btn icon variant="tonal" density="compact" :disabled="!previous_id"
+                       @click="goToOrder(previous_id)">
                     <v-icon>mdi-arrow-down</v-icon>
+                </v-btn>
+                <v-btn icon variant="tonal" density="compact" class="ms-1"  :disabled="!next_id"
+                       @click="goToOrder(next_id)">
+                    <v-icon>mdi-arrow-up</v-icon>
                 </v-btn>
             </v-col>
         </v-row>
@@ -265,6 +267,19 @@ export default {
             lstatus:'',
             markPaidDialog:false,
             logs:[],
+            previous_id: null,
+            next_id: null,
+            latest_id: null,
+            hasNewOrder: false,
+            poller: null,
+        }
+    },
+    watch: {
+        order_id: {
+            immediate: true,
+            handler(){
+                this.getOrderDetail();
+            }
         }
     },
     mounted() {
@@ -295,7 +310,18 @@ export default {
                     this.fstatus = resp.data.order.fulfillment_status;
                     this.lstatus = resp.data.order.label_status;
                     this.logs = resp.data.logs;
+                    this.previous_id = resp.data.previous_id;
+                    this.next_id = resp.data.next_id;
+                    this.latest_id = resp.data.latest_id;
                 })
+        },
+        goToOrder(id){
+            if(!id) return;
+
+            this.$router.push({
+                name: 'OrderView',
+                params: { order_id:id }
+            });
         },
         markAsPaid(){
             const mpaid = {

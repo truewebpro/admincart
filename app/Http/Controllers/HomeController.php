@@ -528,13 +528,27 @@ class HomeController extends Controller
             ->where('order_id','=',$order_id)
             ->where('shop_id','=',$shopId)
             ->first();
+        $previous = Order::where('order_id', '<', $order_id)
+            ->where('shop_id','=',$shopId)
+            ->orderBy('order_id', 'desc')
+            ->first();
+
+        $next = Order::where('order_id', '>', $order_id)
+            ->where('shop_id','=',$shopId)
+            ->orderBy('order_id', 'asc')
+            ->first();
+
+        $latest = Order::latest()->where('shop_id','=',$shopId)->value('order_id');
         if($order){
             $logs = OrderLog::where('order_id','=',$order_id)
                 ->latest()->get();
             return response()->json([
                 'success' => true,
                 'order' => $order,
-                'logs' => $logs
+                'logs' => $logs,
+                'previous_id' => $previous?->order_id,
+                'next_id' => $next?->order_id,
+                'latest_id' => $latest,
             ]);
         } else {
             return response()->json([
