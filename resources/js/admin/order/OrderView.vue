@@ -1,19 +1,22 @@
 <template>
-    <div class="orderpage v-container">
-        <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
+    <v-container class="orderpage pa-2">
+        <v-row dense class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
             <v-col cols="12" md="6">
                 <h2 class="text-h6">
                     <v-btn link to="/orders" icon variant="tonal" density="compact" class="me-2">
                         <v-icon>mdi-arrow-left</v-icon>
                     </v-btn>
                     <span class="me-2">#{{orderDetail.order_number}}</span>
-                    <v-chip v-if="pstatus === 'pending' || pstatus === 'unpaid'" color="yellow" variant="flat" density="compact" class="text-capitalize">{{pstatus}}</v-chip>
-                    <v-chip v-if="pstatus === 'refunded' || pstatus === 'partially_refunded'" color="yellow" variant="flat" density="compact" class="text-capitalize">{{pstatus}}</v-chip>
-                    <v-chip v-if="pstatus === 'paid' || pstatus === 'partially_paid'" color="green" variant="flat" density="compact" class="text-capitalize">{{pstatus}}</v-chip>
-                    <v-chip v-if="fstatus === 'unfulfilled'" color="yellow" variant="flat" density="compact" class="ms-2 text-capitalize">{{fstatus}}</v-chip>
-                    <v-chip v-if="fstatus === 'picked'" variant="flat" color="green" prepend-icon="mdi-playlist-check" density="compact" class="ms-2">{{fstatus}}</v-chip>
-                    <v-chip v-if="fstatus === 'packed'" variant="flat" color="green" prepend-icon="mdi-playlist-check" density="compact" class="ms-2">{{fstatus}}</v-chip>
-                    <v-chip v-else variant="tonal" color="black" prepend-icon="mdi-playlist-check" density="compact" class="ms-2">{{fstatus}}</v-chip>
+                    <v-chip :color="stepChip.color" variant="flat" density="compact" class="text-capitalize">
+                        {{ stepChip.label }}
+                    </v-chip>
+                    <v-chip :color="paymentChip.color" variant="flat" density="compact" class="ms-2 text-capitalize">
+                        {{ paymentChip.label }}
+                    </v-chip>
+                    <v-chip :color="fulfillmentChip.color" :prepend-icon="fulfillmentChip.icon" variant="flat"
+                            density="compact" class="ms-2 text-capitalize">
+                        {{ fulfillmentChip.label }}
+                    </v-chip>
                 </h2>
                 <div class="text-body-2">{{dayjs(orderDetail.placed_at).format('D MMMM [at] h:mm a')}}</div>
             </v-col>
@@ -51,17 +54,31 @@
                 </v-btn>
             </v-col>
         </v-row>
-        <v-row>
+        <v-row dense>
+            <v-col cols="12" md="12" >
+                <v-card class="border-sm">
+                    <v-stepper :model-value="currentStepIndex" color="success">
+                        <v-stepper-header>
+                            <template v-for="(step,index) in timelineSteps" :key="index">
+                                <v-divider v-if="index"></v-divider>
+                                <v-stepper-item v-bind="step"
+                                                :title="step.label"
+                                                :value="index"
+                                                :complete="index < currentStepIndex"
+                                                :color="index <= currentStepIndex ? 'success' : 'grey'"/>
+                            </template>
+                        </v-stepper-header>
+                    </v-stepper>
+                </v-card>
+            </v-col>
             <v-col cols="12" md="9">
                 <v-card class="border-sm">
                     <v-card-title class="text-capitalize d-flex ga-2 font-weight-medium">
                         <v-icon>mdi-package-variant</v-icon>
-                        <v-chip v-if="fstatus === 'unfulfilled'" variant="flat" color="yellow"
-                                density="comfortable">
-                            {{fstatus}}
+                        <v-chip :color="fulfillmentChip.color" :prepend-icon="fulfillmentChip.icon" variant="flat"
+                                density="compact" class="ms-2 text-capitalize">
+                            {{ fulfillmentChip.label }}
                         </v-chip>
-                        <v-chip v-if="fstatus === 'picked'" variant="flat" color="green" prepend-icon="mdi-playlist-check" density="comfortable">{{fstatus}}</v-chip>
-                        <v-chip v-if="fstatus === 'packed'" variant="flat" color="green" prepend-icon="mdi-package-variant-closed-plus" density="comfortable">{{fstatus}}</v-chip>
                         <v-chip density="compact" class="font-weight-medium">{{orderDetail.order_items_count}}</v-chip>
                     </v-card-title>
                     <v-card-subtitle class="font-weight-medium">{{dayjs(orderDetail.placed_at).format('D MMMM [at] h:mm a')}}</v-card-subtitle>
@@ -95,41 +112,25 @@
                         </v-row>
                     </v-card-text>
                     <v-card-actions>
-                        <v-btn v-if="fstatus === 'picked'" variant="tonal" color="success" density="comfortable" class="text-none font-weight-bold" prepend-icon="mdi-playlist-check">
-                            Items Picked
-                        </v-btn>
-                        <v-btn v-if="fstatus === 'packed'" variant="tonal" color="success" density="comfortable" class="text-none font-weight-bold" prepend-icon="mdi-package-variant-closed-plus">
-                            Items Packed
-                        </v-btn>
                         <v-spacer />
-                        <v-btn v-if="pstatus === 'paid' && lstatus === 'no_label'" variant="outlined" density="comfortable" color="success" @click="sendToSendCloud">Send to Sendcloud</v-btn>
-                        <v-btn v-if="pstatus === 'paid' && lstatus === 'pending'" variant="flat" density="comfortable" color="success">Create Label</v-btn>
-                        <v-btn v-if="pstatus === 'paid' && lstatus === 'created'" variant="flat" density="comfortable" color="success">Print Label</v-btn>
-                        <v-btn v-if="pstatus === 'paid' && lstatus === 'printed'" variant="flat" density="comfortable" color="success">Re-Print Label</v-btn>
-                        <v-btn @click="markAsPicked" v-if="fstatus !== 'picked' && fstatus !== 'packed' && pstatus !== 'pending'" variant="elevated" color="yellow" density="comfortable" class="text-none font-weight-bold">
-                            Mark as Items Picked
-                        </v-btn>
-                        <v-btn @click="markAsPacked" v-if="fstatus !== 'packed' && pstatus !== 'pending'" variant="elevated" color="yellow" density="comfortable" class="text-none font-weight-bold">
-                            Mark as Items Packed
-                        </v-btn>
-                        <v-btn v-if="fstatus === 'packed' && pstatus !== 'pending'" variant="elevated" color="black" density="comfortable" class="text-none font-weight-bold" prepend-icon="mdi-plus">
-                            Add Tracking
+                        <v-btn
+                            v-for="(btn, i) in availableActions"
+                            :key="i"
+                            @click="runAction(btn)"
+                            :variant="btn.variant || 'elevated'"
+                            :color="btn.color || 'primary'"
+                            density="compact"
+                            class="text-none font-weight-bold"
+                        >
+                            {{ btn.label }}
                         </v-btn>
                     </v-card-actions>
                 </v-card>
                 <v-card class="border-sm mt-3">
                     <v-card-title class="text-capitalize">
                         <v-icon>mdi-cash-sync</v-icon>
-                        <v-chip v-if="pstatus === 'pending' || pstatus === 'unpaid'" variant="flat" color="yellow"
-                                density="comfortable" class="font-weight-medium ms-2">
-                            {{pstatus}}
-                        </v-chip>
-                        <v-chip v-else-if="pstatus === 'refunded' || pstatus === 'partially_refunded'" variant="flat" color="red"
-                                density="comfortable" class="font-weight-medium ms-2">
-                            {{pstatus}}
-                        </v-chip>
-                        <v-chip v-else variant="flat" color="green" density="comfortable" class="font-weight-medium ms-2">
-                            {{pstatus}}
+                        <v-chip :color="paymentChip.color" variant="flat" density="compact" class="ms-2 text-capitalize">
+                            {{ paymentChip.label }}
                         </v-chip>
                     </v-card-title>
                     <v-card-text>
@@ -176,9 +177,6 @@
                         <v-btn @click="sendInvoicetoCustomer" variant="outlined" color="black" density="compact" class="text-none font-weight-bold">
                             Send Invoice
                         </v-btn>
-                        <v-btn v-if="pstatus === 'pending' || pstatus === 'unpaid'"
-                               variant="elevated" color="black" density="compact"
-                               class="text-none font-weight-bold" @click="markPaidDialog = true">Mark as Paid</v-btn>
                     </v-card-actions>
                 </v-card>
                 <v-card class="border-sm mt-3">
@@ -209,14 +207,23 @@
                     </v-card-text>
                 </v-card>
                 <v-card class="border-sm mt-3">
-                    <v-card-title>Customer</v-card-title>
+                    <v-card-title class="d-flex justify-space-between align-center">
+                        Customer
+                        <v-btn :disabled="!canEditAddress" size="small" variant="outlined" color="primary" density="comfortable" @click="openAddressDialog">
+                            Edit Address
+                        </v-btn>
+                    </v-card-title>
                     <v-card-text>
                         <div class="font-weight-medium">{{customer.fname}} {{customer?.lname}}</div>
 <!--                        <div class="font-weight-medium">{{customer.email}}</div>-->
                         <h3 class="small my-2">Contact Information</h3>
                         <div class="font-weight-medium">{{customer.email}}</div>
                         <div class="font-weight-medium">+44 {{customer?.phone}}</div>
-                        <h3 class="small my-2">Shipping Address</h3>
+                        <h3 class="small my-2 d-flex justify-space-between align-center">
+                            Shipping Address
+                            <v-chip size="x-small" color="orange" v-if="logs.some(l => l.event === 'address_updated')">
+                                Updated
+                            </v-chip></h3>
                         <div class="font-weight-medium">{{orderDetail.shipping_name}}</div>
                         <div class="font-weight-medium">{{orderDetail.shipping_address_line1}}</div>
                         <div class="font-weight-medium">{{orderDetail.shipping_address_line2}}</div>
@@ -241,7 +248,27 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-    </div>
+        <v-dialog v-model="addressDialog" max-width="600">
+            <v-card>
+                <v-card-title>Edit Shipping Address</v-card-title>
+                <v-card-text>
+                    <v-text-field variant="outlined" density="compact" v-model="addressForm.shipping_name" label="Name" />
+                    <v-text-field variant="outlined" v-model="addressForm.shipping_address_line1" label="Address Line 1" />
+                    <v-text-field variant="outlined" density="compact" v-model="addressForm.shipping_address_line2" label="Address Line 2" />
+                    <v-text-field variant="outlined" density="compact" v-model="addressForm.shipping_city" label="City" />
+                    <v-text-field variant="outlined" density="compact" v-model="addressForm.shipping_postcode" label="Postcode" />
+                    <v-text-field variant="outlined" density="compact" v-model="addressForm.shipping_country" label="Country" />
+                    <v-text-field variant="outlined" density="compact" v-model="addressForm.shipping_phone" label="Phone" />
+                </v-card-text>
+
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn @click="addressDialog = false" variant="outlined" color="red" density="comfortable">Cancel</v-btn>
+                    <v-btn @click="updateAddress" variant="elevated" color="success" density="comfortable">Update</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+    </v-container>
 </template>
 <script>
 import axios from "axios";
@@ -251,11 +278,174 @@ export default {
     props:{
         order_id:[Number,String]
     },
+    computed: {
+        paymentChip() {
+            const map = {
+                pending: { color: 'yellow', label: 'Pending' },
+                unpaid: { color: 'yellow', label: 'Unpaid' },
+                paid: { color: 'green', label: 'Paid' },
+                partially_paid: { color: 'green', label: 'Partially Paid' },
+                refunded: { color: 'red', label: 'Refunded' },
+                partially_refunded: { color: 'red', label: 'Partially Refunded' },
+            };
+
+            return map[this.pstatus] || { color: 'grey', label: this.pstatus };
+        },
+        fulfillmentChip() {
+            const map = {
+                unfulfilled: { color: 'yellow', label: 'Unfulfilled' },
+                picking: { color: 'blue', label: 'Picking' },
+                picked: { color: 'green', label: 'Picked', icon: 'mdi-playlist-check' },
+                packed: { color: 'green', label: 'Packed', icon: 'mdi-package-variant-closed-plus' },
+                fulfilled: { color: 'green', label: 'Fulfilled' },
+            };
+
+            return map[this.fstatus] || { color: 'grey', label: this.fstatus };
+        },
+        stepChip() {
+            const map = {
+                payment_pending: 'Payment Pending',
+                paid: 'Paid',
+                processing: 'Processing',
+                fulfillment_in_progress: 'Picking',
+                picked: 'Picked',
+                packed: 'Packed',
+                fulfilled: 'Fulfilled',
+                completed: 'Completed'
+            };
+
+            return {
+                color: 'yellow',
+                label: map[this.currentStep] || this.currentStep
+            };
+        },
+        timelineSteps() {
+            return [
+                { key: 'payment_pending', label: 'Pending' },
+                { key: 'paid', label: 'Paid' },
+                { key: 'processing', label: 'Processing' },
+                { key: 'picking', label: 'Picking' },
+                { key: 'picked', label: 'Picked' },
+                { key: 'packed', label: 'Packed' },
+                { key: 'fulfilled', label: 'Fulfilled' },
+                { key: 'completed', label: 'Completed' },
+            ];
+        },
+        currentStep() {
+            const { ostatus, pstatus, fstatus } = this;
+
+            if (ostatus === 'completed') return 'completed';
+
+            if (fstatus === 'fulfilled') return 'fulfilled';
+
+            if (fstatus === 'packed') return 'packed';
+
+            if (fstatus === 'picked') return 'picked';
+
+            if (fstatus === 'picking') return 'picking';
+
+            if (ostatus === 'processing') return 'processing';
+
+            if (['paid','partially_paid'].includes(pstatus)) return 'paid';
+
+            if (['pending','unpaid'].includes(pstatus)) return 'payment_pending';
+
+            return 'created';
+        },
+        currentStepIndex() {
+            return this.timelineSteps.findIndex(s => s.key === this.currentStep);
+        },
+        availableActions() {
+            const actions = [];
+
+            switch (this.currentStep) {
+                case 'payment_pending':
+                    actions.push({
+                        label: 'Mark as Paid',
+                        type: 'dialog',
+                        dialog: 'markPaidDialog'
+                    });
+                    break;
+
+                case 'paid':
+                    actions.push({
+                        label: 'Start Processing',
+                        type: 'direct',
+                        handler: () => this.updateOrder('processing')
+                    });
+                    break;
+
+                case 'processing':
+                    actions.push({
+                        label: 'Start Picking',
+                        type: 'direct',
+                        handler: () => this.updateFulfillment('picking')
+                    });
+                    break;
+
+                case 'fulfillment_in_progress':
+                    actions.push({
+                        label: 'Mark as Picked',
+                        type: 'direct',
+                        handler: () => this.updateFulfillment('picked')
+                    });
+                    break;
+
+                case 'picked':
+                    actions.push({
+                        label: 'Mark as Packed',
+                        type: 'direct',
+                        handler: () => this.updateFulfillment('packed')
+                    });
+                    break;
+
+                case 'packed':
+                    actions.push({
+                        label: 'Add Tracking',
+                        type: 'direct',
+                        handler: this.addTracking
+                    });
+                    break;
+
+                case 'fulfilled':
+                    actions.push({
+                        label: 'Complete Order',
+                        type: 'direct',
+                        handler: () => this.updateOrder('completed')
+                    });
+                    break;
+            }
+            // 🔥 SENDCLOUD ACTION (global condition)
+            if (this.pstatus === 'paid' && this.lstatus === 'no_label') {
+                actions.push({
+                    label: 'Send to Sendcloud',
+                    type: 'direct',
+                    handler: this.sendToSendCloud,
+                    variant:'outlined'
+                });
+            }
+
+            return actions;
+        },
+        canEditAddress() {
+            return !['packed','fulfilled','completed'].includes(this.currentStep);
+        }
+    },
     data(){
         return{
             cdn:this.$store.state.cdn,
             orderDetail:[],
             customer:[],
+            addressDialog:false,
+            addressForm: {
+                shipping_name: '',
+                shipping_address_line1: '',
+                shipping_address_line2: '',
+                shipping_city: '',
+                shipping_postcode: '',
+                shipping_country: '',
+                shipping_phone: ''
+            },
             oitems:[],
             ostatuses:['pending', 'processing', 'completed', 'archived'],
             ostatus:'',
@@ -338,38 +528,6 @@ export default {
                     window.Toast.success(resp.data.message);
                     this.getOrderDetail();
                     this.markPaidDialog = false;
-                })
-        },
-        markAsPicked(){
-            const mpicked = {
-                order_id:this.order_id,
-                mname:'mark_as_picked',
-                fulfillment_status:'picked',
-            }
-            axios.post('/sadmin/order/update',mpicked)
-                .then((resp)=>{
-                    this.$store.commit('UPDATE_ORDER',{
-                        order_id:Number(this.order_id),
-                        fulfillment_status:'picked'
-                    })
-                    window.Toast.success(resp.data.message);
-                    this.getOrderDetail();
-                })
-        },
-        markAsPacked(){
-            const mpacked = {
-                order_id:this.order_id,
-                mname:'mark_as_packed',
-                fulfillment_status:'packed',
-            }
-            axios.post('/sadmin/order/update',mpacked)
-                .then((resp)=>{
-                    this.$store.commit('UPDATE_ORDER',{
-                        order_id:Number(this.order_id),
-                        fulfillment_status:'packed'
-                    })
-                    window.Toast.success(resp.data.message);
-                    this.getOrderDetail();
                 })
         },
         markAsArchived(){
@@ -456,7 +614,66 @@ export default {
                         window.Toast.error(err.message);
                     })
         },
-    }
+        runAction(action) {
+            if (action.type === 'dialog') {
+                this[action.dialog] = true;
+                return;
+            }
+
+            if (action.type === 'direct') {
+                action.handler();
+            }
+        },
+        updateOrder(status) {
+            return axios.post('/sadmin/order/update', {
+                order_id: this.order_id,
+                mname: 'update_order_status',
+                order_status: status
+            }).then(() => this.getOrderDetail());
+        },
+        updateFulfillment(status) {
+            return axios.post('/sadmin/order/update', {
+                order_id: this.order_id,
+                mname: 'update_fulfillment_status',
+                fulfillment_status: status
+            }).then(() => this.getOrderDetail());
+        },
+        addTracking() {
+            // later
+        },
+
+        printLabel() {
+            // later
+        },
+        openAddressDialog() {
+            this.addressForm = {
+                shipping_name: this.orderDetail.shipping_name,
+                shipping_address_line1: this.orderDetail.shipping_address_line1,
+                shipping_address_line2: this.orderDetail.shipping_address_line2,
+                shipping_city: this.orderDetail.shipping_city,
+                shipping_postcode: this.orderDetail.shipping_postcode,
+                shipping_country: this.orderDetail.shipping_country,
+                shipping_phone: this.orderDetail.shipping_phone
+            };
+
+            this.addressDialog = true;
+        },
+        updateAddress() {
+            axios.post('/sadmin/order/update', {
+                order_id: this.order_id,
+                mname: 'update_shipping_address',
+                ...this.addressForm
+            })
+                .then((resp) => {
+                    window.Toast.success(resp.data.message);
+                    this.addressDialog = false;
+                    this.getOrderDetail();
+                })
+                .catch((err) => {
+                    window.Toast.error(err.message);
+                });
+        }
+    },
 }
 
 </script>

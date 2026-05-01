@@ -30,7 +30,7 @@
                         </v-slide-group>
                     </v-toolbar>
                     <div class="px-2 py-2 d-flex">
-                        <v-text-field v-model="csearch" class="w-50 me-2" variant="outlined" density="compact"
+                        <v-text-field v-model="asearch" class="w-50 me-2" variant="outlined" density="compact"
                                       clearable hide-details
                                       placeholder="Searching Carts"
                                       prepend-inner-icon="mdi-magnify"
@@ -58,7 +58,7 @@
                     </div>
                     <div>
                         <v-data-table :items="acarts" :headers="acartsHeaders" density="comfortable" mobileBreakpoint="sm"
-                                      hover :search="asearch" :loading="isLoading" loading-text="Loading All Carts">
+                                      hover :search="asearch" :loading="isLoading" loading-text="Loading All Carts" itemsPerPage="50">
                             <template v-slot:item.acart_id="{item}">
                                 <div class="title d-flex align-center justify-space-between font-weight-medium">
                                     <router-link :to="'/carts/'+item.acart_id" class="text-decoration-none text-grey-darken-3">
@@ -205,24 +205,12 @@ export default {
     name: "AbandonedCarts",
     data(){
         return{
-            csearch:'',
             asearch:'',
-            carts:[],
             acarts:[],
             isLoading: false,
             status:"All",
             cartstatus:[],
             cdn:"https://truewebcart.s3-accelerate.amazonaws.com/",
-            cartsHeaders:[
-                {title:'Cart ID',value:'cart_id',width:150},
-                {title:'Date',value:'placed_at',width:150},
-                {title:'Customer',value:'shipping_name',maxWidth:375},
-                {title:'Total',value:'order_total'},
-                {title:'Items',value:'cart_items_count'},
-                {title:'Delivery Method',value:'shipping_method'},
-                {title:'Payment Status',value:'payment_status'},
-                {title:'Fulfillment Status',value:'fulfillment_status'},
-            ],
             acartsHeaders:[
                 {title:'Cart ID',value:'acart_id',width:150},
                 {title:'Date',value:'created_at',width:150},
@@ -240,7 +228,7 @@ export default {
     },
     computed: {
         filteredCarts() {
-            let filtered = this.carts.filter((o) => {
+            let filtered = this.acarts.filter((o) => {
                 const matchStatus = this.status === "All" || o.order_status === this.status;
                 return matchStatus;
             });
@@ -260,15 +248,14 @@ export default {
             this.isLoading = true;
             axios.get('/sadmin/carts')
                 .then((resp)=>{
-                    this.carts = resp.data.carts;
-                    this.acarts = resp.data.acarts;
-                    this.carts = this.carts.map((item) => {
+                    const adata = resp.data.acarts;
+                    this.acarts = adata.map((item) => {
                         if (item.deleted_at !== null) {
                             return {...item, order_status: "Archived"};
                         }
                         return item;
                     });
-                    let statuses = [...new Set(this.carts.map(item => item.order_status))];
+                    let statuses = [...new Set(this.acarts.map(item => item.order_status))];
                     statuses = statuses.filter(status => status !== "Archived");
                     this.cartstatus = ["All", ...statuses, "Archived"];
                 })

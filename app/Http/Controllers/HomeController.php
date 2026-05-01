@@ -563,7 +563,116 @@ class HomeController extends Controller
     {
         $order = Order::withTrashed()->with('orderItems')->find($request['order_id']);
         if($order){
+            if (!$this->canTransition($order, $request->mname,$request)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid action for current order state'
+                ], 400);
+            }
+            if ($request->mname === 'update_shipping_address') {
+
+                $order->update([
+                    'shipping_name' => $request->shipping_name,
+                    'shipping_address_line1' => $request->shipping_address_line1,
+                    'shipping_address_line2' => $request->shipping_address_line2,
+                    'shipping_city' => $request->shipping_city,
+                    'shipping_postcode' => $request->shipping_postcode,
+                    'shipping_country' => $request->shipping_country,
+                    'shipping_phone' => $request->shipping_phone,
+                ]);
+
+                broadcast(new OrderUpdated($order));
+
+                OrderLog::create([
+                    'order_id' => $order->order_id,
+                    'event' => 'address_updated',
+                    'description' => 'Shipping address updated',
+                    'source' => 'admin',
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Address updated successfully',
+                ]);
+            }
+            if($request->mname === 'update_fulfillment_status'){
+                $from = $order->fulfillment_status;
+                $to = $request->fulfillment_status;
+                $order->update([
+                    'fulfillment_status' => $to
+                ]);
+                broadcast(new OrderUpdated($order));
+                OrderLog::create([
+                    'order_id' => $order->order_id,
+                    'event' => 'status_updated',
+                    'description' => "Fulfillment status changed to {$to}",
+                    'meta' => [
+                        'from' => $from,
+                        'to' => $to
+                    ],
+                    'source' => 'admin',
+                ]);
+                return response()->json([
+                    'success' => true,
+                    'message' => "Fulfillment updated to {$to}",
+                ]);
+            }
+            if ($request->mname === 'update_order_status') {
+
+                $from = $order->order_status;
+                $to = $request->order_status;
+
+                $order->update([
+                    'order_status' => $to
+                ]);
+
+                broadcast(new OrderUpdated($order));
+
+                OrderLog::create([
+                    'order_id' => $order->order_id,
+                    'event' => 'status_updated',
+                    'description' => "Order status changed to {$to}",
+                    'meta' => [
+                        'from' => $from,
+                        'to' => $to
+                    ],
+                    'source' => 'admin',
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => "Order updated to {$to}",
+                ]);
+            }
+            if ($request->mname === 'update_payment_status') {
+
+                $from = $order->payment_status;
+                $to = $request->payment_status;
+
+                $order->update([
+                    'payment_status' => $to
+                ]);
+
+                broadcast(new OrderUpdated($order));
+
+                OrderLog::create([
+                    'order_id' => $order->order_id,
+                    'event' => 'payment_updated',
+                    'description' => "Payment status changed to {$to}",
+                    'meta' => [
+                        'from' => $from,
+                        'to' => $to
+                    ],
+                    'source' => 'admin',
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => "Payment updated to {$to}",
+                ]);
+            }
             if($request->mname === 'mark_as_paid'){
+                $from = $order->payment_status;
                 $order->update(['payment_status' => 'paid','order_status' => 'processing']);
                 broadcast(new OrderUpdated($order));
                 OrderLog::create([
@@ -571,42 +680,12 @@ class HomeController extends Controller
                     'event' => 'payment_updated',
                     'description' => 'Payment status changed',
                     'meta' => [
-                        'from' => 'unpaid',
+                        'from' => $from,
                         'to' => 'paid'
                     ],
                     'source' => 'admin',
                 ]);
                 return response()->json(['success' => true, 'message' => "Order marked as paid",]);
-            }
-            if($request->mname === 'mark_as_picked'){
-                $order->update(['fulfillment_status' => 'picked','order_status' => 'processing']);
-                broadcast(new OrderUpdated($order));
-                OrderLog::create([
-                    'order_id' => $order->order_id,
-                    'event' => 'status_updated',
-                    'description' => 'Fulfillment status changed to picked',
-                    'meta' => [
-                        'from' => 'unfulfilled',
-                        'to' => 'picked'
-                    ],
-                    'source' => 'admin',
-                ]);
-                return response()->json(['success' => true, 'message' => "Items Picked",]);
-            }
-            if($request->mname === 'mark_as_packed'){
-                $order->update(['fulfillment_status' => 'packed','order_status' => 'processing']);
-                broadcast(new OrderUpdated($order));
-                OrderLog::create([
-                    'order_id' => $order->order_id,
-                    'event' => 'status_updated',
-                    'description' => 'Fulfillment status changed to packed',
-                    'meta' => [
-                        'from' => 'unfulfilled',
-                        'to' => 'packed'
-                    ],
-                    'source' => 'admin',
-                ]);
-                return response()->json(['success' => true, 'message' => "Items Packed",]);
             }
             if($request->mname === 'mark_as_archived'){
                 $order->delete();
@@ -654,6 +733,50 @@ class HomeController extends Controller
             return response()->json(['success'=>false,'message'=>'Order not found']);
         }
         return response()->json(['success'=>true,'order'=>$order]);
+    }
+
+    private function canTransition($order, $action, $request)
+    {
+        switch ($action) {
+
+            case 'update_fulfillment_status':
+                $to = $request->fulfillment_status;
+
+                if ($to === 'picking') {
+                    return $order->payment_status === 'paid'
+                        && $order->fulfillment_status === 'unfulfilled';
+                }
+
+                if ($to === 'picked') {
+                    return in_array($order->fulfillment_status, ['picking']);
+                }
+
+                if ($to === 'packed') {
+                    return $order->fulfillment_status === 'picked';
+                }
+
+                if ($to === 'fulfilled') {
+                    return $order->fulfillment_status === 'packed';
+                }
+
+                return false;
+
+            case 'update_order_status':
+                if ($request->order_status === 'processing') {
+                    return $order->payment_status === 'paid';
+                }
+
+                if ($request->order_status === 'completed') {
+                    return $order->fulfillment_status === 'packed';
+                }
+                return false;
+
+            case 'mark_as_paid':
+                return in_array($order->payment_status, ['pending','unpaid']);
+
+            default:
+                return true;
+        }
     }
 
     public function sendToSendCloudSingle(Request $request)
@@ -714,10 +837,6 @@ class HomeController extends Controller
     public function allCarts(){
         $shop = session('shop');
         $shopId = session('shop_id');
-        $carts = Cart::with('order')->withCount('cartItems')
-            ->where('shop_id','=',$shopId)
-            ->orderByDesc('updated_at')
-            ->get();
         $acarts = Acart::with('order','customer')->withCount('items')
             ->where('shop_id','=',$shopId)
             ->orderByDesc('created_at')
@@ -732,7 +851,6 @@ class HomeController extends Controller
         }
         return response()->json([
             'success' => true,
-            'carts' => $carts,
             'acarts' => $acarts,
         ]);
     }
