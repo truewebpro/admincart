@@ -112,6 +112,9 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/inventory/update',[HomeController::class,'updateInventory']);
         Route::get('/customers',[HomeController::class,'allCustomers']);
         Route::get('/customer/details/{customer_id}',[HomeController::class,'getCustomerByID']);
+        Route::post('/customer/add-new',[HomeController::class,'addNewCustomer']);
+        Route::post('/customer/check-exists',[HomeController::class,'checkCustomerExists']);
+        Route::post('/customer/attach',[HomeController::class,'attachCustomer']);
         Route::get('/ptypes',[HomeController::class,'allPtypes']);
         Route::post('/ptype/update',[HomeController::class,'updatePtype']);
         Route::post('/ptype/delete',[HomeController::class,'deletePtypebyId']);

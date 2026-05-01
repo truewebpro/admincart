@@ -2229,6 +2229,7 @@ class HomeController extends Controller
         $customers = Customer::join('customer_shops','customer_shops.customer_id','=','customers.customer_id')
             ->where('customer_shops.shop_id','=',$shopId)
             ->select('customers.*','customer_shops.ctags','customer_shops.shop_id','customer_shops.status as cstatus')
+            ->orderBy('customers.created_at','desc')
             ->get();
         foreach($customers as $customer){
             $customer['ctags'] = json_decode($customer->ctags,true);
@@ -2244,6 +2245,112 @@ class HomeController extends Controller
             'shopusers' => $shopusers,
             'customers' => $customers
         ],200);
+    }
+
+    public function checkCustomerExists(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $email = strtolower(trim($request->email));
+        $shopId = session('shop_id');
+
+        $customer = Customer::whereRaw('LOWER(email) = ?', [$email])->first();
+        if (!$customer) {
+            return response()->json([
+                'exists' => false
+            ]);
+        }
+
+        $inCurrentShop = CustomerShop::where('customer_id', $customer->customer_id)
+            ->where('shop_id', $shopId)
+            ->exists();
+
+        return response()->json([
+            'exists' => true,
+            'in_current_shop' => $inCurrentShop,
+            'customer_id' => $customer->customer_id
+        ]);
+    }
+
+    public function attachCustomer(Request $request)
+    {
+        $shopId = session('shop_id');
+
+        CustomerShop::firstOrCreate([
+            'customer_id' => $request->customer_id,
+            'shop_id' => $shopId,
+            'registered_at' => now()
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function addNewCustomer(Request $request)
+    {
+        $request->validate([
+            'fname' => 'required|string|min:2|max:60',
+            'lname' => 'required|string|min:2|max:60',
+            'email' => 'required|email|max:80',
+            'phone' => 'required|digits:10',
+        ]);
+        $shopId = session('shop_id');
+        $email = strtolower(trim($request->email));
+        DB::beginTransaction();
+        try {
+            // 1. Check if customer already exists globally
+            $customer = Customer::whereRaw('LOWER(email) = ?', [$email])->first();
+            if (!$customer) {
+                // 2. Create new customer
+                $customer = Customer::create([
+                    'fname' => $request->fname,
+                    'lname' => $request->lname,
+                    'email' => $email,
+                    'password'=>bcrypt('123456'),
+                    'phone' => $request->phone,
+                    'status' => 'active',
+                ]);
+            }
+
+            // 3. Attach to shop (avoid duplicate)
+            CustomerShop::firstOrCreate([
+                'customer_id' => $customer->customer_id,
+                'shop_id' => $shopId,
+                'registered_at' => now()
+            ]);
+
+            // 4. Optional: create default address
+            if ($request->address_line1) {
+                CustomerAddress::create([
+                    'address_title' => $request->address_title ?? 'Default',
+                    'fname' => $customer->fname,
+                    'lname' => $customer->lname,
+                    'address_line1' => $request->address_line1,
+                    'address_line2' => $request->address_line2,
+                    'city' => $request->city,
+                    'postcode' => $request->postcode,
+                    'country' => $request->country ?? "United Kingdom",
+                    'phone' => $customer->phone,
+                    'is_default' => true,
+                    'customer_id' => $customer->customer_id,
+                ]);
+            }
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'customer' => $customer
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
     }
 
     public function getCustomerByID($customer_id)

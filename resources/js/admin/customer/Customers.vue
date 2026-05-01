@@ -6,7 +6,8 @@
            <v-col cols="12" md="6" class="text-end">
                <v-btn variant="outlined" class="text-none" color="grey-darken-4" density="compact" @click="exportToCSV">Export</v-btn>
                <v-btn variant="outlined" class="text-none mx-1" color="grey-darken-4" density="compact">Import</v-btn>
-               <v-btn class="text-none" color="grey-darken-4" density="compact">Add Customer</v-btn>
+               <AddCustomerDialog v-model="showAddCustomer" @created="handleCustomerCreated"/>
+               <v-btn @click="showAddCustomer = true" class="text-none" color="grey-darken-4" density="compact">Add Customer</v-btn>
            </v-col>
            <v-col cols="12" md="12">
                <v-card class="border-sm">
@@ -101,11 +102,14 @@
 <script>
 import axios from "axios";
 import {mergeProps} from "vue";
+import AddCustomerDialog from "@/admin/customer/AddCustomerDialog.vue";
 
 export default {
     name:"Customers",
+    components: {AddCustomerDialog},
     data(){
         return{
+            showAddCustomer: false,
             csearch:'',
             custs:[],
             isLoading: false,
@@ -141,6 +145,10 @@ export default {
     },
     methods:{
         mergeProps,
+        handleCustomerCreated(customer) {
+            // this.custs.unshift(customer);
+            this.getAllCusts();// instant UI update
+        },
         customFilter(value, search, item) {
             if (!search) return true;
             const title = value?.toString().toLowerCase() || '';
