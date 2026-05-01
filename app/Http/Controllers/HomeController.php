@@ -728,6 +728,29 @@ class HomeController extends Controller
                 ]);
                 return response()->json(['success' => true, 'message' => "Invoice Sent",]);
             }
+            if ($request->mname === 'add_tracking') {
+
+                $order->update([
+                    'tracking_number' => $request->tracking_number,
+                    'shipment_name' => $request->courier ?? "Royal Mail",
+                    'fulfillment_status' => 'fulfilled'
+                ]);
+
+                OrderLog::create([
+                    'order_id' => $order->order_id,
+                    'event' => 'tracking_added',
+                    'description' => 'Tracking added manually',
+                    'meta' => [
+                        'tracking_number' => $request->tracking_number
+                    ],
+                    'source' => 'admin',
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tracking added'
+                ]);
+            }
         }
         if(!$order){
             return response()->json(['success'=>false,'message'=>'Order not found']);
@@ -767,7 +790,7 @@ class HomeController extends Controller
                 }
 
                 if ($request->order_status === 'completed') {
-                    return $order->fulfillment_status === 'packed';
+                    return in_array($order->fulfillment_status, ['packed','fulfilled']);
                 }
                 return false;
 

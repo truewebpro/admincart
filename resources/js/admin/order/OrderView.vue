@@ -268,6 +268,20 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-dialog v-model="trackingDialog" max-width="300">
+            <v-card density="compact">
+                <v-card-title>Add Tracking</v-card-title>
+                <v-card-text>
+                    <v-text-field v-model="trackingForm.tracking_number" variant="outlined" density="compact" label="Tracking Number" />
+                    <v-text-field v-model="trackingForm.courier" variant="outlined" density="compact" label="Courier (e.g. Royal Mail)" />
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn @click="trackingDialog = false" color="red" variant="outlined" density="comfortable">Cancel</v-btn>
+                    <v-btn @click="saveTracking" color="success" variant="elevated" density="comfortable">Save</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 <script>
@@ -307,7 +321,7 @@ export default {
                 payment_pending: 'Payment Pending',
                 paid: 'Paid',
                 processing: 'Processing',
-                fulfillment_in_progress: 'Picking',
+                picking: 'Picking',
                 picked: 'Picked',
                 packed: 'Packed',
                 fulfilled: 'Fulfilled',
@@ -383,7 +397,7 @@ export default {
                     });
                     break;
 
-                case 'fulfillment_in_progress':
+                case 'picking':
                     actions.push({
                         label: 'Mark as Picked',
                         type: 'direct',
@@ -400,11 +414,47 @@ export default {
                     break;
 
                 case 'packed':
-                    actions.push({
-                        label: 'Add Tracking',
-                        type: 'direct',
-                        handler: this.addTracking
-                    });
+                    // 1. If no label → send to Sendcloud
+                    if (this.lstatus === 'no_label') {
+                        actions.push({
+                            label: 'Send to Sendcloud',
+                            type: 'direct',
+                            handler: this.sendToSendCloud,
+                            variant: 'outlined'
+                        });
+                    }
+                    if (this.lstatus === 'pending') {
+                        actions.push({
+                            label: 'Create Label',
+                            type: 'direct',
+                            handler: this.createLabel
+                        });
+                    }
+
+                    if (this.lstatus === 'created') {
+                        actions.push({
+                            label: 'Print Label',
+                            type: 'direct',
+                            handler: this.printLabel
+                        });
+                    }
+
+                    if (this.lstatus === 'printed') {
+                        actions.push({
+                            label: 'Re-print Label',
+                            type: 'direct',
+                            handler: this.printLabel,
+                            variant: 'text'
+                        });
+                    }
+
+                    if (!this.orderDetail.tracking_number && this.lstatus !== 'created') {
+                        actions.push({
+                            label: 'Add Tracking',
+                            type: 'dialog',
+                            dialog: 'trackingDialog'
+                        });
+                    }
                     break;
 
                 case 'fulfilled':
@@ -415,20 +465,25 @@ export default {
                     });
                     break;
             }
-            // 🔥 SENDCLOUD ACTION (global condition)
-            if (this.pstatus === 'paid' && this.lstatus === 'no_label') {
+
+            if (
+                this.orderDetail.tracking_number &&
+                ['packed','fulfilled','completed'].includes(this.currentStep)
+            ) {
                 actions.push({
-                    label: 'Send to Sendcloud',
+                    label: 'View Tracking',
                     type: 'direct',
-                    handler: this.sendToSendCloud,
-                    variant:'outlined'
+                    handler: () => window.open(
+                        `https://www.royalmail.com/track-your-item#/tracking-results/${this.orderDetail.tracking_number}`,
+                        '_blank'
+                    ),
+                    variant: 'text'
                 });
             }
-
             return actions;
         },
         canEditAddress() {
-            return !['packed','fulfilled','completed'].includes(this.currentStep);
+            return !['fulfilled','completed'].includes(this.currentStep);
         }
     },
     data(){
@@ -445,6 +500,11 @@ export default {
                 shipping_postcode: '',
                 shipping_country: '',
                 shipping_phone: ''
+            },
+            trackingDialog: false,
+            trackingForm: {
+                tracking_number: '',
+                courier: '',
             },
             oitems:[],
             ostatuses:['pending', 'processing', 'completed', 'archived'],
@@ -616,6 +676,12 @@ export default {
         },
         runAction(action) {
             if (action.type === 'dialog') {
+                if (action.dialog === 'trackingDialog') {
+                    this.trackingForm = {
+                        tracking_number: '',
+                        courier: '',
+                    };
+                }
                 this[action.dialog] = true;
                 return;
             }
@@ -638,10 +704,6 @@ export default {
                 fulfillment_status: status
             }).then(() => this.getOrderDetail());
         },
-        addTracking() {
-            // later
-        },
-
         printLabel() {
             // later
         },
@@ -672,6 +734,24 @@ export default {
                 .catch((err) => {
                     window.Toast.error(err.message);
                 });
+        },
+        saveTracking() {
+            if (!this.trackingForm.tracking_number) {
+                window.Toast.error('Tracking number required');
+                return;
+            }
+            axios.post('/sadmin/order/update', {
+                order_id: this.order_id,
+                mname: 'add_tracking',
+                ...this.trackingForm
+            }).then(() => {
+                window.Toast.success(data.message);
+                this.trackingDialog = false;
+                this.getOrderDetail();
+            }).catch((err) => {
+                    window.Toast.error(err.message);
+                });
+
         }
     },
 }
