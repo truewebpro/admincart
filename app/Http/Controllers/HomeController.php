@@ -601,6 +601,7 @@ class HomeController extends Controller
                 $order->update([
                     'fulfillment_status' => $to
                 ]);
+                $this->syncOrderStatus($order);
                 broadcast(new OrderUpdated($order));
                 OrderLog::create([
                     'order_id' => $order->order_id,
@@ -652,6 +653,7 @@ class HomeController extends Controller
                 $order->update([
                     'payment_status' => $to
                 ]);
+                $this->syncOrderStatus($order);
 
                 broadcast(new OrderUpdated($order));
 
@@ -735,6 +737,7 @@ class HomeController extends Controller
                     'shipment_name' => $request->courier ?? "Royal Mail",
                     'fulfillment_status' => 'fulfilled'
                 ]);
+                $this->syncOrderStatus($order);
 
                 OrderLog::create([
                     'order_id' => $order->order_id,
@@ -756,6 +759,28 @@ class HomeController extends Controller
             return response()->json(['success'=>false,'message'=>'Order not found']);
         }
         return response()->json(['success'=>true,'order'=>$order]);
+    }
+
+    private function syncOrderStatus($order)
+    {
+        if ($order->order_status === 'archived') {
+            return;
+        }
+
+        // Completed
+        if ($order->fulfillment_status === 'fulfilled') {
+            $order->order_status = 'completed';
+        }
+        // Processing (paid but not fulfilled)
+        elseif ($order->payment_status === 'paid') {
+            $order->order_status = 'processing';
+        }
+        // Default
+        else {
+            $order->order_status = 'pending';
+        }
+
+        $order->save();
     }
 
     private function canTransition($order, $action, $request)
