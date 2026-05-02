@@ -13,6 +13,7 @@ class Shop extends Model
 {
     use HasFactory, Billable;
     protected $primaryKey = 'shop_id';
+    public $incrementing = true;
     protected $fillable = [
         'shop_name',
         'shop_slug',
@@ -24,6 +25,10 @@ class Shop extends Model
 
     public $hidden = ['created_at','updated_at'];
 
+    public function getKeyName()
+    {
+        return 'shop_id';
+    }
     public function shippingMethods()
     {
         return $this->belongsToMany(ShippingMethod::class, 'shop_shipping_methods', 'shop_id', 'shop_id')
