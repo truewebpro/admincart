@@ -44,7 +44,7 @@ Route::get('/google/details', function (Request $request) {
 
 Auth::routes();
 
-Route::post('/stripe/webook',[StripeWebhookController::class,'handleWebhook']);
+Route::post('/stripe/webhook',[StripeWebhookController::class,'handleWebhook']);
 Route::get('/stripe/sync-existing',[StripeWebhookController::class,'syncExisting'])->middleware('auth');
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
