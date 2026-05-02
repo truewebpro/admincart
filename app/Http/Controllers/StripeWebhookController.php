@@ -69,10 +69,34 @@ class StripeWebhookController extends Controller
         if ($event->type === 'customer.subscription.updated') {
             $sub = $event->data->object;
 
-            Subscription::where('stripe_id', $sub->id)->update([
-                'stripe_status' => $sub->status,
-                'stripe_price' => $sub->items->data[0]->price->id ?? null,
-            ]);
+            $priceId = $sub->items->data[0]->price->id ?? null;
+            $subscription = Subscription::where('stripe_id', $sub->id)->first();
+            if ($subscription) {
+                $priceId = $sub->items->data[0]->price->id ?? null;
+                // update plan
+                if ($priceId) {
+                    $plan = Plan::where('stripe_price_id', $priceId)->first();
+
+                    if ($plan) {
+                        $shop = Shop::find($subscription->shop_id);
+                        if ($shop) {
+                            $shop->plan_slug = $plan->slug;
+                            $shop->save();
+                        }
+                    }
+                }
+
+                $endsAt = $sub->cancel_at
+                    ? \Carbon\Carbon::createFromTimestamp($sub->cancel_at)
+                    : null;
+
+                // update subscription
+                $subscription->update([
+                    'stripe_status' => $sub->status,
+                    'stripe_price' => $priceId,
+                    'ends_at' => $endsAt,
+                ]);
+            }
         }
 
         if ($event->type === 'customer.subscription.deleted') {
@@ -82,6 +106,24 @@ class StripeWebhookController extends Controller
                 'stripe_status' => 'canceled',
                 'ends_at' => now(),
             ]);
+        }
+
+        if ($event->type === 'invoice.paid') {
+            $invoice = $event->data->object;
+
+            Subscription::where('stripe_id', $invoice->subscription)
+                ->update([
+                    'stripe_status' => 'active',
+                ]);
+        }
+
+        if ($event->type === 'invoice.payment_failed') {
+            $invoice = $event->data->object;
+
+            Subscription::where('stripe_id', $invoice->subscription)
+                ->update([
+                    'stripe_status' => 'past_due',
+                ]);
         }
 
         return response('Webhook Handled.', 200);
