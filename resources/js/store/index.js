@@ -407,6 +407,10 @@ const store = createStore({
         products:state=> state.products,
         orders:state=>state.orders,
         alinks:state=>state.alinks,
+        planFeatures: (state) => state.planFeatures,
+        getPlanPreset: (state) => (type) => {
+            return JSON.parse(JSON.stringify(state.planPresets[type] || {}))
+        }
     },
     actions:{
         async fetchAlinks({commit}){
