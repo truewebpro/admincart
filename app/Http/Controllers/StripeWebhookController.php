@@ -30,7 +30,9 @@ class StripeWebhookController extends Controller
             return response('Invalid webhook', 400);
         }
         \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-
+        \Log::info('Webhook hit', [
+            'type' => $event->type
+        ]);
         if ($event->type == 'checkout.session.completed') {
             $session = $event->data->object;
             $customerId = $session->customer;
