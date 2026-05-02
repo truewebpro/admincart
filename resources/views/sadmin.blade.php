@@ -15,13 +15,6 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=roboto:400,500,700,900" rel="stylesheet" />
-{{--    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>--}}
-{{--    <style type="text/tailwindcss">--}}
-{{--        @theme {--}}
-{{--            --font-sans: "Roboto, sans-serif";--}}
-{{--        }--}}
-{{--    </style>--}}
-
     <!-- Scripts -->
     @vite(['resources/sass/app.scss'])
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@latest/css/materialdesignicons.min.css" />
