@@ -26,19 +26,19 @@
                             Your subscription will end on {{ new Date(billing.ends_at).toLocaleDateString() }}
                         </v-alert>
                     </div>
-                    <v-btn
-                        v-if="billing?.subscribed"
-                        color="red"
-                        @click="cancelSubscription"
-                    >
-                        Cancel Subscription
-                    </v-btn>
+<!--                    <v-btn-->
+<!--                        v-if="billing?.subscribed"-->
+<!--                        color="red"-->
+<!--                        @click="cancelSubscription"-->
+<!--                    >-->
+<!--                        Cancel Subscription-->
+<!--                    </v-btn>-->
                     <v-card class="mt-4">
                         <v-card-title>Invoices</v-card-title>
                         <v-list v-if="billing.invoices?.length">
                             <v-list-item v-for="inv in billing.invoices" :key="inv.id">
                                 <div class="d-flex justify-space-between w-100">
-                                    <span>{{ inv.date }} - £{{ inv.total / 100 }}</span>
+                                    <span>{{ inv.date }} - {{inv.total}}</span>
                                     <a :href="inv.url" target="_blank">Download</a>
                                 </div>
                             </v-list-item>
