@@ -70,7 +70,21 @@
                             <h2 class="dd">£{{(plan.price/100)}}</h2>
                             <div>{{plan.interval}}</div>
                         </div>
-                        <div><span class="font-weight-medium text-body-1">Products</span> : {{plan.features?.products_limit}}</div>
+                        <div v-for="feature in planFeatures" :key="feature.key"
+                             class="d-flex ga-2 justify-space-between align-center py-2 border-b-sm">
+                            <span class="font-weight-medium">{{ feature.label }}</span>
+                            <span>
+                              <!-- BOOLEAN -->
+                              <template v-if="feature.type === 'boolean'">
+                                <v-icon size="18" :color="plan.features?.[feature.key] ? 'green' : 'red'">
+                                  {{ plan.features?.[feature.key] ? 'mdi-check-circle-outline' : 'mdi-close-circle-outline' }}
+                                </v-icon>
+                              </template>
+                              <template v-else>
+                                {{ plan.features?.[feature.key] ?? '-' }}
+                              </template>
+                            </span>
+                        </div>
                     </v-card-text>
                     <v-card-actions>
                         <v-btn
@@ -102,6 +116,11 @@ export default {
             isSubscribed: false
         }
     },
+    computed: {
+        planFeatures() {
+            return this.$store.getters.planFeatures
+        }
+    },
     async mounted() {
         await this.init();
     },
@@ -123,7 +142,16 @@ export default {
         async getPlans(){
             try {
                 const res = await axios.get('/sadmin/plans')
-                this.plans = res.data;
+                this.plans = res.data.map(plan => {
+                    const preset = this.$store.getters.getPlanPreset(plan.slug)
+                    return {
+                        ...plan,
+                        features: {
+                            ...preset,
+                            ...(plan.features || {})
+                        }
+                    }
+                })
             } catch (e){
                 console.log(e)
             }

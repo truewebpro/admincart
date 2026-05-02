@@ -50,6 +50,114 @@ const store = createStore({
             pendingPayment: 0
         },
         alinks:[],
+        role: null,
+        shops: [],
+        contextLoaded: false,
+        planFeatures: [
+            { key: 'online_store', label: 'Online Store', type: 'boolean' },
+            { key: 'checkout', label: 'Checkout', type: 'boolean' },
+            { key: 'products', label: 'Products', type: 'number' },
+            { key: 'staff_accounts', label: 'Staff Accounts', type: 'number' },
+            { key: 'analytics', label: 'Analytics', type: 'boolean' },
+            { key: 'support_24_7', label: '24/7 Support', type: 'boolean' },
+            { key: 'custom_domain', label: 'Custom Domain', type: 'boolean' },
+            { key: 'ssl', label: 'Free SSL Certificate', type: 'boolean' },
+            { key: 'discount_codes', label: 'Discount Codes', type: 'boolean' },
+            { key: 'seo_tools', label: 'SEO Tools', type: 'boolean' },
+            { key: 'inventory_control', label: 'Inventory Control', type: 'boolean' },
+            { key: 'custom_labels', label: 'Custom Labels', type: 'boolean' },
+            { key: 'shipping_settings', label: 'Shipping Setting', type: 'boolean' },
+            { key: 'loyalty_points', label: 'Loyalty Points', type: 'boolean' },
+            { key: 'custom_apps', label: 'Custom Apps', type: 'boolean' },
+        ],
+        planPresets: {
+            basic: {
+                online_store: true,
+                checkout: true,
+                products: 10,
+                staff_accounts: 1,
+                analytics: false,
+                custom_domain: false,
+                support_24_7: false,
+                shipping_settings:false,
+                loyalty_points:false,
+                custom_labels:false,
+                inventory_control:false,
+                custom_apps:false,
+                discount_codes:false,
+                seo_tools:false,
+                ssl:true,
+            },
+            ecommerce: {
+                online_store: true,
+                checkout: true,
+                products: 100,
+                staff_accounts: 5,
+                analytics: true,
+                custom_domain: true,
+                support_24_7: false,
+                shipping_settings:false,
+                loyalty_points:false,
+                custom_labels:false,
+                inventory_control:false,
+                custom_apps:false,
+                discount_codes:false,
+                seo_tools:false,
+                ssl:true,
+            },
+            elite: {
+                online_store: true,
+                checkout: true,
+                products: 250,
+                staff_accounts: 10,
+                analytics: true,
+                custom_domain: true,
+                support_24_7: true,
+                shipping_settings:true,
+                loyalty_points:false,
+                custom_labels:false,
+                inventory_control:true,
+                custom_apps:true,
+                discount_codes:true,
+                seo_tools:true,
+                ssl:true,
+            },
+            advanced: {
+                online_store: true,
+                checkout: true,
+                products: 500,
+                staff_accounts: 25,
+                analytics: true,
+                custom_domain: true,
+                support_24_7: true,
+                shipping_settings:true,
+                loyalty_points:true,
+                custom_labels:true,
+                inventory_control:true,
+                custom_apps:true,
+                discount_codes:true,
+                seo_tools:true,
+                ssl:true,
+            },
+            business: {
+                online_store: true,
+                checkout: true,
+                products: 'unlimited',
+                staff_accounts: 'unlimited',
+                analytics: true,
+                custom_domain: true,
+                support_24_7: true,
+                shipping_settings:true,
+                loyalty_points:true,
+                custom_labels:true,
+                inventory_control:true,
+                custom_apps:true,
+                discount_codes:true,
+                seo_tools:true,
+                ssl:true,
+            },
+
+        }
     },
     mutations:{
         SET_SHOP(state, shop){
@@ -164,7 +272,7 @@ const store = createStore({
             state.instocksLoaded = true
         },
         UPDATE_INSTOCK(state,updatedInstock){
-            const index = state.instocks.findIndex(st => st.variant_id = updatedInstock.variant_id)
+            const index = state.instocks.findIndex(st => st.variant_id === updatedInstock.variant_id)
             if(index !== -1){
                 state.instocks[index] = {...state.instocks[index], ...updatedInstock}
             }
@@ -258,7 +366,33 @@ const store = createStore({
         LOGOUT(state){
             state.user = null
             state.shop = null
+        },
+        RESET_ALL_DATA(state) {
+            state.brands = []
+            state.brandsLoaded = false
+
+            state.tags = []
+            state.tagsLoaded = false
+
+            state.productTypes = []
+            state.productTypesLoaded = false
+
+            state.poptions = []
+            state.poptionsLoaded = false
+
+            state.cats = []
+            state.catsLoaded = false
+
+            state.instocks = []
+            state.instocksLoaded = false
+
+            state.products = []
+            state.productsLoaded = false
+
+            state.orders = []
+            state.ordersLoaded = false
         }
+
     },
     getters:{
         shop:state => state.shop,
