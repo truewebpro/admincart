@@ -5,6 +5,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SendcloudWebhookController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\SumupController;
 use App\Http\Controllers\VivaWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -60,6 +61,12 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/footer', [ShopController::class, 'getFooter']);
     Route::get('/customer/exists',[ShopController::class,'exitingCustomer']);
     Route::post('/reset-password',[ShopController::class,'resetPassword']);
+
+    // Create SumUp checkout
+    Route::post('/payment/sumup/create', [SumupController::class, 'createCheckout']);
+
+    // Verify payment after redirect (called from frontend)
+    Route::post('/payment/sumup/verify', [SumupController::class, 'verify']);
 
     Route::prefix('cart')->group(function () {
         Route::get('/', [CartController::class, 'getCart']);
