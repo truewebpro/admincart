@@ -10,6 +10,7 @@
         <SubtextEditor v-model="localModel.stype_json.subtext" />
         <v-row class="mt-4">
             <v-col cols="12" lg="3" v-for="(alink, adx) in localModel.stype_json.alinks" :key="adx">
+                <v-text-field v-model="alink.ctitle" variant="underlined" density="compact" label="Custom Title" persistentPlaceholder></v-text-field>
                 <v-autocomplete
                     v-if="localModel.stype_json.style !== 'style3'"
                     variant="underlined"
@@ -130,6 +131,7 @@ export default {
         addItem() {
             this.localModel.stype_json.alinks.push({
                 selected: null,
+                ctitle:"",
                 name: "",
                 title: "",
                 link: "",
@@ -144,6 +146,7 @@ export default {
         onLinkSelect(alink, selected) {
             if (!selected) return
 
+            alink.ctitle = selected.ctitle
             alink.name = selected.name
             alink.title = selected.name
             alink.link = selected.link
