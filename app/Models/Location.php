@@ -13,6 +13,7 @@ class Location extends Model
         'location_name',
         'location_address',
         'location_status',
+        'country',
         'shop_id',
     ];
 }

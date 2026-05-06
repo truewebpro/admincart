@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SuperadminController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -57,6 +58,17 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth','resolve.admin.shop'])->group(function(){
+    Route::prefix('superadmin')->group(function(){
+        Route::get('/dashboard', [SuperadminController::class, 'superadminDashboard']);
+        Route::get('/shops', [SuperadminController::class, 'allShops']);
+        Route::get('/shop-users', [SuperadminController::class, 'shopUsers']);
+        Route::put('/shop/update/{shop_id}', [SuperadminController::class, 'updateShop']);
+        Route::post('/shop/add', [SuperadminController::class, 'storeShop']);
+        Route::post('/switch-shop', [SuperadminController::class, 'switchShop']);
+        Route::get('/shops/check-slug', [SuperadminController::class, 'checkSlug']);
+        Route::post('/shops/{shop_id}/status', [SuperadminController::class, 'toggleShopStatus']);
+        Route::get('/plans', [SuperadminController::class, 'plans']);
+    });
     Route::prefix('sadmin')->group(function(){
         Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
         Route::get('/shop/business',[HomeController::class,'getShopBusiness']);

@@ -14,8 +14,16 @@
                     <v-list-item-title>Truewebcart</v-list-item-title>
                 </v-list-item>
                 <v-divider></v-divider>
+                <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperAdminDashboard'}" prepend-icon="mdi-view-dashboard-outline">
+                    <v-list-item-title>Super Dashboard</v-list-item-title>
+                </v-list-item>
+                <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperAdminShops'}" prepend-icon="mdi-store">
+                    <v-list-item-title>Shops</v-list-item-title>
+                </v-list-item><v-list-item v-if="isSuperAdmin" link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">
+                    <v-list-item-title>Plans</v-list-item-title>
+                </v-list-item>
                 <v-list-item link to="/dashboard" prepend-icon="mdi-view-dashboard-outline">
-                    <v-list-item-title>Dashboard</v-list-item-title>
+                    <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Dashboard</v-list-item-title>
                 </v-list-item>
                 <v-list-group value="acarts">
                     <template v-slot:activator="{ props }">
@@ -75,6 +83,23 @@
             </v-list>
         </v-navigation-drawer>
         <v-main class="py-1 bg-grey-lighten-5">
+            <v-container class="pa-0 mt-1" v-if="isSuperAdmin">
+                <v-row dense>
+                    <v-col cols="6" md="9">
+                        <h2 class="text-caption">Viewing shop: {{currentShopName}}</h2>
+                    </v-col>
+                    <v-col cols="6" md="3">
+                        <v-select variant="underlined" hide-details density="compact"
+                                  :items="shops" :disabled="this.$store.state.switchingShop"
+                                  item-title="shop_name"
+                                  item-value="shop_id"
+                                  v-model="selectedShop"
+                                  label="Selected Shop"
+                        />
+                    </v-col>
+                </v-row>
+
+            </v-container>
             <router-view/>
         </v-main>
         <v-bottom-navigation grow active v-if="$vuetify.display.mobile" density="compact" bg-color="secondary" base-color="white">
@@ -114,6 +139,29 @@ export default {
         }
     },
     computed: {
+        shops() {
+            return this.$store.state.shops
+        },
+        role() {
+            return this.$store.state.role
+        },
+        isSuperAdmin() {
+            return this.$store.state.role === 'superadmin'
+        },
+        currentShopName() {
+            return this.$store.getters.currentShopName
+        },
+        selectedShop: {
+            get() {
+                return this.$store.state.shop;
+            },
+            set(val) {
+                if (val !== this.$store.state.shop) {
+                    this.switchShop(val)
+                }
+            }
+        },
+
         isDesktop() {
             return this.$vuetify.display.mdAndUp;
         },
@@ -126,13 +174,11 @@ export default {
             this.drawer = val; // open by default on desktop
         }
     },
-    mounted() {
+    async mounted() {
         window.Echo.connector.pusher.connection.bind('connected', () => {
-            console.log('🔄 Reconnected');
             this.$store.dispatch('fetchOrders', true);
         });
         const channel = window.Echo.channel('orders');
-
         channel.listen('.order.created', (e) => {
             this.$store.commit('ADD_ORDER', e.order);
             window.Toast.success(`New Order: ${e.order.order_number}`);
@@ -142,39 +188,21 @@ export default {
             this.$store.commit('UPDATE_ORDER', e.order);
         });
         this.drawer = this.isDesktop;
-        this.$store.dispatch('fetchBrands');
-        this.$store.dispatch('fetchTags');
-        this.$store.dispatch('fetchPtypes');
-        this.$store.dispatch('fetchPoptions');
-        this.$store.dispatch('fetchCats');
-        this.$store.dispatch('fetchInstocks');
-        this.$store.dispatch('fetchProducts');
-        this.$store.dispatch('fetchOrders');
+        await this.$store.dispatch('loadContext');
+        await this.$store.dispatch('fetchShopResources');
     },
     methods: {
+        async switchShop(shopId) {
+            await this.$store.dispatch('switchShop',shopId)
+            this.$router.push('/dashboard');
+        },
         async logout(){
             await axios.post('/logout')
                 .then(()=>{
                     this.$store.commit('LOGOUT');
                     window.location.href = '/login';
                 })
-        },
-        // async boostfetchShopResources(){
-        //     const [brands,productTypes,tags,poptions,cats,orders] = await Promise.all([
-        //         axios.get('/sadmin/brands'),
-        //         axios.get('/sadmin/ptypes'),
-        //         axios.get('/sadmin/tags'),
-        //         axios.get('/sadmin/poptions'),
-        //         axios.get('/sadmin/categories'),
-        //         axios.get('/sadmin/orders'),
-        //     ])
-        //     this.$store.commit('SET_BRANDS', brands.data.brands)
-        //     this.$store.commit('SET_PRODUCT_TYPES', productTypes.data.ptypes)
-        //     this.$store.commit('SET_TAGS', tags.data.tags)
-        //     this.$store.commit('SET_POPTIONS', poptions.data.poptions)
-        //     this.$store.commit('SET_CATS',cats.data.cats)
-        //     this.$store.commit('SET_ORDERS',orders.data.orders)
-        // },
+        }
     }
 }
 

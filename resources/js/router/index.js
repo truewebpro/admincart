@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import store from "../store/index.js";
 
 import AdminDashboard from "@/admin/AdminDashboard.vue";
 import AdminOrders from "@/admin/order/AdminOrders.vue";
@@ -53,11 +54,26 @@ import Preferences from "@/admin/theme/Preferences.vue";
 import ThemeView from "@/admin/theme/ThemeView.vue";
 import IntegrateList from "@/admin/integrate/IntegrateList.vue";
 import AbandonedCarts from "@/admin/order/AbandonedCarts.vue";
+import PlansList from "@/superadmin/plans/PlansList.vue";
+import SuperAdminDashboard from "@/admin/super/SuperAdminDashboard.vue";
+import SuperAdminLayout from "@/admin/super/SuperAdminLayout.vue";
+import SuperAdminShops from "@/admin/super/SuperAdminShops.vue";
 
 
 
 const routes = [
-    {path:'/dashboard',name:"AdminDashboard",component:AdminDashboard},
+    {
+        path: '/super',
+        component: SuperAdminLayout,
+        meta: { requiresSuperAdmin: true },
+        children: [
+            { path: '', redirect: '/super/dashboard' },
+            { path: 'dashboard', name: 'SuperAdminDashboard', component: SuperAdminDashboard },
+            { path: 'shops', name: 'SuperAdminShops', component: SuperAdminShops },
+            { path: 'plans', name: 'PlansList', component: PlansList },
+        ]
+    },
+    {path:'/dashboard',name:"AdminDashboard",component:AdminDashboard,meta: { requiresOwner: true }},
     {path:'/orders',name:"AdminOrders",component:AdminOrders},
     {path:'/carts',name:"AdminCarts",component:AdminCarts},
     {path:'/abandoned/carts',name:"AbandonedCarts",component: AbandonedCarts},
@@ -120,6 +136,27 @@ const routes = [
 const router = createRouter({
     history:createWebHistory(),
     routes
+})
+
+router.beforeEach(async (to, from, next) => {
+
+    if (!store.state.contextLoaded) {
+        await store.dispatch('loadContext')
+    }
+
+    const role = store.state.role;
+    const requiresSuperAdmin = to.matched.some(r => r.meta.requiresSuperAdmin)
+    const requiresOwner = to.matched.some(r => r.meta.requiresOwner)
+
+    if (requiresSuperAdmin && role !== 'superadmin') {
+        return next('/dashboard')
+    }
+
+    if (requiresOwner && !['owner', 'superadmin'].includes(role)) {
+        return next('/dashboard')
+    }
+
+    next()
 })
 
 export default router;

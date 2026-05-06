@@ -5,9 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Cashier\Billable;
+use App\Models\ShopUser;
+use App\Models\User;
+
 
 class Shop extends Model
 {
@@ -29,6 +33,41 @@ class Shop extends Model
     {
         return 'shop_id';
     }
+
+    protected static function booted()
+    {
+//        parent::boot();
+        static::created(function ($shop) {
+            $superAdmins = ShopUser::where('role','superadmin')
+                ->pluck('user_id')->unique();
+
+            if ($superAdmins->isEmpty()) {
+                return;
+            }
+            foreach ($superAdmins as $userId) {
+                ShopUser::firstOrCreate([
+                    'shop_id' => $shop->shop_id,
+                    'user_id' => $userId,
+                ],[
+                    'role' => 'superadmin',
+                    'shop_user_status' => 'Active',
+                ]);
+            }
+        });
+    }
+
+    public function users():BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'shop_users',
+            'shop_id',
+            'user_id',
+            'shop_id',
+            'id'
+        )->withPivot('role', 'shop_user_status');
+    }
+
     public function shippingMethods()
     {
         return $this->belongsToMany(ShippingMethod::class, 'shop_shipping_methods', 'shop_id', 'shop_id')

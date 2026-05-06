@@ -24,7 +24,7 @@ function calculateOrderStats(orders) {
 const store = createStore({
     state:{
         user: window.APP_USER || JSON.parse(localStorage.getItem('user') || 'null'),
-        shop: window.APP_SHOP || JSON.parse(localStorage.getItem('shop') || 'null'),
+        shop: window.APP_SHOP?.shop_id || JSON.parse(localStorage.getItem('shop') || 'null'),
         cdn:"https://truewebcart.s3-accelerate.amazonaws.com/",
         brands: [],
         brandsLoaded: false,
@@ -53,6 +53,8 @@ const store = createStore({
         role: null,
         shops: [],
         contextLoaded: false,
+        allshops: [],
+        switchingShop: false,
         planFeatures: [
             { key: 'online_store', label: 'Online Store', type: 'boolean' },
             { key: 'checkout', label: 'Checkout', type: 'boolean' },
@@ -160,9 +162,22 @@ const store = createStore({
         }
     },
     mutations:{
-        SET_SHOP(state, shop){
-            state.shop = shop
-            localStorage.setItem('shop', JSON.stringify(shop))
+        SET_SHOP(state, shopId){
+            state.shop = shopId
+            localStorage.setItem('shop', JSON.stringify(shopId))
+        },
+        SET_ALL_SHOPS(state, shops) {
+            state.allshops = shops
+        },
+        SET_CONTEXT(state, data) {
+            state.shop = data.shop_id
+            state.role = data.user_role
+            state.shops = data.user_shops
+            state.contextLoaded = true
+            localStorage.setItem('shop', JSON.stringify(data.shop_id))
+        },
+        SET_SWITCHING_SHOP(state, val) {
+            state.switchingShop = val
         },
         SET_ALINKS(state,alinks){
             state.alinks = alinks;
@@ -407,6 +422,12 @@ const store = createStore({
         products:state=> state.products,
         orders:state=>state.orders,
         alinks:state=>state.alinks,
+        currentShop(state) {
+            return state.shops.find(s => s.shop_id === state.shop) || null
+        },
+        currentShopName(state, getters) {
+            return getters.currentShop?.shop_name || ''
+        },
         planFeatures: (state) => state.planFeatures,
         getPlanPreset: (state) => (type) => {
             return JSON.parse(JSON.stringify(state.planPresets[type] || {}))
@@ -519,6 +540,40 @@ const store = createStore({
                 ])
             } catch (e) {
                 console.error('Failed to fetch shop resources:', e)
+            }
+        },
+        async fetchAllShops({ commit }) {
+            const res = await axios.get('/superadmin/shops')
+            commit('SET_ALL_SHOPS', res.data.shops)
+        },
+        async loadContext({ commit }, force = false) {
+            if (!force && this.state.contextLoaded) return
+
+            try {
+                const res = await axios.get('/superadmin/shop-users')
+                commit('SET_CONTEXT', res.data)
+            } catch (e) {
+                console.error('Failed to load context', e)
+            }
+        },
+        async switchShop({ dispatch,commit, state }, shopId) {
+            if (state.shop === shopId) return
+            try {
+                commit('SET_SWITCHING_SHOP', true)
+                const respo = await axios.post('/superadmin/switch-shop', {
+                    shop_id: shopId
+                })
+                if (!respo.data.success) {
+                    throw new Error('Switch failed')
+                }
+                commit('SET_SHOP', shopId)
+                commit('RESET_ALL_DATA')
+                await dispatch('loadContext', true)
+                await dispatch('fetchShopResources', true)
+            } catch (e) {
+                console.error('Switch shop failed', e)
+            } finally {
+                commit('SET_SWITCHING_SHOP', false)
             }
         },
         async logout({commit}){

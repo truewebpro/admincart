@@ -6,7 +6,7 @@
                     <v-card-text>
                         <div class="d-flex">
                             <div class="w-75 d-flex flex-column justify-space-between">
-                                <div class="text-h5 text-md-h4">Welcome <span class="font-weight-bold">{{suser.name}} 🎉</span></div>
+                                <div class="text-h5 text-md-h4">Welcome <span class="font-weight-bold">{{suser.name}} {{$store.getters.currentShopName}} 🎉</span></div>
                                 <p class="text-body-1 mt-3">
                                     You have done 72% 😎 more sales today. Check your new raising badge in your profile.
                                 </p>

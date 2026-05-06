@@ -4,10 +4,12 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use App\Models\Shop;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -48,8 +50,21 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->getKey();
     }
-    public function getJWTCustomClaims()
+    public function getJWTCustomClaims():array
     {
         return [];
+    }
+
+    public function shops():BelongsToMany
+    {
+        return $this->belongsToMany(
+            Shop::class,
+            'shop_users',
+            'user_id',
+            'shop_id',
+            'id',
+            'shop_id'
+        )
+            ->withPivot('role', 'shop_user_status');
     }
 }
