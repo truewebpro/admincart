@@ -69,7 +69,7 @@
                         </template>
                         <template #item.actions="{item}">
                             <div class="d-flex ga-2 align-center">
-                                <v-btn v-if="item.shop_id === $store.state.shop" color="success"
+                                <v-btn v-if="item.shop_id === $store.state.shop_id" color="success"
                                        variant="outlined" density="compact" appendIcon="mdi-check-circle">
                                    Selected
                                 </v-btn>

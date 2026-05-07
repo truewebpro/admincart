@@ -136,6 +136,10 @@ class SuperadminController extends Controller
                     'shop_id' => $shop->shop_id,
                     'role' => 'superadmin',
                     'shop_name' => $shop->shop_name,
+                    'shop_slug' => $shop->shop_slug,
+                    'subdomain' => $shop->subdomain,
+                    'maindomain' => $shop->maindomain,
+                    'shop_status' => $shop->shop_status,
                 ];
             });
         } else {
@@ -145,6 +149,10 @@ class SuperadminController extends Controller
                     'shop_id' => $shop->shop_id,
                     'role' => $shop->pivot->role,
                     'shop_name' => $shop->shop_name,
+                    'shop_slug' => $shop->shop_slug,
+                    'subdomain' => $shop->subdomain,
+                    'maindomain' => $shop->maindomain,
+                    'shop_status' => $shop->shop_status,
                 ];
             });
             if (!$shopId || !collect($userShops)->contains('shop_id', $shopId)) {

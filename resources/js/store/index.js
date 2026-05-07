@@ -24,7 +24,8 @@ function calculateOrderStats(orders) {
 const store = createStore({
     state:{
         user: window.APP_USER || JSON.parse(localStorage.getItem('user') || 'null'),
-        shop: window.APP_SHOP?.shop_id || JSON.parse(localStorage.getItem('shop') || 'null'),
+        shop: window.APP_SHOP || JSON.parse(localStorage.getItem('shop') || 'null'),
+        shop_id: window.APP_SHOP?.shop_id || JSON.parse(localStorage.getItem('shop_id') || 'null'),
         cdn:"https://truewebcart.s3-accelerate.amazonaws.com/",
         brands: [],
         brandsLoaded: false,
@@ -163,18 +164,22 @@ const store = createStore({
     },
     mutations:{
         SET_SHOP(state, shopId){
-            state.shop = shopId
-            localStorage.setItem('shop', JSON.stringify(shopId))
+            state.shop_id = shopId
+            localStorage.setItem('shop_id', JSON.stringify(shopId))
+            // state.shop = state.shops.find(s => s.shop_id === shopId) || null
+            localStorage.setItem('shop', JSON.stringify(state.shop))
         },
         SET_ALL_SHOPS(state, shops) {
             state.allshops = shops
         },
         SET_CONTEXT(state, data) {
-            state.shop = data.shop_id
+            state.shop_id = data.shop_id
             state.role = data.user_role
             state.shops = data.user_shops
             state.contextLoaded = true
-            localStorage.setItem('shop', JSON.stringify(data.shop_id))
+            state.shop = data.user_shops.find(s => s.shop_id === data.shop_id)
+            localStorage.setItem('shop_id', JSON.stringify(data.shop_id))
+            localStorage.setItem('shop', JSON.stringify(state.shop))
         },
         SET_SWITCHING_SHOP(state, val) {
             state.switchingShop = val
@@ -423,7 +428,7 @@ const store = createStore({
         orders:state=>state.orders,
         alinks:state=>state.alinks,
         currentShop(state) {
-            return state.shops.find(s => s.shop_id === state.shop) || null
+            return state.shops.find(s => s.shop_id === state.shop_id) || null
         },
         currentShopName(state, getters) {
             return getters.currentShop?.shop_name || ''
@@ -557,7 +562,7 @@ const store = createStore({
             }
         },
         async switchShop({ dispatch,commit, state }, shopId) {
-            if (state.shop === shopId) return
+            if (state.shop_id === shopId) return
             try {
                 commit('SET_SWITCHING_SHOP', true)
                 const respo = await axios.post('/superadmin/switch-shop', {
