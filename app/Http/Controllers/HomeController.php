@@ -3825,12 +3825,22 @@ class HomeController extends Controller
     public function getShopFooter()
     {
         $shopId = session('shop_id');
+        $setting = [
+            "background" => '#000000',
+            "color"=> '#ffffff',
+            "underline"=>'#bb0000',
+            "columns"=>[
+                "desktop" => 4,
+                "tablet"=>2,
+                "mobile"=>1
+            ]
+        ];
         $footer = Footer::where('shop_id', $shopId)->firstOrCreate(
             ['shop_id' => $shopId],
             [
                 'style' => 'style1',
                 'fsections' => null,
-                'settings' => null,
+                'settings' => $setting,
                 'shop_id' => $shopId,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -3845,7 +3855,7 @@ class HomeController extends Controller
             'success' => true,
             'footer' => $footer,
             'menus' => $menus,
-            'business' => $business['business'],
+            'business' => $business['business'] ?? null,
             'quick_links' => Menu::where('menu_slug','quick_links')->where('shop_id', $shopId)->first() ?? null,
             'information' => Menu::where('menu_slug','information')->where('shop_id', $shopId)->first() ?? null,
             'our_policies' => Menu::where('menu_slug','our_policies')->where('shop_id', $shopId)->first() ?? null,
@@ -3856,11 +3866,21 @@ class HomeController extends Controller
     {
         $shopId = session('shop_id');
         $footer = Footer::findOrFail($request->footer_id);
+        $setting = [
+            "background" => '#000000',
+            "color"=> '#ffffff',
+            "underline"=>'#bb0000',
+            "columns"=>[
+                "desktop" => 4,
+                "tablet"=>2,
+                "mobile"=>1
+            ]
+        ];
         if($footer){
             $footer->update([
                 'style' => $request['style'] ?? 'style1',
                 'fsections' => $request['fsections'],
-                'settings' => $request['settings'],
+                'settings' => $setting,
                 'shop_id' => $shopId,
             ]);
 
