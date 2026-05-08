@@ -104,7 +104,7 @@ class ShopController extends Controller
                 ->limit($sectionJson['plimit'] ?? 12)
                 ->get();
             $stypeJson['cat_slug'] = $catSlug;
-            $stypeJson['cat_pros'] = $products;
+            $stypeJson['catpros'] = $products;
             $sectionJson['stype_json'] = $stypeJson;
             $section->section_json = $sectionJson;
         }
