@@ -9,7 +9,10 @@ class SmartCategoryService
 {
     public function syncProduct(Product $product)
     {
-        $cats = Cat::with('rules')->where('cat_type', '=', 'smart')->get();
+        $cats = Cat::with('rules')
+            ->where('cat_type', '=', 'smart')
+            ->where('shop_id', $product->shop_id)
+            ->get();
         foreach ($cats as $cat) {
             $rules = $cat->rules->toArray() ?? [];
             $matches = $this->matchesRules($product, $rules, $cat->cat_rule ?? 'and');
