@@ -70,6 +70,51 @@ class ShopController extends Controller
         ]);
     }
 
+    public function homeHeroSections(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $homepage = Homepage::with('herosections')->where('shop_id','=',$shopId)->first();
+        return response()->json([
+            'success' => true,
+            'hsections' => $homepage->herosections ?? null,
+        ]);
+    }
+
+    public function homeLazySections(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $homepage = Homepage::with('lsections')->where('shop_id','=',$shopId)->first();
+        $asections = $homepage->lsections ?? collect();
+        foreach ($asections as &$section) {
+            if ($section->stype_slug !== 'featured_products') {
+                continue;
+            }
+            $sectionJson = $section->section_json;
+            $stypeJson = $sectionJson['stype_json'];
+            $catId = $stypeJson['cat_id'];
+            $catSlug = Cat::where('cat_id', $catId)->value('cat_slug');
+            $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                ->where('shop_id','=',$shopId)
+                ->withCount('reviews')->withAvg('reviews','rating')
+                ->whereIn('product_id', function ($query) use ($catId) {
+                    $query->select('product_id')
+                        ->from('catpros')
+                        ->where('cat_id', $catId);
+                })
+                ->limit($sectionJson['plimit'] ?? 12)
+                ->get();
+            $stypeJson['cat_slug'] = $catSlug;
+            $stypeJson['cat_pros'] = $products;
+            $sectionJson['stype_json'] = $stypeJson;
+            $section->section_json = $sectionJson;
+        }
+        return response()->json([
+            'success' => true,
+            'hsections' => $homepage->lsections ?? null,
+        ]);
+
+    }
+
     public function homeSections(Request $request)
     {
         $shopId = $request->shop_id;

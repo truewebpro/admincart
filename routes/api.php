@@ -34,6 +34,8 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/viva/webhook/verify', [VivaWebhookController::class, 'verifyWebhook']);
     Route::post('/viva/webhook/verify',[VivaWebhookController::class,'handleWebhook']);
     Route::get('/homemetas', [ShopController::class, 'homeMetas']);
+    Route::get('/herosections', [ShopController::class, 'homeHeroSections']);
+    Route::get('/lazysections', [ShopController::class, 'homeLazySections']);
     Route::get('/homesections', [ShopController::class, 'homeSections']);
     Route::get('/brands', [ShopController::class, 'allBrands']);
     Route::get('/brand/{brand_slug}', [ShopController::class, 'prosByBrand']);
