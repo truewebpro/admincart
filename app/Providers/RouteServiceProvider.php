@@ -25,7 +25,12 @@ class RouteServiceProvider extends ServiceProvider
     public function boot(): void
     {
         RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(600)->by($request->user()?->id ?: $request->ip());
+            $shop = $request->header('X-Shopname', 'global');
+
+            $key = $request->user()?->id
+                ?: ($shop . '|' . $request->ip());
+
+            return Limit::perMinute(600)->by($key);
         });
 
         $this->routes(function () {
