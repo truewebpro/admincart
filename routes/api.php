@@ -40,8 +40,11 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/brands', [ShopController::class, 'allBrands']);
     Route::get('/brand/{brand_slug}', [ShopController::class, 'prosByBrand']);
     Route::get('/cats', [ShopController::class, 'allCats']);
+    Route::get('/all-cats', [ShopController::class, 'getAllCats']);
     Route::get('/catpro/{slug}', [ShopController::class, 'getCatorProduct']);
     Route::get('/cat/{slug}', [ShopController::class, 'getCategory']);
+    Route::get('/catbyslug/{slug}', [ShopController::class, 'getCatBySlug']);
+    Route::get('/catsections/{slug}', [ShopController::class, 'getCatSections']);
     Route::get('/pro/{slug}', [ShopController::class, 'getProduct']);
     Route::get('/products/all', [ShopController::class, 'searhProducts']);
     Route::get('/poptions',[ShopController::class,'shopPoptions']);

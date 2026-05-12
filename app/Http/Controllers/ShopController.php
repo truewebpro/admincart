@@ -310,6 +310,110 @@ class ShopController extends Controller
 
     }
 
+    public function getAllCats(Request $request,$shopname)
+    {
+        $shopId = $request->shop_id;
+        $shopcats = Cat::where('shop_id','=',$shopId)
+            ->where('cat_status','=','Active')
+            ->select('cat_id','cat_slug','cat_name','cat_status','cat_image','shop_id')
+            ->get();
+        foreach ($shopcats as $shopcat){
+            $proimage = null;
+            $productId = Catpro::where('cat_id', '=', $shopcat->cat_id)->value('product_id');
+            if($productId){
+                $proimage = Product::where('product_id', '=', $productId)->value('featured_image');
+            }
+            $shopcat['proimage'] = $proimage;
+        }
+        return response()->json([
+            'status' => true,
+            'cats' => $shopcats,
+        ],200);
+    }
+
+    public function getCatBySlug(Request $request,$shopname,$slug)
+    {
+        $shopId = $request->shop_id;
+        $cat = Cat::with('rcats')
+            ->where('shop_id','=',$shopId)
+            ->where('cat_slug','=',$slug)
+            ->first();
+        if (!$cat) {
+            return response()->json([
+                'status' => false,
+                'type' => null,
+                'slug' => $slug,
+                'cat' => null,
+            ]);
+        }
+
+        $catId = $cat->cat_id;
+        $alpros = Product::query()
+            ->select('product_id','title','handle','featured_image','product_status','product_type_id',
+                'brand_id','tags')->with(['variants.astock', 'brand', 'ptype'])
+            ->where('shop_id','=',$shopId)
+            ->withCount('reviews')->withAvg('reviews','rating')
+            ->whereIn('product_id', function ($query) use ($catId) {
+                $query->select('product_id')
+                    ->from('catpros')
+                    ->where('cat_id', $catId);
+            })
+            ->paginate(24);
+
+        $cat['catpros'] = $alpros;
+        return response()->json([
+            'status' => true,
+            'type' => 'Category',
+            'slug' => $slug,
+            'cat' => $cat,
+        ]);
+    }
+
+    public function getCatSections(Request $request,$shopname,$slug)
+    {
+        $shopId = $request->shop_id;
+        $cat = Cat::with('csections')
+            ->where('shop_id','=',$shopId)
+            ->where('cat_slug','=',$slug)
+            ->first();
+        if (!$cat) {
+            return response()->json([
+                'status' => false,
+                'sections' => null,
+                'slug' => $slug,
+            ]);
+        }
+        $sectionsWithExtras = [];
+        foreach ($cat->csections as $section){
+            $sectionArray = $section->toArray();
+            if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
+                $catId = $sectionArray['section_json']['stype_json']['cat_id'];
+                $catSlug = Cat::where('cat_id', $catId)->value('cat_slug');
+                $products = Product::query()
+                    ->select('product_id','title','handle','featured_image','product_status','product_type_id',
+                        'brand_id','tags')->with(['variants.astock', 'brand', 'ptype'])
+                    ->where('shop_id','=',$shopId)
+                    ->withCount('reviews')->withAvg('reviews','rating')
+                    ->whereIn('product_id', function ($query) use ($catId) {
+                        $query->select('product_id')
+                            ->from('catpros')
+                            ->where('cat_id', $catId);
+                    })
+                    ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
+                    ->get();
+
+                $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
+                $sectionArray['section_json']['stype_json']['catpros'] = $products;
+            }
+            $sectionsWithExtras[] = $sectionArray;
+        }
+        return response()->json([
+            'status' => true,
+            'sections' => $sectionsWithExtras,
+            'slug' => $slug,
+        ]);
+    }
+
     public function getCatorProduct(Request $request,$shopname,$slug)
     {
         $shopId = $request->shop_id;
