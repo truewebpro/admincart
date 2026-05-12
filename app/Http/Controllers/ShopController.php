@@ -607,6 +607,12 @@ class ShopController extends Controller
                 'sproduct' => null,
             ]);
         }
+        $previews = $sproduct->reviews;
+        $sproduct['stars5'] = $previews->whereIn('rating',5)->count();
+        $sproduct['stars4'] = $previews->whereIn('rating',4)->count();
+        $sproduct['stars3'] = $previews->whereIn('rating',3)->count();
+        $sproduct['stars2'] = $previews->whereIn('rating',2)->count();
+        $sproduct['stars1'] = $previews->whereIn('rating',1)->count();
         return response()->json([
             'status' => true,
             'type' => "Product",
