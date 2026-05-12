@@ -18,6 +18,7 @@ use App\Models\Policy;
 use App\Models\Poptions;
 use App\Models\Preference;
 use App\Models\Product;
+use App\Models\ProductType;
 use App\Models\Proreview;
 use App\Models\Searchtag;
 use App\Models\Section;
@@ -205,7 +206,9 @@ class ShopController extends Controller
     public function allBrands(Request $request)
     {
         $shopId = $request->shop_id;
-        $brands = Brand::withCount('product')->where('shop_id','=',$shopId)
+        $brands = Brand::query()->select(
+            'brand_id', 'brand_name', 'brand_slug', 'brand_image','brand_status','shop_id'
+        )->withCount('product')->where('shop_id','=',$shopId)
             ->where('brand_status','=','Active')
             ->orderBy('brand_name','ASC')->get();
         return response()->json([
@@ -213,6 +216,56 @@ class ShopController extends Controller
             'brands' => $brands
         ],200);
 
+    }
+
+    public function getBrandBySlug(Request $request,$shopname,$brand_slug)
+    {
+        $shopId = $request->shop_id;
+        $brand = Brand::where('shop_id','=',$shopId)
+            ->where('brand_slug','=',$brand_slug)
+            ->first();
+        if(!$brand){
+            return response()->json([
+                'status' => false,
+                'brand' => null,
+            ]);
+        }
+        $brand_products = Product::query()
+            ->select('product_id','title','handle','featured_image','product_status','product_type_id',
+                'brand_id','tags')
+            ->with('brand','variants.astock')
+            ->withCount('reviews')->withAvg('reviews','rating')
+            ->where('brand_id','=',$brand->brand_id)
+            ->where('product_status','=','Active')
+            ->paginate(12);
+
+        return response()->json([
+            'status' => true,
+            'brand' => $brand,
+            'brand_products' => $brand_products ?? null,
+        ]);
+    }
+
+    public function getBrandSections(Request $request,$shopname,$brand_slug)
+    {
+        $shopId = $request->shop_id;
+        $brand = Brand::with('bsections')
+            ->where('shop_id','=',$shopId)
+            ->where('brand_slug','=',$brand_slug)
+            ->first();
+        if(!$brand){
+            return response()->json([
+                'status' => false,
+                'sections' => null,
+                'brand_slug' => $brand_slug,
+            ]);
+        }
+        $sectionsWithExtras = [];
+        return response()->json([
+            'status' => true,
+            'sections' => $sectionsWithExtras,
+            'brand_slug' => $brand_slug,
+        ]);
     }
 
     public function prosByBrand(Request $request,$shopname,$brand_slug)
@@ -606,6 +659,77 @@ class ShopController extends Controller
                 'related_products'=>null,
             ]);
         }
+    }
+
+    public function getAllProducts(Request $request,$shopname)
+    {
+        $shopId = $request->shop_id;
+        $query = Product::query()
+            ->select('product_id','title','handle','featured_image','product_status','product_type_id', 'brand_id','tags')
+            ->with('variants.astock','brand','ptype',)
+            ->withCount('reviews')->withAvg('reviews','rating')
+            ->withMin('variants','price')
+            ->withSum('astock','quantity')
+            ->where('shop_id','=',$shopId)
+            ->where('product_status','=', 'Active');
+        if ($request->brand) {
+            $query->where('brand_id', $request->brand);
+        }
+        if ($request->type) {
+            $query->where('product_type_id', $request->type);
+        }
+        switch ($request->sort) {
+            case 'title-ascending':
+                $query->orderBy('title', 'ASC');
+                break;
+
+            case 'title-descending':
+                $query->orderBy('title', 'DESC');
+                break;
+
+            case 'created-ascending':
+                $query->oldest();break;
+
+            case 'created-descending':
+                $query->latest();
+                break;
+
+            case 'price-ascending':
+                $query->withMin('variants', 'price')
+                    ->orderBy('variants_min_price', 'ASC');
+                break;
+
+            case 'price-descending':
+                $query->withMin('variants', 'price')
+                    ->orderBy('variants_min_price', 'DESC');
+                break;
+
+            default:
+                $query->latest();
+        }
+          $products = $query->paginate(24);
+        if(!$products){
+            return response()->json([
+                'status' => false,
+                'type' => "Product",
+                'products'=> [],
+            ]);
+        }
+        $brands = Brand::query()
+            ->select('brand_id', 'brand_name')
+            ->where('shop_id','=',$shopId)
+            ->get();
+        $ptypes = ProductType::query()
+            ->select('product_type_id', 'product_type_name')
+            ->where('shop_id','=',$shopId)
+            ->get();
+        return response()->json([
+            'status' => true,
+            'type' => "Product",
+            'products'=>$products,
+            'brands'=>$brands,
+            'ptypes'=>$ptypes,
+        ]);
     }
 
     public function searhProducts(Request $request,$shopname)

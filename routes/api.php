@@ -39,6 +39,8 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/homesections', [ShopController::class, 'homeSections']);
     Route::get('/brands', [ShopController::class, 'allBrands']);
     Route::get('/brand/{brand_slug}', [ShopController::class, 'prosByBrand']);
+    Route::get('/brandbyslug/{brand_slug}', [ShopController::class, 'getBrandBySlug']);
+    Route::get('/brandsections/{brand_slug}', [ShopController::class, 'getBrandSections']);
     Route::get('/cats', [ShopController::class, 'allCats']);
     Route::get('/all-cats', [ShopController::class, 'getAllCats']);
     Route::get('/catpro/{slug}', [ShopController::class, 'getCatorProduct']);
@@ -47,6 +49,7 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/catsections/{slug}', [ShopController::class, 'getCatSections']);
     Route::get('/pro/{slug}', [ShopController::class, 'getProduct']);
     Route::get('/products/all', [ShopController::class, 'searhProducts']);
+    Route::get('/all-products', [ShopController::class, 'getAllProducts']);
     Route::get('/poptions',[ShopController::class,'shopPoptions']);
     Route::get('/sitemap',[ShopController::class,'siteMap']);
     Route::get('/html/sitemap',[ShopController::class,'htmlSitemap']);
