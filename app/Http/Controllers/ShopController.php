@@ -591,6 +591,86 @@ class ShopController extends Controller
         }
     }
 
+    public function getProductData(Request $request,$shopname,$slug)
+    {
+        $shopId = $request->shop_id;
+        $sproduct = Product::with('variants.astock','brand','ptype','highs','reviews','specifics','tiers')
+            ->withCount('reviews')->withSum('reviews','rating')
+            ->withAvg('reviews','rating')
+            ->where('shop_id','=',$shopId)
+            ->where('handle','=',$slug)->first();
+        if(!$sproduct){
+            return response()->json([
+                'status' => false,
+                'type' => "Product",
+                'slug'=> $slug,
+                'sproduct' => null,
+            ]);
+        }
+        return response()->json([
+            'status' => true,
+            'type' => "Product",
+            'slug'=> $slug,
+            'sproduct'=> $sproduct,
+        ]);
+    }
+
+    public function getProductLazyData(Request $request,$shopname,$slug)
+    {
+        $shopId = $request->shop_id;
+        $sproduct = Product::with('psections')
+            ->where('shop_id','=',$shopId)
+            ->where('handle','=',$slug)
+            ->first();
+        $addons = Product::query()
+            ->select('product_id','title','handle','featured_image','product_status','product_type_id',
+                'brand_id','tags')
+            ->with('brand','ptype','variants.astock')
+            ->withCount('reviews')->withAvg('reviews','rating')
+            ->where('shop_id','=',$shopId)->where('brand_id','=',$sproduct->brand_id)
+            ->whereNotIn('products.product_id', [$sproduct->product_id])
+            ->where('product_status','=','Active')
+            ->limit(12)->get();
+        $related_products = Product::query()
+            ->select('product_id','title','handle','featured_image','product_status','product_type_id',
+                'brand_id','tags')
+            ->with('brand','ptype','variants.astock')
+            ->withCount('reviews')->withAvg('reviews','rating')
+            ->where('shop_id','=',$shopId)->where('product_type_id','=',$sproduct->product_type_id)
+            ->whereNotIn('products.product_id', [$sproduct->product_id])
+            ->where('product_status','=','Active')
+            ->inRandomOrder()->limit(12)->get();
+        $sectionsWithExtras = [];
+        foreach ($sproduct->psections as $section){
+            $sectionArray = $section->toArray();
+            if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
+                $catId = $sectionArray['section_json']['stype_json']['cat_id'];
+                $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
+                $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                    ->where('shop_id','=',$shopId)
+                    ->whereIn('product_id', function ($query) use ($catId) {
+                        $query->select('product_id')
+                            ->from('catpros')
+                            ->where('cat_id', $catId);
+                    })
+                    ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
+                    ->get();
+                $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
+                $sectionArray['section_json']['stype_json']['catpros'] = $products;
+            }
+            $sectionsWithExtras[] = $sectionArray;
+        }
+
+        return response()->json([
+            'status' => true,
+            'type' => "Product",
+            'slug'=> $slug,
+            'addons'=>$addons->isNotEmpty() ? $addons : $related_products,
+            'related_products'=>$related_products,
+            'sections' => $sectionsWithExtras,
+        ]);
+    }
+
     public function getProduct(Request $request,$shopname,$slug)
     {
         $shopId = $request->shop_id;
@@ -666,7 +746,7 @@ class ShopController extends Controller
         $shopId = $request->shop_id;
         $query = Product::query()
             ->select('product_id','title','handle','featured_image','product_status','product_type_id', 'brand_id','tags')
-            ->with('variants.astock','brand','ptype',)
+            ->with('variants.astock','brand','ptype')
             ->withCount('reviews')->withAvg('reviews','rating')
             ->withMin('variants','price')
             ->withSum('astock','quantity')
