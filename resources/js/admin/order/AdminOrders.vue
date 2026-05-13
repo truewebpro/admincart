@@ -78,6 +78,8 @@
                                         <div class="d-flex ga-2 align-center">
                                             <v-img v-if="item.payment_method === 'Viva Smart'" max-width="36" max-height="36"
                                                    :src="cdn+'payment/viva_smart.png'"/>
+                                            <v-img v-if="item.payment_method === 'Stripe'" max-width="36" max-height="36"
+                                                   :src="cdn+'payment/stripe.png'"/>
                                             <v-img v-if="item.payment_method === 'Bank Transfer' || item.payment_method === 'Bank Deposit'" max-width="36" max-height="36"
                                                    :src="cdn+'payment/bank_transfer.png'"/>
                                             <v-chip v-if="item.payment_status === 'pending' || item.payment_status === 'unpaid'

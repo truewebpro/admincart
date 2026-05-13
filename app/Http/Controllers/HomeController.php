@@ -882,24 +882,46 @@ class HomeController extends Controller
         }
     }
 
-    public function allCarts(){
+    public function allCarts(Request $request){
         $shop = session('shop');
         $shopId = session('shop_id');
-        $acarts = Acart::with('order','customer')->withCount('items')
-            ->where('shop_id','=',$shopId)
-            ->orderByDesc('created_at')
-            ->get();
-        foreach($acarts as $acart){
-            $vpay = VivaPayment::where('order_code','=',$acart->checkout_id)->first();
-            if($vpay){
-                $acart['vpayment_id'] = $vpay;
-            } else{
-                $acart['vpayment_id'] = null;
-            }
+        $search = $request->search;
+        $status = $request->status;
+        $query = Acart::query()
+            ->with('customer','order')
+            ->withCount('items')
+            ->where('shop_id','=',$shopId);
+        if ($status && $status !== 'All') {
+            $query->where('cart_status', $status);
         }
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('checkout_id', 'LIKE', "%{$search}%")
+                    ->orWhere('acart_id', 'LIKE', "%{$search}%")
+                    ->orWhereHas('customer', function ($customer) use ($search) {
+                        $customer->where('fname', 'LIKE', "%{$search}%")
+                            ->orWhere('lname', 'LIKE', "%{$search}%");
+                    });
+            });
+        }
+        $acarts = $query
+            ->latest()
+            ->paginate(50);
+        $checkoutIds = $acarts->getCollection()->pluck('checkout_id');
+        $vivaPayments = VivaPayment::whereIn('order_code', $checkoutIds)
+            ->get()
+            ->keyBy('order_code');
+        foreach ($acarts as $acart) {
+            $acart->vpayment_id = $vivaPayments[$acart->checkout_id] ?? null;
+        }
+        $statusCounts = Acart::where('shop_id','=',$shopId)->selectRaw('cart_status, COUNT(*) as total')
+            ->groupBy('cart_status')
+            ->pluck('total', 'cart_status');
+
         return response()->json([
             'success' => true,
             'acarts' => $acarts,
+            'statusCounts' => $statusCounts
         ]);
     }
 

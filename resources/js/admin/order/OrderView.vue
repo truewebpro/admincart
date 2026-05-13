@@ -107,8 +107,8 @@
                                 </div>
                                 <div><b>SKU: </b>{{oitem?.variant?.sku}}</div>
                             </v-col>
-                            <v-col cols="12" md="2" class="text-end">£{{oitem.price}} x {{oitem.quantity}}</v-col>
-                            <v-col cols="12" md="2" class="text-end">£{{oitem.total}}</v-col>
+                            <v-col cols="12" md="2" class="text-end">£{{(oitem.price).toFixed(2)}} x {{oitem.quantity}}</v-col>
+                            <v-col cols="12" md="2" class="text-end">£{{(oitem.total).toFixed(2)}}</v-col>
                         </v-row>
                     </v-card-text>
                     <v-card-actions>
@@ -135,32 +135,57 @@
                     </v-card-title>
                     <v-card-text>
                         <div class="d-flex flex-column">
-                            <div class="d-flex justify-lg-space-between my-1">
+                            <div class="d-flex justify-space-between my-1">
                                 <h4>Subtotal</h4>
-                                <div>{{ oitems.length }} item<span v-if="oitems.length > 1">s</span></div>
-                                <div>£{{ orderDetail.subtotal }}</div>
+                                <div class="w-75">
+                                    <div class="d-flex justify-space-between mb-1 pb-1 border-b-sm">
+                                        <div>{{ oitems.length }} item<span v-if="oitems.length > 1">s</span></div>
+                                        <div>£{{ (orderDetail.subtotal) }}</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="d-flex justify-lg-space-between my-1">
+                            <div class="d-flex justify-space-between my-1 align-center">
                                 <h4>Shipping</h4>
-                                <div>{{ orderDetail.shipping_method }}</div>
-                                <div>£{{ (orderDetail.shipping_cost) }}</div>
+                                <div class="w-75">
+                                    <div class="d-flex justify-space-between">
+                                        <div>{{ orderDetail.shipping_method }}</div>
+                                        <div>£{{ (orderDetail.shipping_cost) }}</div>
+                                    </div>
+                                    <div v-if="orderDetail?.shipping_protection_fee" class="mb-1 pb-1 border-b-sm d-flex justify-space-between">
+                                        <div>Protection Fee</div>
+                                        <div>£{{ (orderDetail.shipping_protection_fee).toFixed(2) }}</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="d-flex justify-lg-space-between my-1">
+                            <div v-if="orderDetail?.payment_fee" class="d-flex justify-space-between my-1 align-center">
+                                <h4>Payment</h4>
+                                <div class="w-75">
+                                    <div  class="mb-1 pb-1 border-b-sm d-flex justify-space-between">
+                                        <div>{{ orderDetail.payment_method }} Surcharge fee</div>
+                                        <div>£{{ (orderDetail.payment_fee).toFixed(2) }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-space-between my-1">
                                 <h4>Discount</h4>
-                                <div></div>
-                                <div>- £{{ orderDetail.discount_amount}}</div>
+                                <div class="w-75">
+                                    <div class="d-flex justify-space-between mb-1 pb-1 border-b-sm">
+                                        <div>{{orderDetail.coupon_code}}</div>
+                                        <div>- £{{ orderDetail.discount_amount}}</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="d-flex justify-lg-space-between my-1 border-b-sm">
+                            <div class="d-flex justify-space-between my-1 pb-1 border-b-sm">
                                 <h4>VAT @ 20%</h4>
                                 <div></div>
                                 <div>£{{ orderDetail.tax_amount }}</div>
                             </div>
-                            <div class="d-flex justify-lg-space-between my-1 border-b-sm font-weight-medium">
+                            <div class="d-flex justify-space-between my-1 pb-1 border-b-sm font-weight-medium">
                                 <h3>Total</h3>
                                 <div></div>
                                 <div>£{{ orderDetail.order_total }}</div>
                             </div>
-                            <div v-if="pstatus === 'pending'" class="d-flex justify-lg-space-between py-1 border-b-sm">
+                            <div v-if="pstatus === 'pending'" class="d-flex justify-space-between py-1 border-b-sm">
                                 <h4>Paid</h4>
                                 <div></div>
                                 <div>£{{ 0.00.toFixed(2) }}</div>
