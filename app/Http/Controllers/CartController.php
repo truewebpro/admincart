@@ -173,6 +173,23 @@ class CartController extends Controller
             case "pay_bank_transfer":
                 return $this->bankCheckout($cart, $request);
 
+            case "start_stripe_payment":
+                $this->startStripePayment($cart, $request);
+                $this->logEvent($cart,'start_stripe_payment',[
+                    'checkout_id' => $request->checkout_id,
+                    'order_items' => $request['order_items'],
+                    'cart_data' => $request['cart_data'],
+                ]);
+                break;
+
+            case "stripe_payment_confirm":
+                $this->logEvent($cart,'stripe_payment_confirm',[
+                    'stripe_status' => $request->stripe_status,
+                    'checkout_id' => $request->checkout_id,
+                    'payment_intent_id' => $request->payment_intent_id,
+                ]);
+                return $this->stripePaymentConfirm($cart, $request);
+
             default:
                 return response()->json([
                     'success'=>false,
@@ -291,6 +308,14 @@ class CartController extends Controller
         ]);
     }
 
+    private function startStripePayment($cart, $request)
+    {
+        $cart->update([
+            'checkout_id' => $request->checkout_id,
+            'cart_status' => 'start_stripe_payment',
+        ]);
+    }
+
     private function vivaCancelPayment($cart, $request)
     {
         $cart->update([
@@ -398,6 +423,115 @@ class CartController extends Controller
                     'order_id'=>$order->order_id
                 ]);
 
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        }
+    }
+
+    private function stripePaymentConfirm($cart,$request)
+    {
+        if($cart->order_id){return response()->json(['success'=>true, 'order_id'=>$cart->order_id]);}
+        $acartEvent = AcartEvent::where('acart_id',$cart->acart_id)
+            ->where('event_type','=','start_stripe_payment')
+            ->where('event_data->checkout_id','=',$request->checkout_id)
+            ->first();
+        if($acartEvent){
+            DB::beginTransaction();
+            try {
+                $eventData = $acartEvent->event_data;
+                $items = $eventData['order_items'];
+                $cartData = $eventData['cart_data'];
+                if (empty($items)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cart is empty'
+                    ], 400);
+                }
+                $prefix = Shop::where('shop_id', $cart->shop_id)->value('order_prefix') ?? "#";
+                $lastOrder = Order::withTrashed()->where('shop_id', $cart->shop_id)->orderByDesc('order_id')->first();
+                $lastOrderNumber = $lastOrder ? intval(preg_replace('/[^0-9]/', '', $lastOrder->order_number)): 1000;
+                $orderNumber = $prefix . ($lastOrderNumber + 1);
+                $order = Order::create([
+                    'order_number' => $orderNumber,
+                    'shop_id' => $cart->shop_id,
+                    'customer_id' => $cart->customer_id,
+                    'address_id' => $cartData['address_id'],
+                    'order_status' => 'pending',
+                    'label_status' => 'no_label',
+                    'payment_method' => $cart->payment_method,
+                    'payment_status' => 'paid',
+                    'fulfillment_status' => 'unfulfilled',
+                    'shipping_method' => $cart->shipping_method,
+                    'shipping_cost' => $cart->shipping_cost,
+                    'coupon_id' => $cartData['coupon_id'],
+                    'coupon_code' => $cartData['coupon_code'],
+                    'discount_amount' => $cart->discount_amount,
+                    'subtotal' => $cartData['subtotal'],
+                    'order_total' => $cartData['order_total'],
+                    'tax_amount' => $cartData['tax_amount'],
+                    'currency_code' => $cart->currency,
+                    'is_guest_order' => $cartData['is_guest_order'],
+                    'shipping_name' => $cartData['shipping_name'],
+                    'shipping_phone' => $cartData['shipping_phone'],
+                    'shipping_address_line1' => $cartData['shipping_address_line1'],
+                    'shipping_address_line2' => $cartData['shipping_address_line2'],
+                    'shipping_city' => $cartData['shipping_city'],
+                    'shipping_postcode' => $cartData['shipping_postcode'],
+                    'shipping_country' => $cartData['shipping_country'],
+                    'notes' => $cartData['notes'],
+                    'checkout_id' => $request->checkout_id,
+                    'placed_at' => now(),
+                    'shipping_protection_fee' => $cartData['shipping_protection_fee'] ?? 0,
+                    'payment_fee' => $cartData['payment_fee'] ?? 0,
+                ]);
+                foreach ($items as $item) {
+                    $stock = Stock::where('variant_id', $item['variant_id'])
+                        ->where('shop_id', $cart->shop_id)
+                        ->lockForUpdate()
+                        ->first();
+                    $available = $stock ? $stock->quantity : 0;
+                    $ordered = $item['quantity'];
+                    $allocated = min($available, $ordered);
+                    $backorder = $ordered - $allocated;
+                    $shipped = 0;
+                    // Deduct only allocated
+                    if ($stock && $allocated > 0) {
+                        $stock->decrement('quantity', $allocated);
+                    }
+                    OrderItem::create([
+                        'order_id' => $order->order_id,
+                        'product_id' => $item['product_id'],
+                        'variant_id' => $item['variant_id'],
+                        'title' => $item['title'],
+                        'options' => $item['options'],
+                        'price' => $item['price'],
+                        'quantity' => $ordered,
+                        'total' => $item['total'],
+                        'allocated_quantity' => $allocated,
+                        'backorder_quantity' => $backorder,
+                        'shipped_quantity' => $shipped,
+                    ]);
+                }
+                $cart->update([
+                    'order_id' => $order->order_id,
+                    'checkout_id' => $request->checkout_id,
+                    'cart_status' => 'converted',
+                    'is_active'=>false,
+                    'cart_token'=>$request->checkout_id,
+                ]);
+                $this->logEvent($cart, 'order_created', [
+                    'order_id' => $order->order_id
+                ]);
+                DB::commit();
+                return response()->json([
+                    'success'=>true,
+                    'order_id'=>$order->order_id
+                ]);
             } catch (\Throwable $e) {
                 DB::rollBack();
                 return response()->json([

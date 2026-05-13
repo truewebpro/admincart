@@ -58,6 +58,7 @@
                                     <v-text-field v-model="formData[key]" v-if="key === 'account_no'" variant="outlined" density="compact" :rules="accountRule" counter="50" counter-value="50" persistent-counter></v-text-field>
                                     <v-text-field v-model="formData[key]" v-if="key === 'sort_code'" variant="outlined" density="compact" :rules="sortcodeRule" counter="30" counter-value="30" persistent-counter></v-text-field>
                                     <v-text-field v-model="formData[key]" v-if="key === 'client_id'" variant="outlined" density="compact" :rules="cidRule" counter="100" counter-value="100" persistent-counter></v-text-field>
+                                    <v-text-field v-model="formData[key]" v-if="key === 'publish_key'" variant="outlined" density="compact" :rules="cidRule" counter="100" counter-value="100" persistent-counter></v-text-field>
                                     <v-text-field v-model="formData[key]" v-if="key === 'secret_key'" variant="outlined" density="compact" :rules="secretRule" counter persistent-counter></v-text-field>
                                     <v-text-field v-model="formData[key]" v-if="key === 'merchant_id'" variant="outlined" density="compact" :rules="merchantRule" counter persistent-counter></v-text-field>
                                     <v-text-field v-model="formData[key]" v-if="key === 'api_key'" variant="outlined" density="compact" :rules="apiRule" counter persistent-counter></v-text-field>
@@ -107,6 +108,12 @@
                                               density="compact" :rules="merchantRule"></v-text-field>
                                 <v-text-field label="API key" v-model="editedItem.payment_options.api_key" variant="outlined"
                                               density="compact" :rules="apiRule"></v-text-field>
+                            </div>
+                            <div v-if="editedItem.payment_method === 'stripe'">
+                                <v-text-field label="Publish Key" v-model="editedItem.payment_options.publish_key" variant="outlined"
+                                              density="compact" ></v-text-field>
+                                <v-text-field label="Secret key" v-model="editedItem.payment_options.secret_key" variant="outlined"
+                                              density="compact" :rules="secretRule"></v-text-field>
                             </div>
                             <v-text-field v-model="editedItem.handling_fee" placeholder="0" density="compact"
                                           label="Handling Fee" variant="outlined" persistentHint
@@ -208,6 +215,15 @@ export default {
                         note:'',
                         test_mode:true,
                     }},
+                {payment_name:'Stripe',payment_method:'stripe',payment_icon:'payment/stripe.png',
+                    handling_fee:"0.00",fee_type:"fixed",
+                    payment_options:{
+                        environment:'dev',
+                        publish_key:'',
+                        secret_key:'',
+                        note:'',
+                        test_mode:true,
+                    }},
             ],
             formData:{},
             spmethods:[],
@@ -234,22 +250,22 @@ export default {
             cidRule:[
                 (v) => !!v || "Client ID is required",
                 (v) => (v && v.length >= 4) || "Minimum 4 characters required",
-                (v) => (v && v.length <= 100) || "Maximum 100 characters allowed"
+                (v) => (v && v.length <= 200) || "Maximum 100 characters allowed"
             ],
             secretRule:[
                 (v) => !!v || "Secret Key is required",
                 (v) => (v && v.length >= 4) || "Minimum 4 characters required",
-                (v) => (v && v.length <= 80) || "Maximum 80 characters allowed"
+                (v) => (v && v.length <= 200) || "Maximum 80 characters allowed"
             ],
             merchantRule:[
                 (v) => !!v || "Merchant ID is required",
                 (v) => (v && v.length >= 4) || "Minimum 4 characters required",
-                (v) => (v && v.length <= 100) || "Maximum 100 characters allowed"
+                (v) => (v && v.length <= 200) || "Maximum 100 characters allowed"
             ],
             apiRule:[
                 (v) => !!v || "API key is required",
                 (v) => (v && v.length >= 4) || "Minimum 4 characters required",
-                (v) => (v && v.length <= 100) || "Maximum 100 characters allowed"
+                (v) => (v && v.length <= 200) || "Maximum 100 characters allowed"
             ],
             noteRule:[
                 (v) => !!v || "Note is required",

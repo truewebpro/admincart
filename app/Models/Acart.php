@@ -60,6 +60,8 @@ class Acart extends Model
 
     public function aevents(): HasMany
     {
-        return $this->hasMany(AcartEvent::class, 'acart_id', 'acart_id')->orderBy('created_at', 'DESC');
+        return $this->hasMany(AcartEvent::class, 'acart_id', 'acart_id')
+            ->orderBy('created_at', 'DESC')
+            ->orderBy('acart_event_id', 'DESC');;
     }
 }
