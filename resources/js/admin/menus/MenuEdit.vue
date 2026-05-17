@@ -144,15 +144,11 @@ export default {
                 (v) => (v && v.length <= 60) || "Maximum 60 characters allowed"
             ],
             errors:{},
+            pbrands:[],
+            acats:[],
         }
     },
     computed:{
-        pbrands(){
-            return this.$store.state.brands;
-        },
-        acats(){
-            return this.$store.state.acats;
-        },
         "menu_slug"(){
             return this.menu.menu_name
                 .toLowerCase()
@@ -253,6 +249,8 @@ export default {
                .then((resp)=>{
                    this.menu = resp.data.menu;
                    this.menuItems = resp.data.menu.mitems || [];
+                   this.pbrands = resp.data.brands || [];
+                   this.acats = resp.data.cats || [];
                })
         },
         discardChanges(){

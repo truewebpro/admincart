@@ -514,8 +514,8 @@ export default {
     data(){
         return{
             cdn:this.$store.state.cdn,
-            orderDetail:[],
-            customer:[],
+            orderDetail:{},
+            customer: {},
             addressDialog:false,
             addressForm: {
                 shipping_name: '',
@@ -558,13 +558,14 @@ export default {
         }
     },
     mounted() {
-        this.getOrderDetail();
         Echo.channel('orders')
             .listen('.order.updated',(e)=>{
                 console.log('Order updated', e);
                 this.getOrderDetail();
             });
-
+    },
+    beforeUnmount() {
+        Echo.leave('orders');
     },
     methods:{
         dayjs,
@@ -577,43 +578,43 @@ export default {
         getOrderDetail(){
             axios.get('/sadmin/order/'+this.order_id)
                 .then((resp)=>{
-                    this.orderDetail = resp.data.order;
-                    this.customer = resp.data.order.customer;
-                    this.oitems = resp.data.order.order_items;
-                    this.ostatus = resp.data.order.order_status;
-                    this.pstatus = resp.data.order.payment_status;
-                    this.fstatus = resp.data.order.fulfillment_status;
-                    this.lstatus = resp.data.order.label_status;
-                    this.logs = resp.data.logs;
-                    this.previous_id = resp.data.previous_id;
-                    this.next_id = resp.data.next_id;
-                    this.latest_id = resp.data.latest_id;
+                    const respData = resp.data;
+                    const orderData = respData.order;
+                    this.orderDetail = orderData;
+                    this.customer = orderData.customer;
+                    this.oitems = orderData.order_items;
+                    this.ostatus = orderData.order_status;
+                    this.pstatus = orderData.payment_status;
+                    this.fstatus = orderData.fulfillment_status;
+                    this.lstatus = orderData.label_status;
+                    this.logs = respData.logs;
+                    this.previous_id = respData.previous_id;
+                    this.next_id = respData.next_id;
+                    this.latest_id = respData.latest_id;
                 })
         },
         goToOrder(id){
             if(!id) return;
-
             this.$router.push({
                 name: 'OrderView',
                 params: { order_id:id }
             });
         },
+        updateOrderAction(payload) {
+            return axios.post('/sadmin/order/update', {
+                order_id: this.order_id,
+                ...payload
+            });
+        },
         markAsPaid(){
-            const mpaid = {
-                order_id:this.order_id,
+            this.updateOrderAction({
                 mname:'mark_as_paid',
-                payment_status:'paid',
-            }
-            axios.post('/sadmin/order/update',mpaid)
-                .then((resp)=>{
-                    this.$store.commit('UPDATE_ORDER',{
-                        order_id:Number(this.order_id),
-                        payment_status:'paid'
-                    })
-                    window.Toast.success(resp.data.message);
-                    this.getOrderDetail();
-                    this.markPaidDialog = false;
-                })
+                payment_status:'paid'
+            }).then((resp)=>{
+                window.Toast.success(resp.data.message);
+                this.getOrderDetail();
+                this.markPaidDialog = false;
+            })
         },
         markAsArchived(){
             const mdeleted = {
@@ -623,10 +624,6 @@ export default {
             axios.post('/sadmin/order/update',mdeleted)
                 .then((resp)=>{
                     const now = new Date().toISOString();
-                    this.$store.commit('UPDATE_ORDER',{
-                        order_id:Number(this.order_id),
-                        deleted_at:now
-                    })
                     window.Toast.success(resp.data.message);
                     this.getOrderDetail();
                 })
@@ -638,10 +635,6 @@ export default {
             }
             axios.post('/sadmin/order/update',mrestore)
                 .then((resp)=>{
-                    this.$store.commit('UPDATE_ORDER',{
-                        order_id:Number(this.order_id),
-                        deleted_at:null
-                    })
                     window.Toast.success(resp.data.message);
                     this.getOrderDetail();
                 })
@@ -689,9 +682,6 @@ export default {
                     "request_label": true
                 })
                     .then((resp)=>{
-                        this.$store.commit('UPDATE_ORDER',{
-                            order_id:Number(this.order_id),
-                        })
                     this.getOrderDetail();
                     window.Toast.success('order send to SendCloud')
                 })
@@ -769,8 +759,8 @@ export default {
                 order_id: this.order_id,
                 mname: 'add_tracking',
                 ...this.trackingForm
-            }).then(() => {
-                window.Toast.success(data.message);
+            }).then((resp) => {
+                window.Toast.success(resp.data.message);
                 this.trackingDialog = false;
                 this.getOrderDetail();
             }).catch((err) => {

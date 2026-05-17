@@ -429,11 +429,6 @@ export default {
     props:{
        cat_id:[Number,String]
     },
-    mounted() {
-        // if (this.cat.cat_type === 'smart' && this.cat.rules.length > 0) {
-        //     this.fetchFilteredProductIds();
-        // }
-    },
     watch: {
         'cat.rules': {
             deep: true,
@@ -446,18 +441,6 @@ export default {
         }
     },
     computed:{
-        pbrands(){
-            return this.$store.state.brands;
-        },
-        ptags(){
-            return this.$store.state.tags;
-        },
-        ptypes(){
-            return this.$store.state.productTypes;
-        },
-        pcats(){
-            return this.$store.state.cats;
-        },
         plainTextDesc() {
             return this.cat.cat_desc
                 .replace(/<br\s*\/?>/gi, '\n')
@@ -500,6 +483,10 @@ export default {
             selectToAdd:null,
             stypes:[],
             sections:[],
+            pbrands:[],
+            ptypes:[],
+            ptags:[],
+            pcats:[],
             delLoading:false,
             dialogVisible:false,
             selectedSection: null,
@@ -659,7 +646,8 @@ export default {
             this.dataLoading = true;
             axios.get('/sadmin/categories/'+this.cat_id)
                 .then((resp)=>{
-                    const catData = resp.data.cat;
+                    const allData = resp.data;
+                    const catData = allData.cat;
                     this.quillContent = catData.cat_desc;
                     const quill = this.$refs.quillRef.getQuill()
                     if (quill.getLength() <= 1) {
@@ -673,7 +661,6 @@ export default {
                         squill.clipboard.dangerouslyPasteHTML(this.cat.short_desc);
                         this.cat.short_desc = squill.root.innerHTML;
                     }
-                    // Set only important fields first — immediate UI response
                     this.cat = {
                         ...this.cat,
                         cat_name: catData.cat_name,
@@ -695,14 +682,17 @@ export default {
                             return rule;
                         }),
                     };
-                    // Defer heavy data so UI can render form fast
                     this.$nextTick(() => {
-                        this.pros = resp.data.pros;
+                        this.pros = allData.pros;
                         this.cat.epros = catData.epros || [];
                     });
                     this.sections = catData.sections;
-                    this.stypes = resp.data.stypes;
+                    this.stypes = allData.stypes;
                     this.rcats = catData.rcats;
+                    this.pbrands = allData.brands || [];
+                    this.ptypes = allData.ptypes || [];
+                    this.ptags = allData.tags || [];
+                    this.pcats = allData.cats || [];
                 })
                 .catch((err)=>{
                     console.log(err.message);
@@ -869,7 +859,6 @@ export default {
             axios.post('/sadmin/cat/supdate/'+this.cat_id,uscat,uheaders)
                 .then((resp)=>{
                     console.log(resp.data)
-                    this.$store.commit('UPDATE_CAT',resp.data.cat)
                     this.getCategory();
                     window.Toast.success('Smart Category Updated')
                 })
@@ -926,7 +915,6 @@ export default {
             axios.post('/sadmin/cat/mupdate/'+this.cat_id,umcat,uheaders)
                 .then((resp)=>{
                     console.log(resp.data)
-                    this.$store.commit('UPDATE_CAT',resp.data.cat)
                 })
                 .catch((err)=>{
                     console.log(err)
@@ -943,7 +931,6 @@ export default {
             axios.get('/sadmin/cat/delete/'+this.cat_id)
                 .then((resp)=>{
                     this.delDialog = false;
-                    this.$store.commit('DELETE_CAT',this.cat_id)
                     window.Toast.success(resp.data.message);
                 })
                 .catch((err)=>{
@@ -959,8 +946,6 @@ export default {
                 cat_id:this.cat_id,
                 stype_id:this.selectToAdd.stype_id,
                 section_json:this.selectToAdd,
-                // sort_order:1,
-                // selected_item:this.selectToAdd.stype_id
             }
             axios.post('/sadmin/cat/section/add/new',sdata)
                 .then((resp)=>{

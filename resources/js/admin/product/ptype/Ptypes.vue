@@ -33,8 +33,17 @@
                             </v-list>
                         </v-menu>
                     </div>
-                    <v-data-table :items="filteredPtypes" :headers="ptypesHeaders" density="comfortable" items-per-page="20"
-                                  hover :search="psearch" :custom-filter="customFilter" :loading="isLoading">
+                    <v-data-table-server density="comfortable"  mobileBreakpoint="sm"
+                        v-model:page="page"
+                        v-model:items-per-page="itemsPerPage"
+                        v-model:sort-by="sortBy"
+                        :items="ptypes"
+                        :headers="ptypesHeaders"
+                        :items-length="totalItems"
+                        :loading="isLoading"
+                        hover
+                        @update:options="loadItems"
+                    >
                         <template v-slot:item.product_type_name="{item}">
                             <div class="title d-flex align-center justify-space-between">
                                 <div class="text-decoration-none text-grey-darken-3">
@@ -51,7 +60,7 @@
                             <v-btn variant="outlined" color="red" density="compact"
                                    @click="deleteItem(item)" class="ms-2">Delete</v-btn>
                         </template>
-                    </v-data-table>
+                    </v-data-table-server>
                 </v-card>
             </v-col>
             <v-col cols="12">
@@ -83,11 +92,11 @@
                         </v-card-title>
                         <v-card-text class="text-center">
                             <h2>{{editedItem.product_type_name}}</h2>
-                            <div v-if="editedItem.pcount > 0">products associated count is {{editedItem.pcount}}</div>
-                            <div v-if="editedItem.pcount > 0">Can't be deleted,<br/> Please change the product type of products associated</div>
+                            <div v-if="editedItem.products_count > 0">products associated count is {{editedItem.products_count}}</div>
+                            <div v-if="editedItem.products_count > 0">Can't be deleted,<br/> Please change the product type of products associated</div>
                            <div v-else>Are you sure to delete type {{editedItem.product_type_name}}</div>
                             <div class="d-flex mt-3 justify-space-around">
-                                <v-btn :disabled="editedItem.pcount > 0" @click.prevent="deletePtype" variant="elevated" color="green" density="compact">Yes</v-btn>
+                                <v-btn :disabled="editedItem.products_count > 0" @click.prevent="deletePtype" variant="elevated" color="green" density="compact">Yes</v-btn>
                                 <v-btn @click="deleteDialog = false" variant="elevated" color="red" density="compact">Cancel</v-btn>
                             </div>
                         </v-card-text>
@@ -119,13 +128,19 @@
 <script>
 import axios from "axios";
 import {mergeProps} from "vue";
-import Toast from "vue-toastification";
+import debounce from "lodash/debounce";
 
 export default {
     name:"Ptypes",
     data(){
         return{
             psearch:'',
+            page: 1,
+            itemsPerPage: 50,
+            totalItems: 0,
+            sort_by: '',
+            sort_order: 'desc',
+            sortBy: [],
             ptypes:[],
             deleteDialog: false,
             isLoading: false,
@@ -138,9 +153,9 @@ export default {
             pstatus:['Active','Inactive'],
             ptypesHeaders:[
                 {title:'ID',value:'product_type_id',width:60},
-                {title:'Name',value:'product_type_name',maxWidth:375},
-                {title:'Status',value:'product_type_status'},
-                {title:'Product Count',key:'pcount'},
+                {title:'Name',key:'product_type_name',maxWidth:375},
+                {title:'Status',key:'product_type_status'},
+                {title:'Product Count',key:'products_count'},
                 {title:'Actions',value:'actions'},
             ],
             editedIndex:-1,
@@ -152,7 +167,7 @@ export default {
                 product_type_id: '',
                 product_type_name: '',
                 product_type_status: '',
-                pcount: 0,
+                products_count: 0,
             },
             editDialog:false,
             addDialog:false,
@@ -166,66 +181,70 @@ export default {
             sortDirection: 'desc',
         }
     },
-    mounted() {
-        this.getAllPtypes();
-        this.$store.dispatch('fetchPtypes');
-    },
-    computed: {
-        filteredPtypes() {
-            if (this.status === "Archived") return this.ptypes.filter(p => p.product_type_status === "Archived");
-
-            let filtered =  this.ptypes.filter((p) => {
-                const matchStatus = this.status === "All" || p.product_type_status === this.status;
-                return matchStatus;
-            });
-
-            if (this.sortKey) {
-                filtered = filtered.sort((a, b) => {
-                    const aVal = this.getSortValue(a, this.sortKey).toString();
-                    const bVal = this.getSortValue(b, this.sortKey).toString();
-
-                    if (typeof aVal === 'number' && typeof bVal === 'number') {
-                        return this.sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
-                    }
-
-                    return this.sortDirection === 'asc'
-                        ? aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' })
-                        : bVal.toString().localeCompare(aVal.toString(), undefined, { sensitivity: 'base' });
-                });
-            }
-            return filtered;
+    watch:{
+        psearch() {
+            this.debouncedSearch();
+        },
+        status() {
+            this.page = 1;
+            this.getAllPtypes();
         }
+    },
+    created() {
+        this.debouncedSearch = debounce(() => {
+            this.page = 1;
+            this.getAllPtypes();
+        }, 400);
     },
     methods:{
         mergeProps,
-        setSort(key) {
-            if (this.sortKey === key) {
-                this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        loadItems(options) {
+            this.page = options.page;
+            this.itemsPerPage = options.itemsPerPage;
+            if (options.sortBy.length > 0) {
+                this.sort_by = options.sortBy[0].key;
+                this.sort_order = options.sortBy[0].order;
             } else {
-                this.sortKey = key;
-                this.sortDirection = 'asc';
+                this.sort_by = 'product_type_id';
+                this.sort_order = 'desc';
             }
+            this.getAllPtypes();
         },
-        setDirection(dir) {
-            this.sortDirection = dir;
+        setSort(key) {
+            this.sortBy = [{
+                key: key,
+                order: this.sort_order || 'asc'
+            }];
+            this.sort_by = key;
+            this.page = 1;
+            this.getAllPtypes();
         },
-        getSortValue(item, key) {
-            return key.split('.').reduce((obj, prop) => obj?.[prop], item) ?? '';
-        },
-        customFilter(value, search, item) {
-            if (!search) return true;
-            const title = value?.toString().toLowerCase() || '';
-            const searchTerms = search.toLowerCase().split(' ');
-            return searchTerms.every(term => title.includes(term));
+        setDirection(direction) {
+            this.sort_order = direction;
+            this.sortBy = [{
+                key: this.sort_by || 'product_type_name',
+                order: direction
+            }];
+            this.page = 1;
+            this.getAllPtypes();
         },
         async getAllPtypes(){
             this.isLoading = true;
             try {
-                await this.$store.dispatch('fetchPtypes');
-                this.ptypes = this.$store.state.productTypes;
-                let statuses = [...new Set(this.ptypes.map(item => item.product_type_status))];
-                statuses = statuses.filter(status => status !== "Archived");
-                this.pstatuses = ["All", ...statuses, "Archived"];
+                const resp = await axios.get('/sadmin/ptypes',{
+                   params:{
+                       page: this.page,
+                       per_page: this.itemsPerPage,
+                       search: this.psearch,
+                       sort_by: this.sort_by,
+                       sort_order: this.sort_order,
+                       status: this.status,
+                   }
+               })
+                const allData = resp.data.ptypes;
+                this.ptypes = allData.data;
+                this.totalItems = allData.total;
+                this.page = allData.current_page;
             } catch (e) {
                 console.error("Failed to load productTypes", e);
             } finally {
@@ -242,11 +261,7 @@ export default {
             axios.post('/sadmin/ptype/update',uptype)
                 .then((resp)=>{
                     this.editDialog = false;
-                    this.$store.commit('UPDATE_PRODUCT_TYPE',resp.data.ptype)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getAllPtypes();
-                        })
+                    this.getAllPtypes();
                 })
                 .catch((error)=>{
                     window.Toast.error(error.message);
@@ -275,11 +290,7 @@ export default {
             axios.post('/sadmin/ptype/update',nptype)
                 .then((resp)=>{
                     this.addDialog = false;
-                    this.$store.commit('ADD_PRODUCT_TYPE',resp.data.ptype)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getAllPtypes();
-                        })
+                    this.getAllPtypes();
                 })
                 .catch((error)=>{
                     window.Toast.error(error.message);
@@ -297,11 +308,7 @@ export default {
             axios.post('/sadmin/ptype/delete',deldata)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
-                    this.$store.commit('DELETE_PRODUCT_TYPE',deldata.product_type_id)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getAllPtypes();
-                        })
+                   this.getAllPtypes();
                     this.deleteDialog = false;
                 })
                 .catch((err)=>{
@@ -309,11 +316,10 @@ export default {
                 })
         },
         checkDuplicatePtypeName(name) {
+            if (!name) return false;
             const nameLower = name.trim().toLowerCase();
-
             return this.ptypes.some((ptype, index) => {
                 const isSameName = ptype.product_type_name.trim().toLowerCase() === nameLower;
-                // In case of edit, allow if it's the same index
                 if (this.editedIndex !== -1 && index === this.editedIndex) return false;
                 return isSameName;
             });

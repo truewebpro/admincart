@@ -127,20 +127,17 @@ export default {
             });
         }
     },
-    // created() {
-    //     this.getBrandById()
-    // },
     mounted() {
-        this.$store.dispatch('fetchBrands');
+        this.getBrandById()
     },
     methods:{
        async getBrandById(){
             this.dataLoaded = false;
             await axios.get('/sadmin/brand/'+this.brand_id)
                 .then((resp)=>{
-                    this.brand = resp.data.brand;
-                    this.$store.dispatch('fetchBrands');
-                    this.brands = this.$store.state.brands;
+                    const allData = resp.data;
+                    this.brand = allData.brand;
+                    this.brands = allData.brands;
                     this.dataLoaded = true;
                 })
         },
@@ -174,11 +171,7 @@ export default {
             axios.post('/sadmin/brand/update',ubrand,uheaders)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
-                    this.$store.commit('UPDATE_BRAND', resp.data.brand)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getBrandById();
-                        })
+                    this.getBrandById();
                 })
                 .finally(()=>{
                     this.upLoading = false;

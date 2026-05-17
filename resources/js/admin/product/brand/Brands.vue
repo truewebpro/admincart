@@ -35,8 +35,17 @@
                         </v-menu>
                     </div>
                     <div>
-                        <v-data-table :items="filteredBrands" :headers="brandsHeaders" density="comfortable" items-per-page="20"
-                                      hover :search="bsearch" :custom-filter="customFilter" :loading="isLoading" mobileBreakpoint="sm">
+                        <v-data-table-server density="comfortable" mobileBreakpoint="sm"
+                            v-model:page="page"
+                            v-model:items-per-page="itemsPerPage"
+                            v-model:sort-by="sortBy"
+                            :items="brands"
+                            :headers="brandsHeaders"
+                            :items-length="totalItems"
+                            :loading="isLoading"
+                            hover
+                            @update:options="loadItems"
+                        >
                             <template v-slot:item.brand_name="{item}">
                                 <div class="title d-flex align-center justify-space-between">
                                     <div class="text-decoration-none text-grey-darken-3">
@@ -56,7 +65,7 @@
                                 <v-btn variant="outlined" color="info" density="compact" link :to="{name:'BrandEdit',params:{brand_id:item.brand_id}}">Edit</v-btn>
                                 <v-btn variant="outlined" color="red" density="compact" @click="deleteItem(item)" class="ms-2">Delete</v-btn>
                             </template>
-                        </v-data-table>
+                        </v-data-table-server>
                     </div>
                 </v-card>
             </v-col>
@@ -107,12 +116,12 @@
                     <v-card>
                         <v-card-text class="text-center">
                             <v-form @submit.prevent="deleteBrand">
-                                <h3 v-if="editedItem.pcount > 0">Products associated count is <span class="text-red">{{editedItem.pcount}}</span></h3>
-                                <h4 v-if="editedItem.pcount > 0">Can't be deleted,<br/> Please change the brand of products associated</h4>
+                                <h3 v-if="editedItem.products_count > 0">Products associated count is <span class="text-red">{{editedItem.products_count}}</span></h3>
+                                <h4 v-if="editedItem.products_count > 0">Can't be deleted,<br/> Please change the brand of products associated</h4>
                                 <h3 v-else>Are you sure to delete Brand <br/> {{editedItem.brand_name}}</h3>
                                 <div class="d-flex ga-3 mt-3">
                                     <v-spacer/>
-                                    <v-btn type="submit" :disabled="editedItem.pcount > 0" variant="elevated" density="comfortable" color="success">Yes</v-btn>
+                                    <v-btn type="submit" :disabled="editedItem.products_count > 0" variant="elevated" density="comfortable" color="success">Yes</v-btn>
                                     <v-btn @click="deleteDialog = false" variant="elevated" density="comfortable" color="red">No</v-btn>
                                 </div>
                             </v-form>
@@ -124,6 +133,7 @@
     </v-container>
 </template>
 <script>
+import debounce from 'lodash/debounce';
 import axios from "axios";
 import {mergeProps} from "vue";
 import {VFileUpload} from "vuetify/labs/components";
@@ -134,13 +144,18 @@ export default {
     data(){
         return{
             bsearch:'',
+            page: 1,
+            itemsPerPage: 50,
+            totalItems: 0,
+            sort_by: '',
+            sort_order: 'desc',
+            sortBy: [],
             brands:[],
             isLoading: false,
             upValid: false,
             delValid: false,
             addValid: false,
             addLoading: false,
-            upLoading: false,
             delLoading: false,
             status:"All",
             bstatuses:[],
@@ -149,11 +164,10 @@ export default {
             cdn:this.$store.state.cdn,
             shopname:this.$store.state.shop.shop_name || "Shop_name",
             brandsHeaders:[
-                // {title:'ID',value:'brand_id',width:60},
-                {title:'Image',value:'brand_image',width:60},
+                {title:'Image',key:'brand_image',sortable:false,width:60},
                 {title:'Name',key:'brand_name',maxWidth:375},
                 {title:'Status',value:'brand_status'},
-                {title:'Product Count',key:'pcount'},
+                {title:'Product Count',key:'products_count'},
                 {title:'Actions',value:'actions'},
             ],
             editedIndex:-1,
@@ -186,42 +200,55 @@ export default {
             ],
         }
     },
-    mounted() {
-        this.getAllBrands();
-        this.$store.dispatch('fetchBrands');
+    created() {
+        this.debouncedSearch = debounce(() => {
+            this.page = 1;
+            this.getAllBrands();
+        }, 400);
     },
     watch:{
         'editedItem.brand_image'(newVal){
             this.updatePreviewImage(newVal)
-        }
-    },
-    computed: {
-        filteredBrands() {
-            // if (this.status === "All") return this.brands;
-            if (this.status === "Archived") return this.brands.filter(p => p.brand_status === "Archived");
-            // return this.brands.filter(p => p.brand_status === this.status);
-            return this.brands.filter((p) => {
-                const matchStatus = this.status === "All" || p.brand_status === this.status;
-                return matchStatus;
-            });
+        },
+        bsearch() {
+            this.debouncedSearch();
+        },
+        status() {
+            this.page = 1;
+            this.getAllBrands();
         }
     },
     methods:{
         mergeProps,
-        customFilter(value, search, item) {
-            if (!search) return true;
-            const title = value?.toString().toLowerCase() || '';
-            const searchTerms = search.toLowerCase().split(' ');
-            return searchTerms.every(term => title.includes(term));
+        loadItems(options) {
+            this.page = options.page;
+            this.itemsPerPage = options.itemsPerPage;
+            if (options.sortBy.length > 0) {
+                this.sort_by = options.sortBy[0].key;
+                this.sort_order = options.sortBy[0].order;
+            } else {
+                this.sort_by = 'brand_id';
+                this.sort_order = 'desc';
+            }
+            this.getAllBrands();
         },
-        async getAllBrands(){
+        async getAllBrands() {
             this.isLoading = true;
             try {
-                await this.$store.dispatch('fetchBrands');
-                this.brands = this.$store.state.brands;
-                let statuses = [...new Set(this.brands.map(item => item.brand_status))];
-                statuses = statuses.filter(status => status !== "Archived");
-                this.bstatuses = ["All", ...statuses, "Archived"];
+                const resp = await axios.get('/sadmin/brands', {
+                    params: {
+                        page: this.page,
+                        per_page: this.itemsPerPage,
+                        search: this.bsearch,
+                        sort_by: this.sort_by,
+                        sort_order: this.sort_order,
+                        status: this.status,
+                    }
+                });
+                const allData = resp.data.brands;
+                this.brands = allData.data;
+                this.totalItems = allData.total;
+                this.page = allData.current_page;
             } catch (e) {
                 console.error("Failed to load brands", e);
             } finally {
@@ -241,47 +268,6 @@ export default {
                 this.editedItem.previewImage = `https://dummyimage.com/1200x630/000/fff&text=${this.shopname}`;
             }
         },
-        editBrand(){
-            this.upLoading = true;
-            const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
-            const ubrand = {
-                brand_id:this.editedItem.brand_id,
-                brand_name:this.editedItem.brand_name,
-                brand_desc:this.editedItem.brand_desc,
-                brand_status:this.editedItem.brand_status,
-                brand_image:this.editedItem.brand_image,
-                meta_title:this.editedItem.meta_title,
-                meta_desc:this.editedItem.meta_desc,
-            }
-            axios.post('/sadmin/brand/update',ubrand,uheaders)
-                .then((resp)=>{
-                    this.editDialog = false;
-                    this.$store.commit('UPDATE_BRAND',resp.data.brand)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getAllBrands();
-                        })
-
-                })
-                .catch((error)=>{
-                    window.Toast.error(error.message);
-                })
-                .finally(()=>{
-                    this.upLoading = false;
-                    window.Toast.success('Brand updated Successfully');
-                })
-        },
-        editItem(item){
-            this.editedIndex = this.brands.indexOf(item);
-            this.editedItem = Object.assign({},item)
-            if (item.brand_image) {
-                this.editedItem.previewImage = this.cdn + item.brand_image;
-            } else {
-                this.editedItem.previewImage = `https://dummyimage.com/200x200/000/fff&text=${encodeURIComponent(this.shopname || 'No Image')}`;
-            }
-            // this.updatePreviewImage(item.brand_image);
-            this.editDialog = true;
-        },
         deleteItem(item){
             this.editedIndex = this.brands.indexOf(item);
             this.editedItem = Object.assign({},item)
@@ -296,12 +282,7 @@ export default {
             axios.post('/sadmin/brand/delete',dbrand,uheaders)
                 .then((resp)=>{
                     this.deleteDialog = false;
-                    this.$store.commit('DELETE_BRAND',dbrand.brand_id)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getAllBrands();
-                        })
-
+                   this.getAllBrands();
                 })
                 .catch((error)=>{
                     window.Toast.error(error.message);
@@ -325,11 +306,7 @@ export default {
             axios.post('/sadmin/brand/update',nbrand,uheaders)
                 .then((resp)=>{
                     this.addDialog = false;
-                    this.$store.commit('ADD_BRAND',resp.data.brand)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getAllBrands();
-                        })
+                    this.getAllBrands();
                     this.defaultItem = {};
                 })
                 .catch((error)=>{
@@ -342,10 +319,8 @@ export default {
         },
         checkDuplicateBrandName(name) {
             const nameLower = name.trim().toLowerCase();
-
             return this.brands.some((brand, index) => {
                 const isSameName = brand.brand_name.trim().toLowerCase() === nameLower;
-                // In case of edit, allow if it's the same index
                 if (this.editedIndex !== -1 && index === this.editedIndex) return false;
                 return isSameName;
             });

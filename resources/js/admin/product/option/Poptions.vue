@@ -15,7 +15,7 @@
                         ></v-text-field>
                     </div>
                     <div>
-                        <v-data-table :items="filteredPoptions" :headers="poptionsHeaders" density="comfortable"
+                        <v-data-table :items="poptions" :headers="poptionsHeaders" density="comfortable"
                                       hover :search="posearch" :custom-filter="customFilter" :loading="isLoading">
                             <template v-slot:item.option_name="{item}">
                                 <div class="title d-flex align-center justify-space-between">
@@ -76,6 +76,12 @@ export default {
     data(){
         return{
             posearch:'',
+            page: 1,
+            itemsPerPage: 50,
+            totalItems: 0,
+            sort_by: '',
+            sort_order: 'desc',
+            sortBy: [],
             poptions:[],
             isLoading: false,
             upValid: false,
@@ -84,7 +90,7 @@ export default {
             poptionstatus:[],
             poptionsHeaders:[
                 {title:'ID',value:'option_id',width:60},
-                {title:'Name',value:'option_name',maxWidth:375},
+                {title:'Name',key:'option_name',maxWidth:375},
                 {title:'Product Count',value:'usedcount',maxWidth:375},
                 {title:'Actions',value:'actions'},
             ],
@@ -108,18 +114,6 @@ export default {
     },
     mounted() {
         this.getAllPoptions();
-        this.$store.dispatch('fetchPoptions')
-    },
-    computed: {
-        filteredPoptions() {
-            // if (this.status === "All") return this.poptions;
-            if (this.status === "Archived") return this.poptions.filter(p => p.option_status === "Archived");
-            // return this.poptions.filter(p => p.option_status === this.status);
-            return this.poptions.filter((p) => {
-                const matchStatus = this.status === "All" || p.option_status === this.status;
-                return matchStatus;
-            });
-        }
     },
     methods:{
         mergeProps,
@@ -132,8 +126,19 @@ export default {
         async getAllPoptions(){
             this.isLoading = true;
             try {
-                await this.$store.dispatch('fetchPoptions');
-                this.poptions = this.$store.state.poptions;
+                const resp = await axios.get('/sadmin/poptions',{
+                    params:{
+                        page: this.page,
+                        per_page: this.itemsPerPage,
+                        search: this.posearch,
+                        sort_by: this.sort_by,
+                        sort_order: this.sort_order,
+                    }
+                })
+                const allData = resp.data;
+                this.poptions = allData.poptions;
+                this.totalItems = allData.total;
+                this.page = allData.current_page;
             } catch (e) {
                 console.error("Failed to load productTypes", e);
             } finally {
@@ -148,11 +153,7 @@ export default {
             axios.post('/sadmin/poption/update',uoption)
                 .then((resp)=>{
                     this.editDialog = false;
-                    this.$store.commit('UPDATE_POPTION',resp.data.poption)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getAllPoptions();
-                        })
+                    this.getAllPoptions();
                     window.Toast.success(resp.data.message)
                 })
                 .catch((error)=>{
@@ -171,21 +172,15 @@ export default {
             axios.post('/sadmin/poption/update',noption)
                 .then((resp)=>{
                     this.addDialog = false;
-                    this.$store.commit('ADD_POPTION',resp.data.poption)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getAllPoptions();
-                        })
+                    this.getAllPoptions();
                     window.Toast.success(resp.data.message);
                     this.defaultItem.option_name = '';
                 })
         },
         checkDuplicateOptionName(name) {
             const nameLower = name.trim().toLowerCase();
-
             return this.poptions.some((poption, index) => {
                 const isSameName = poption.option_name.trim().toLowerCase() === nameLower;
-                // In case of edit, allow if it's the same index
                 if (this.editedIndex !== -1 && index === this.editedIndex) return false;
                 return isSameName;
             });

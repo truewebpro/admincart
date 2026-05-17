@@ -31,7 +31,7 @@
                             <template #title>
                                 All Orders
                                 <v-chip size="small" color="primary" class="bg-light-subtle font-weight-bold">
-                                   {{orderStats.unfulfilled}}
+                                   {{orderStats.pending}}
                                 </v-chip>
                             </template>
                         </v-list-item>
@@ -176,20 +176,19 @@ export default {
     },
     async mounted() {
         window.Echo.connector.pusher.connection.bind('connected', () => {
-            this.$store.dispatch('fetchOrders', true);
+            this.$store.dispatch('fetchOrderStats');
         });
         const channel = window.Echo.channel('orders');
         channel.listen('.order.created', (e) => {
-            this.$store.commit('ADD_ORDER', e.order);
+            this.$store.dispatch('fetchOrderStats');
             window.Toast.success(`New Order: ${e.order.order_number}`);
         });
 
         channel.listen('.order.updated', (e) => {
-            this.$store.commit('UPDATE_ORDER', e.order);
+            this.$store.dispatch('fetchOrderStats');
         });
         this.drawer = this.isDesktop;
         await this.$store.dispatch('loadContext');
-        await this.$store.dispatch('fetchShopResources');
     },
     methods: {
         async switchShop(shopId) {

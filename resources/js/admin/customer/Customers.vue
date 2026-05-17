@@ -129,9 +129,6 @@ export default {
     mounted() {
         this.getAllCusts();
     },
-    created() {
-        // this.getAllCusts();
-    },
     computed: {
         filteredCusts() {
             // if (this.status === "All") return this.custs;

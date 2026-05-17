@@ -267,17 +267,6 @@ export default {
                 (v) => (v && v.length <= 60) || "Maximum 60 characters allowed"]
         }
     },
-    computed:{
-        pbrands(){
-            return this.$store.state.brands;
-        },
-        ptags(){
-            return this.$store.state.tags;
-        },
-        ptypes(){
-            return this.$store.state.productTypes;
-        },
-    },
     watch:{
         'blog_title'(newSlug){
             this.blog_slug = newSlug
@@ -305,6 +294,9 @@ export default {
                     this.stypes = resp.data.stypes;
                     this.sections = resp.data.blog.sections;
                     this.allCategories = resp.data.categories;
+                    this.allBrands = resp.data.brands;
+                    this.ptags = resp.data.tags;
+                    this.ptypes = resp.data.ptypes;
                 })
         },
         editBlog(){

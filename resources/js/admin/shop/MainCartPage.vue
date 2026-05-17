@@ -269,8 +269,6 @@ export default{
                 cartpage_id:this.hlayout.cartpage_id,
                 stype_id:this.selectToAdd.stype_id,
                 section_json:this.selectToAdd,
-                // sort_order:1,
-                // selected_item:this.selectToAdd.stype_id
             }
             axios.post('/sadmin/cartpage/section/add/new',sdata)
                 .then((resp)=>{

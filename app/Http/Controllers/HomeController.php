@@ -507,21 +507,81 @@ class HomeController extends Controller
         ]);
     }
 
-    public function allOrders()
+    public function orderStats()
     {
-        $shop = session('shop');
         $shopId = session('shop_id');
-        $orders = Order::withTrashed()->withCount('orderItems')
-            ->where('shop_id','=',$shopId)
-            ->orderByDesc('created_at')
-            ->get();
+        return response()->json([
+            'unfulfilled' => Order::where('shop_id', $shopId)
+                ->whereNull('deleted_at')
+                ->where('fulfillment_status', 'unfulfilled')
+                ->count(),
+            'pending' => Order::where('shop_id', $shopId)
+                ->whereNull('deleted_at')
+                ->where('order_status', 'pending')
+                ->count(),
+            'processing' => Order::where('shop_id', $shopId)
+                ->whereNull('deleted_at')
+                ->where('order_status', 'processing')
+                ->count(),
+        ]);
+    }
+
+    public function allOrders(Request $request)
+    {
+        $shopId = session('shop_id');
+        $search = $request->search;
+        $status = $request->status;
+        $query = Order::withTrashed()
+            ->withCount('orderItems')
+            ->where('shop_id','=',$shopId);
+        if ($search) {
+            $terms = preg_split('/\s+/', trim($search));
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $q->where(function ($subQ) use ($term) {
+                        $subQ->where('order_number', 'LIKE', "%{$term}%")
+                            ->orWhere('shipping_name', 'LIKE', "%{$term}%");
+                    });
+                }
+            });
+        }
+        $allowedSorts = [
+            'order_number' => 'order_number',
+            'placed_at' => 'placed_at',
+            'shipping_name' => 'shipping_name',
+            'order_total' => 'order_total',
+            'payment_status' => 'payment_status',
+            'fulfillment_status' => 'fulfillment_status',
+            'order_items_count' => 'order_items_count',
+        ];
+        if ($status && $status !== 'all') {
+            if ($status === 'archived') {
+                $query->whereNotNull('deleted_at');
+            } else {
+                $query->whereNull('deleted_at')
+                    ->where('order_status', $status);
+            }
+        } else {
+            $query->whereNull('deleted_at');
+        }
+        $sortBy = $allowedSorts[$request->sort_by] ?? 'placed_at';
+        $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+        $perPage = (int) $request->per_page;
+        if ($perPage === -1) {
+            $perPage = min($query->count(), 500);
+        } else {
+            $perPage = $perPage > 0
+                ? min($perPage, 500)
+                : 50;
+        }
+        $orders = $query->paginate($perPage);
 
         return response()->json(['success' => true, 'orders' => $orders]);
     }
 
     public function getOrderById($order_id)
     {
-        $shop = session('shop');
         $shopId = session('shop_id');
         $order = Order::withTrashed()->with('orderItems.product','orderItems.variant','customer')
             ->withCount('orderItems')
@@ -978,28 +1038,108 @@ class HomeController extends Controller
         }
     }
 
-    public function allProducts()
+    public function allProducts(Request $request)
     {
         $shopId = session('shop_id');
-        $products = Product::withTrashed()->with('variants','brand','ptype')
+        $search = $request->search;
+        $type = $request->type;
+        $brand = $request->brand;
+        $tag = $request->tag;
+        $status = $request->status;
+        $query = Product::withTrashed()
+            ->with('variants','brand','ptype')
             ->withCount('astock')
             ->withSum('astock','quantity')
-            ->where('shop_id','=',$shopId)
-            ->orderBy('created_at','desc')->get();
-        foreach ($products as $pros){
-            foreach ($pros['variants'] as $variant){
-                if($variant->isdefault == 1){
-                    $variant['isvariant'] = true;
-                } else { $variant['isvariant'] = false;}
+            ->where('shop_id','=',$shopId);
+//        $query->select(['products.*', DB::raw("CASE WHEN deleted_at IS NOT NULL THEN 'Archived' ELSE product_status END as display_status")]);
+        if ($search) {
+            $terms = preg_split('/\s+/', trim($search));
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $q->where(function ($subQ) use ($term) {
+                        $subQ->where('title', 'LIKE', "%{$term}%")
+                            ->orWhereHas('variants', function ($variantQ) use ($term) {
+                                $variantQ->where('sku', 'LIKE', "%{$term}%");
+                            })
+                            ->orWhereHas('brand', function ($brandQ) use ($term) {
+                                $brandQ->where('brand_name', 'LIKE', "%{$term}%");
+                            })
+                            ->orWhereHas('ptype', function ($typeQ) use ($term) {
+                                $typeQ->where('product_type_name', 'LIKE', "%{$term}%");
+                            });
+                    });
+                }
+            });
+        }
+        $allowedSorts = [
+            'title' => 'title',
+            'quantity' => 'stocks.quantity',
+            'product_status' => 'product_status',
+        ];
+        if ($type) {
+            $query->whereHas('ptype', function ($q) use ($type) {
+                $q->where('product_type_name', $type);
+            });
+        }
+        if ($brand) {
+            $query->whereHas('brand', function ($q) use ($brand) {
+                $q->where('brand_name', $brand);
+            });
+        }
+        if ($tag) {
+            $query->whereJsonContains('tags', $tag);
+        }
+        if ($status && $status !== 'All') {
+
+            if ($status === 'Archived') {
+
+                $query->whereNotNull('deleted_at');
+
+            } else {
+
+                $query->whereNull('deleted_at')
+                    ->where('product_status', $status);
             }
         }
-        $alltags = Tag::where('shop_id','=',$shopId)
-            ->orderBy('tag_name','asc')->get();
+        $filters = [
+            'brands' => Brand::where('shop_id', $shopId)
+                ->orderBy('brand_name')
+                ->pluck('brand_name'),
+
+            'types' => ProductType::where('shop_id', $shopId)
+                ->orderBy('product_type_name')
+                ->pluck('product_type_name'),
+
+            'tags' => Product::where('shop_id', $shopId)
+                ->whereNotNull('tags')
+                ->pluck('tags')
+                ->flatten()
+                ->unique()
+                ->sort()
+                ->values(),
+        ];
+        $sortBy = $allowedSorts[$request->sort_by] ?? 'product_id';
+        $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+        $perPage = (int) $request->per_page;
+        if ($perPage === -1) {
+            $perPage = min($query->count(), 500);
+        } else {
+            $perPage = $perPage > 0
+                ? min($perPage, 500)
+                : 50;
+        }
+        $products = $query->paginate($perPage);
+        $aptags = Tag::where('shop_id','=',$shopId)
+            ->select('tag_id','tag_name','tag_status')
+            ->orderBy('tag_name')
+            ->get();
         return response()->json([
             'users' => auth()->user(),
             'pcount'=> $products->count(),
             'products' => $products,
-            'alltags'=> $alltags,
+            'filters' => $filters,
+            'aptags' => $aptags,
         ],200);
     }
 
@@ -1071,8 +1211,21 @@ class HomeController extends Controller
                 'location_status' => 'Active',
                 'shop_id' => $shopId
             ]);
+        $brands = Brand::where('shop_id','=',$shopId)
+            ->get();
+        $ptypes = ProductType::where('shop_id','=',$shopId)
+            ->get();
+        $tags = Tag::where('shop_id','=',$shopId)
+            ->orderBy('tag_name')
+            ->get();
+        $poptions = Poptions::where('shop_id','=',$shopId)
+            ->get();
         return response()->json([
             'location' => $location,
+            'brands' => $brands,
+            'ptypes' => $ptypes,
+            'tags' => $tags,
+            'poptions' => $poptions
         ]);
     }
 
@@ -1679,7 +1832,9 @@ class HomeController extends Controller
     public function allCats()
     {
         $shopId = session('shop_id');
-        $cats = Cat::with('rules')->withCount('catpros')
+        $cats = Cat::query()
+            ->select('cat_id', 'cat_name','cat_image','cat_slug','cat_status','cat_type','shop_id','updated_at')
+            ->with('rules')->withCount('catpros')
             ->where('shop_id','=',$shopId)
             ->orderByDesc('updated_at')
             ->get();
@@ -1698,7 +1853,6 @@ class HomeController extends Controller
                 }
             }
         }
-
         return response()->json([
             'cats' => $cats
         ],200);
@@ -1710,6 +1864,16 @@ class HomeController extends Controller
         $pros = Product::where('shop_id','=',$shopId)
             ->select('products.product_id','products.featured_image','products.title','products.product_status')
             ->get();
+        $brands = Brand::query()
+            ->where('shop_id','=',$shopId)
+            ->get();
+        $ptypes = ProductType::query()
+            ->where('shop_id','=',$shopId)
+            ->get();
+        $tags = Tag::query()
+            ->where('shop_id','=',$shopId)
+            ->get();
+
         $location = Location::firstOrCreate(
             ['shop_id' => $shopId],
             [
@@ -1720,6 +1884,9 @@ class HomeController extends Controller
             ]);
         return response()->json([
             'pros' => $pros,
+            'brands' => $brands,
+            'ptypes' => $ptypes,
+            'tags' => $tags,
             'location' => $location,
         ]);
     }
@@ -1850,18 +2017,9 @@ class HomeController extends Controller
     public function filterProductIds(Request $request)
     {
         $shopId = session('shop_id');
-//        $request->validate([
-//            'rule.column' => 'required|string',
-//            'rule.relation' => 'required|string',
-//            'rule.condition' => 'required',
-//        ]);
-//        $column = $request->input('rule.column');
-//        $relation = $request->input('rule.relation');
-//        $condition = $request->input('rule.condition');
         $rules = $request->input('rules', []);
         $catRule = strtolower($request->input('cat_rule', 'and'));
         $query = Product::query()->where('shop_id','=',$shopId);
-//        $method = $catRule === 'or' ? 'orWhere' : 'where';
         $query->where(function ($outer) use ($rules, $catRule) {
             foreach($rules as $rule){
                 $outerQuery = function ($q) use ($rule) {
@@ -1954,11 +2112,27 @@ class HomeController extends Controller
             ]);
         $ctypes = ['review_slider','blog_slider'];
         $stypes = Stype::whereNotIn('stype_slug',$ctypes)->get();
+        $brands = Brand::query()
+            ->where('shop_id','=',$shopId)
+            ->get();
+        $ptypes = ProductType::query()
+            ->where('shop_id','=',$shopId)
+            ->get();
+        $tags = Tag::query()
+            ->where('shop_id','=',$shopId)
+            ->get();
+        $cats = Cat::query()
+            ->where('shop_id','=',$shopId)
+            ->get();
         return response()->json([
             'cat' => $cat,
             'pros' => $pros,
             'location' => $location,
             'stypes' => $stypes,
+            'brands' => $brands,
+            'ptypes' => $ptypes,
+            'tags' => $tags,
+            'cats'=> $cats,
         ],200);
     }
 
@@ -2185,10 +2359,16 @@ class HomeController extends Controller
         ]);
     }
 
-    public function allInventory()
+    public function allInventory(Request $request)
     {
         $shopId = session('shop_id');
-        $variants = Variant::Join('products','products.product_id','=','variants.product_id')
+        $search = $request->search;
+        $type = $request->type;
+        $brand = $request->brand;
+        $tag = $request->tag;
+        $status = $request->status;
+
+        $query = Variant::Join('products','products.product_id','=','variants.product_id')
             ->join('stocks','stocks.variant_id','=','variants.variant_id')
             ->Join('product_types', 'product_types.product_type_id', '=', 'products.product_type_id')
             ->Join('brands', 'brands.brand_id', '=', 'products.brand_id')
@@ -2208,13 +2388,80 @@ class HomeController extends Controller
                 DB::raw('COALESCE(oi.committed,0) as committed'),
                 DB::raw('(stocks.quantity - COALESCE(oi.committed,0)) as available'),
                 'stocks.stock_id','stocks.location_id','stocks.product_id','stocks.shop_id')
-            ->where('variants.shop_id','=',$shopId)->get();
-        foreach ($variants as $variant) {
-            $variant['tags'] = json_decode($variant->tags);
+            ->where('variants.shop_id','=',$shopId);
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('products.title', 'LIKE', "%{$search}%")
+                    ->orWhere('variants.sku', 'LIKE', "%{$search}%")
+                    ->orWhere('brands.brand_name', 'LIKE', "%{$search}%")
+                    ->orWhere('product_types.product_type_name', 'LIKE', "%{$search}%");
+            });
         }
+        $allowedSorts = [
+            'title' => 'products.title',
+            'sku' => 'variants.sku',
+            'quantity' => 'stocks.quantity',
+            'committed' => 'committed',
+            'backorder_qty' => 'backorder_qty',
+            'product_status' => 'products.product_status',
+        ];
+        if ($type) {
+            $query->where('product_types.product_type_name', $type);
+        }
+        if ($brand) {
+            $query->where('brands.brand_name', $brand);
+        }
+        if ($tag) {
+            $query->whereJsonContains('products.tags', $tag);
+        }
+        $this->applyProductStatusFilter($query, $status);
+        $filters = [
+            'brands' => Brand::where('shop_id', $shopId)
+                ->orderBy('brand_name')
+                ->pluck('brand_name'),
+
+            'types' => ProductType::where('shop_id', $shopId)
+                ->orderBy('product_type_name')
+                ->pluck('product_type_name'),
+
+            'tags' => Product::where('shop_id', $shopId)
+                ->whereNotNull('tags')
+                ->pluck('tags')
+                ->flatten()
+                ->unique()
+                ->sort()
+                ->values(),
+        ];
+
+        $sortBy = $allowedSorts[$request->sort_by] ?? 'variants.variant_id';
+        $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+        $perPage = (int) $request->per_page;
+        if ($perPage === -1) {
+            $perPage = $query->count();
+        }
+        $perPage = $perPage > 0 ? $perPage : 50;
+        $perPage = min($perPage, 500);
+        $variants = $query->paginate($perPage);
+
         return response()->json([
             'variants' => $variants,
+            'filters' => $filters,
         ],200);
+    }
+
+    private function applyProductStatusFilter($query, $status)
+    {
+        if (!$status || $status === 'All') {
+            return;
+        }
+
+        if ($status === 'Archived') {
+            $query->whereNotNull('products.deleted_at');
+        } else {
+            $query->whereNull('products.deleted_at')
+                ->where('products.product_status', $status);
+        }
     }
 
     public function updateInventory(Request $request)
@@ -2402,14 +2649,44 @@ class HomeController extends Controller
 
     }
 
-    public function allPtypes()
+    public function allPtypes(Request $request)
     {
         $shopId = session('shop_id');
-        $ptypes = ProductType::where('shop_id','=',$shopId)->get();
-        foreach($ptypes as $ptype){
-            $pcount = Product::where('product_type_id','=',$ptype->product_type_id)->count();
-            $ptype['pcount'] = $pcount;
+        $search = $request->search;
+        $status = $request->status;
+        $allowedSorts = [
+            'product_type_name' => 'product_type_name',
+            'product_type_status' => 'product_type_status',
+            'products_count' => 'products_count',
+            'created_at' => 'created_at',
+            'updated_at' => 'updated_at',
+        ];
+        $query = ProductType::query()
+            ->where('shop_id', $shopId)
+            ->withCount(['products']);
+        if ($search) {
+            $terms = explode(' ', $search);
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $q->where('product_type_name', 'LIKE', "%{$term}%");
+                }
+            });
         }
+        if ($status && $status !== 'All') {
+            $query->where('product_type_status', $status);
+        }
+        $sortBy = $allowedSorts[$request->sort_by] ?? 'product_type_id';
+        $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+        $perPage = (int) $request->per_page;
+        if ($perPage === -1) {
+            $perPage = min($query->count(), 500);
+        } else {
+            $perPage = $perPage > 0
+                ? min($perPage, 500)
+                : 50;
+        }
+        $ptypes = $query->paginate($perPage);
         return response()->json([
             'ptypes' => $ptypes
         ],200);
@@ -2459,14 +2736,44 @@ class HomeController extends Controller
         }
     }
 
-    public function allBrands()
+    public function allBrands(Request $request)
     {
         $shopId = session('shop_id');
-        $brands = Brand::where('shop_id','=',$shopId)->get();
-        foreach ($brands as $brand) {
-            $pcount = Product::where('brand_id','=',$brand->brand_id)->count();
-            $brand['pcount'] = $pcount;
+        $search = $request->search;
+        $status = $request->status;
+        $allowedSorts = [
+            'brand_name' => 'brand_name',
+            'brand_status' => 'brand_status',
+            'products_count' => 'products_count',
+            'created_at' => 'created_at',
+            'updated_at' => 'updated_at',
+        ];
+        $query = Brand::query()
+            ->where('shop_id', $shopId)
+            ->withCount(['products']);
+        if ($search) {
+            $terms = explode(' ', $search);
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $q->where('brand_name', 'LIKE', "%{$term}%");
+                }
+            });
         }
+        if ($status && $status !== 'All') {
+            $query->where('brand_status', $status);
+        }
+        $sortBy = $allowedSorts[$request->sort_by] ?? 'brand_id';
+        $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+        $perPage = (int) $request->per_page;
+        if ($perPage === -1) {
+            $perPage = min($query->count(), 500);
+        } else {
+            $perPage = $perPage > 0
+                ? min($perPage, 500)
+                : 50;
+        }
+        $brands = $query->paginate($perPage);
         return response()->json([
             'brands' => $brands
         ],200);
@@ -2476,9 +2783,17 @@ class HomeController extends Controller
     {
         $shopId = session('shop_id');
         $brand = Brand::find($brand_id);
+        if(!$brand){
+            return response()->json([
+                'success' => false,
+                'message' => 'Brand not found'
+            ]);
+        }
+        $brands = Brand::where('shop_id', $shopId)->select('brand_id','brand_name')->get();
         return response()->json([
             'status' => 200,
             'brand' => $brand,
+            'brands' => $brands,
             'message' => "Brand Detail",
         ]);
     }
@@ -2674,18 +2989,48 @@ class HomeController extends Controller
         return response()->json(['success'=>true,'message' => "Specific Deleted Success"]);
     }
 
-    public function allTags()
+    public function allTags(Request $request)
     {
         $shopId = session('shop_id');
-        $tags = Tag::where('shop_id','=',$shopId)
-            ->orderBy('tag_name','asc')
-            ->get();
-        foreach ($tags as $tag) {
-            $pcount = Product::whereJsonContains('tags',$tag->tag_name)
-                ->where('shop_id','=',$shopId)
-                ->count();
-            $tag['pcount'] = $pcount;
+        $search = $request->search;
+        $status = $request->status;
+        $allowedSorts = [
+            'tag_name' => 'tag_name',
+            'tag_status' => 'tag_status',
+            'created_at' => 'created_at',
+            'updated_at' => 'updated_at',
+        ];
+        $query = Tag::query()
+            ->where('shop_id', $shopId);
+        if ($search) {
+            $terms = explode(' ', $search);
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $q->where('tag_name', 'LIKE', "%{$term}%");
+                }
+            });
         }
+        if ($status && $status !== 'All') {
+            $query->where('tag_status', $status);
+        }
+        $sortBy = $allowedSorts[$request->sort_by] ?? 'tag_id';
+        $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+        $perPage = (int) $request->per_page;
+        if ($perPage === -1) {
+            $perPage = min($query->count(), 500);
+        } else {
+            $perPage = $perPage > 0
+                ? min($perPage, 500)
+                : 50;
+        }
+        $tags = $query->paginate($perPage);
+        foreach ($tags as $tag) {
+            $tag['pcount'] = Product::whereJsonContains('tags', $tag->tag_name)
+                ->where('shop_id', $shopId)
+                ->count();
+        }
+
         return response()->json([
             'tags' => $tags
         ],200);
@@ -2726,14 +3071,9 @@ class HomeController extends Controller
         return response()->json(['success'=>true,'message' => "Tag Deleted Success"]);
     }
 
-    public function allPoptions()
+    public function allPoptions(Request $request)
     {
         $shopId = session('shop_id');
-        $uniqueOptions = Variant::where('shop_id','=',$shopId)
-            ->pluck('option_values')->unique()->values();
-        $opnames = Variant::where('shop_id','=',$shopId)
-            ->pluck('options')->values();
-        $doptions = Variant::whereJsonContains('options','Nicotine Stength')->get();
         $poptions = Poptions::where('shop_id','=',$shopId)->get();
         foreach($poptions as $poption){
             $opname = $poption->option_name;
@@ -2741,9 +3081,6 @@ class HomeController extends Controller
                 ->where('shop_id','=',$shopId)->count();
         }
         return response()->json([
-            'doptions' => $doptions,
-            'opnames' => $opnames,
-            'uniqueOptions' => $uniqueOptions,
             'poptions' => $poptions
         ],200);
     }
@@ -3080,12 +3417,24 @@ class HomeController extends Controller
         $categories = Cat::where('shop_id','=',$shopId)
             ->select('cat_id','cat_name','cat_slug','cat_image')
             ->get();
+        $brands = Brand::where('shop_id','=',$shopId)
+            ->select('brand_id','brand_name','brand_slug','brand_image')
+            ->get();
+        $tags = Tag::where('shop_id','=',$shopId)
+            ->select('tag_id','tag_name')
+            ->get();
+        $ptypes = ProductType::where('shop_id','=',$shopId)
+            ->select('product_type_id','product_type_name')
+            ->get();
         if($blog){
             return response()->json([
                 'status'=> true,
                 'blog' => $blog,
                 'stypes'=> $stypes,
-                'categories'=>$categories
+                'categories'=>$categories,
+                'brands' => $brands,
+                'tags' => $tags,
+                'ptypes' => $ptypes,
             ]);
         } else {
             return response()->json([
@@ -3634,11 +3983,15 @@ class HomeController extends Controller
         $menu = Menu::where('shop_id', $shopId)
             ->where('menus.menu_id', $menu_id)
             ->first();
+        $brands = Brand::where('shop_id','=',$shopId)->get();
+        $cats = Cat::where('shop_id','=',$shopId)->get();
         if($menu){
             return response()->json([
                 'success' => true,
                 'message' => 'Menu with its Items',
                 'menu' => $menu,
+                'brands' => $brands,
+                'cats' => $cats,
             ]);
         } else {
             return response()->json([
@@ -3733,7 +4086,7 @@ class HomeController extends Controller
             ->get();
         return response()->json([
             'success' => true,
-            'message' => 'Home page',
+            'message' => 'Cart page',
             'cartpage' => $cartpage,
             'stypes'=> $stypes,
             'categories'=>$categories,
@@ -4249,9 +4602,13 @@ class HomeController extends Controller
 
                 ];
             });
+        $cats = Cat::where('shop_id','=',$shopId)->get();
+        $products = Product::where('shop_id','=',$shopId)->get();
         return response()->json([
             'success' => true,
             'coupons' => $coupons,
+            'cats' => $cats,
+            'products' => $products,
         ]);
     }
 

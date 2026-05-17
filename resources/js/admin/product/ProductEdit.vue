@@ -991,8 +991,11 @@ export default {
             },
             istax:1,
             isdefault:1,
+            mptypes:[],
             typedPtype:"",
+            mbrands:[],
             typedBrand:"",
+            mtags:[],
             typedTag:"",
             highs:[],
             highHeaders:[
@@ -1092,24 +1095,12 @@ export default {
         }
     },
     async mounted() {
-        if (!this.$store.state.products.length) {
-            await this.$store.dispatch('fetchProducts')
-        }
-        this.getProductByID();
+        await this.getProductByID();
         this.$store.dispatch('fetchAlinks');
     },
     computed: {
         alinks(){
             return this.$store.state.alinks;
-        },
-        mbrands(){
-            return this.$store.state.brands;
-        },
-        mtags(){
-            return this.$store.state.tags;
-        },
-        mptypes(){
-            return this.$store.state.productTypes;
         },
         optionInputsTrimmed() {
             return this.optionValueInputs.map(v => (v ?? '').trim());
@@ -1119,11 +1110,9 @@ export default {
             return lowers.length === new Set(lowers).size;
         },
         canAddAnother() {
-            // every current input must be non-empty AND all unique (case-insensitive)
             return this.optionInputsTrimmed.every(v => v.length > 0) && this.isAllUniqueCI;
         },
         canSaveVariant() {
-            // must have an option selected and current inputs valid
             return !!this.selectedOption && this.optionValueInputs.length > 0 && this.canAddAnother;
         },
         variantHeaders() {
@@ -1196,11 +1185,7 @@ export default {
             }
             axios.post('/sadmin/product/save-tier-pricing',tierdata)
                 .then((resp)=>{
-                    this.$store.commit('UPDATE_PRODUCT',resp.data.product)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getProductByID();
-                        })
+                    this.getProductByID();
                     window.Toast.success(resp.data.message);
                 })
                 .catch((err) => {
@@ -1215,11 +1200,7 @@ export default {
             }
             axios.post('/sadmin/product/update-unit-pack',unitData)
                 .then((resp)=>{
-                    this.$store.commit('UPDATE_PRODUCT',resp.data.product)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getProductByID();
-                        })
+                    this.getProductByID();
                     window.Toast.success(resp.data.message);
                 })
                 .catch((err) => {
@@ -1238,13 +1219,9 @@ export default {
             return JSON.stringify(keys.map(k => [k, this._normalizeVal(obj[k])]));
         },
         _deriveBaseSKUAndNext(existingSkus = []) {
-            // prefer this.sku (product-level) if present and non-empty
             let base = (this.sku && this.sku !== '') ? this.sku : (existingSkus[0] || 'SKU');
-            // strip trailing numeric suffix -n
             const match = base.match(/^(.+?)-(\d+)$/);
             if (match) base = match[1];
-
-            // find max suffix used with this base
             let maxSuffix = -1;
             for (const s of existingSkus) {
                 if (!s) continue;
@@ -1366,7 +1343,6 @@ export default {
         removeOption(key) {
             if (this.variants[key]) {
                 delete this.variants[key];
-                // If the deleted option is currently being edited, reset the edit form
                 if (this.isEditingVariant && this.previousOptionKey === key) {
                     this.cancelVariant(); // already clears all edit states
                 }
@@ -1374,13 +1350,10 @@ export default {
         },
         removeValue(key, value) {
             if (!this.variants[key]) return;
-
             this.variants = {
                 ...this.variants,
                 [key]: this.variants[key].filter((v) => v !== value),
             };
-
-            // clean up if no values left
             if (this.variants[key].length === 0) {
                 this.removeOption(key);
             } else {
@@ -1390,7 +1363,8 @@ export default {
         getProductByID(){
             axios.get('/sadmin/products/'+this.product_id)
                 .then((resp)=>{
-                    const prod = resp.data.prod;
+                    const respData = resp.data;
+                    const prod = respData.prod;
                     if(prod.deleted_at != null){
                         this.pro.archived = true;
                     }
@@ -1465,12 +1439,15 @@ export default {
                     this.stypes = resp.data.stypes;
                     this.sections = prod.sections;
                     this.highs = prod.highs;
-                    this.allCategories = resp.data.categories || [];
-                    this.allBrands = resp.data.brands || [];
+                    this.allCategories = respData.categories || [];
+                    this.allBrands = respData.brands || [];
+                    this.mbrands = respData.brands || [];
+                    this.mptypes = respData.ptypes || [];
+                    this.mtags = respData.tags || [];
                     const highIds = prod.highs.map(h => h.feature_id);
-                    this.features = resp.data.features.filter(f => !highIds.includes(f.feature_id));
-                    this.reviews = resp.data.reviews;
-                    this.reviewers = resp.data.reviewers;
+                    this.features = respData.features.filter(f => !highIds.includes(f.feature_id));
+                    this.reviews = respData.reviews;
+                    this.reviewers = respData.reviewers;
                     this.specifics = prod.specifics;
                     this.tiers = (prod.tiers || [])
                         .map(t => ({
@@ -1482,18 +1459,13 @@ export default {
                 })
         },
         generateVariantCombinations(returnOnly = false) {
-            // produce an array of { optvalue: {Key: Value}, keyStr } for all combos
             const rawVariants = toRaw(this.variants) || {};
             const keys = Object.keys(rawVariants);
             if (!keys.length) {
                 if (!returnOnly) this.vitems = [];
                 return [];
             }
-
-            // build arrays for recursion
             const arrays = keys.map(k => (Array.isArray(rawVariants[k]) ? rawVariants[k] : []));
-
-            // recursive combine
             const combos = [];
             const build = (index, prefix) => {
                 if (index === keys.length) {
@@ -1507,44 +1479,28 @@ export default {
             };
             build(0, []);
             if (returnOnly) return combos;
-            // otherwise we leave mapping to saveVariant()
             return combos;
         },
-        // --- main function: matches old rows to new combos and returns final rows (also sets this.vitems) ---
         generateVariantCombinationsAndPreserve(lastEdit = null) {
-            // lastEdit: optional { key, renames } provided by saveVariant
             const rawVariants = toRaw(this.variants) || {};
             const newKeys = Object.keys(rawVariants);
             if (!newKeys.length) { this.vitems = []; return []; }
-
             const combos = this.generateVariantCombinations(true); // array of {optvalue, keyStr}
-
-            // old rows (copy)
             const oldRows = Array.isArray(this.vitems) ? [...this.vitems] : [];
-
-            // gather existing SKUs for this product to derive base/next
             const existingSkus = oldRows.map(r => r.sku).filter(Boolean);
             const { base: skuBase, next: startSuffix } = this._deriveBaseSKUAndNext(existingSkus);
             let suffix = startSuffix;
-
             const usedOldIdx = new Set();
-
-            // helpers:
             const sameAllKeys = (a, b, keys) => keys.every(k => this._eqVal(a[k], b[k]));
             const objKeys = obj => Object.keys(obj || {});
-
-            // 1) Strict full-match (oldRow has same keys count and same values across those keys)
             const finalRows = combos.map(() => null);
-
             combos.forEach((combo, ci) => {
                 for (let i = 0; i < oldRows.length; i++) {
                     if (usedOldIdx.has(i)) continue;
                     const old = oldRows[i];
                     if (!old.optvalue) continue;
                     const oldKeys = objKeys(old.optvalue);
-                    // strict match requires same key set as newKeys
                     if (oldKeys.length !== newKeys.length) continue;
-                    // check equality key-by-key (case-insensitive)
                     const ok = newKeys.every(k => this._eqVal(old.optvalue[k], combo.optvalue[k]));
                     if (ok) {
                         usedOldIdx.add(i);
@@ -1568,7 +1524,6 @@ export default {
                 }
             });
 
-            // 2) Rename-aware match (if lastEdit provided)
             if (lastEdit && lastEdit.key && lastEdit.renames) {
                 const editedKey = lastEdit.key;
                 const renames = lastEdit.renames;
@@ -1578,14 +1533,12 @@ export default {
                         if (usedOldIdx.has(i)) continue;
                         const old = oldRows[i];
                         if (!old.optvalue) continue;
-                        // check all keys except editedKey match
                         let ok = true;
                         for (const nk of newKeys) {
                             if (nk === editedKey) continue;
                             if (!this._eqVal(old.optvalue[nk], combo.optvalue[nk])) { ok = false; break; }
                         }
                         if (!ok) continue;
-                        // check mapping: old value at editedKey -> renamed value should equal combo value
                         const oldVal = old.optvalue[editedKey];
                         const mapped = renames[oldVal] ?? null;
                         if (mapped && this._eqVal(mapped, combo.optvalue[editedKey])) {
@@ -1609,10 +1562,6 @@ export default {
                     }
                 });
             }
-
-            // 3) Partial-match mapping for added keys: if an old row had fewer keys (oldKeys subset of newKeys),
-            //    we attempt to preserve that old row mapping to a combo whose NEW keys all equal the "default" value
-            //    (we consider the first value of the new option as default).
             combos.forEach((combo, ci) => {
                 if (finalRows[ci]) return;
                 for (let i = 0; i < oldRows.length; i++) {
@@ -1620,17 +1569,13 @@ export default {
                     const old = oldRows[i];
                     if (!old.optvalue) continue;
                     const oldKeys = objKeys(old.optvalue);
-                    // ensure oldKeys are subset of newKeys
                     const isSubset = oldKeys.every(k => newKeys.includes(k));
                     if (!isSubset) continue;
-                    // match all oldKeys values
                     let ok = true;
                     for (const k of oldKeys) {
                         if (!this._eqVal(old.optvalue[k], combo.optvalue[k])) { ok = false; break; }
                     }
                     if (!ok) continue;
-
-                    // now check NEW keys (newKeys minus oldKeys) if they equal default value (first value)
                     const addedKeys = newKeys.filter(k => !oldKeys.includes(k));
                     let allNewAreDefault = true;
                     for (const nk of addedKeys) {
@@ -1638,8 +1583,6 @@ export default {
                         if (!this._eqVal(combo.optvalue[nk], firstVal)) { allNewAreDefault = false; break; }
                     }
                     if (!allNewAreDefault) continue;
-
-                    // Accept mapping
                     usedOldIdx.add(i);
                     finalRows[ci] = {
                         ...combo,
@@ -1660,15 +1603,11 @@ export default {
             });
 
             const lastRow = oldRows.length ? oldRows[oldRows.length - 1] : null;
-
-            // 4) Any unmatched combos are brand new => create new rows with new SKUs
             for (let ci = 0; ci < combos.length; ci++) {
                 if (finalRows[ci]) continue;
                 const combo = combos[ci];
-                // create new SKU using product's base and suffix (avoid collisions inside this product)
                 const newSku = suffix === 0 ? skuBase : `${skuBase}-${suffix}`;
                 suffix++;
-
                 finalRows[ci] = {
                     ...combo,
                     variant: Object.entries(combo.optvalue).map(([k, v]) => `${k}: ${v}`).join(" / "),
@@ -1684,20 +1623,14 @@ export default {
                     variant_id: null
                 };
             }
-
-            // finalRows is in the order of combos (which uses newKeys ordering)
             this.vitems = finalRows;
             this.vtableKey = (this.vtableKey || 0) + 1;
             return finalRows;
         },
-        // --- saveVariant: updates this.variants and generates new rows (uses rename detection) ---
         saveVariant() {
             if (!this.canSaveVariant) return;
-
             const optionKey = (this.selectedOption || '').trim();
             if (!optionKey) return;
-
-            // dedupe and preserve casing of first occurrence while using case-insensitive uniqueness
             const inputs = (this.optionValueInputs || []).map(v => (v ?? '').trim()).filter(v => v !== '');
             const seen = new Set();
             const newValues = [];
@@ -1708,23 +1641,14 @@ export default {
                     newValues.push(v);
                 }
             }
-
-            // capture before values if editing same key
             let before = [];
             if (this.isEditingVariant && this.previousOptionKey) {
                 before = Array.isArray(this.variants[this.previousOptionKey]) ? [...this.variants[this.previousOptionKey]] : [];
             }
-
-            // if key rename (previousKey -> optionKey) and different, remove previous key entry (we will write new below)
             if (this.isEditingVariant && this.previousOptionKey && this.previousOptionKey !== optionKey) {
-                // keep before copy then delete
                 delete this.variants[this.previousOptionKey];
             }
-
-            // write new values to this.variants
             this.variants = { ...this.variants, [optionKey]: newValues };
-
-            // build rename map if same key edited (mapping removed -> added)
             let renames = {};
             if (this.isEditingVariant && this.previousOptionKey === optionKey) {
                 const after = newValues;
@@ -1733,44 +1657,31 @@ export default {
                 if (removed.length === 1 && added.length === 1) {
                     renames[removed[0]] = added[0];
                 } else {
-                    // try index-based mapping
                     const len = Math.min(before.length, after.length);
                     for (let i = 0; i < len; i++) {
                         if (before[i] && after[i] && before[i] !== after[i]) renames[before[i]] = after[i];
                     }
                 }
             }
-
-            // attempt to preserve existing variants by mapping rules (pass rename map)
             this.lastEdit = (Object.keys(renames).length ? { key: optionKey, renames } : null);
             this.generateVariantCombinationsAndPreserve(this.lastEdit);
-
-            // reset form
             this.cancelVariant();
         },
         removeVariantOption(keyToRemove) {
-            // 1. Remove the key from `variants`
             const { [keyToRemove]: removed, ...rest } = this.variants;
             this.variants = rest;
-
-            // 2. Update each vitem's optvalue and variant text
             this.vitems = this.vitems.map(item => {
                 const newOptValue = { ...item.optvalue };
                 delete newOptValue[keyToRemove];
-
                 const newVariantStr = Object.entries(newOptValue)
                     .map(([k, v]) => `${k}: ${v}`)
                     .join(' / ');
-
                 return {
                     ...item,
                     optvalue: newOptValue,
                     variant: newVariantStr,
-                    // Leave sku, price, stock, variant_id untouched
                 };
             });
-
-            // Optional: update the table key if using force refresh
             this.vtableKey++;
         },
         removeIncompleteRows() {
@@ -1782,8 +1693,6 @@ export default {
         },
         maybeRemoveIncompleteRows() {
             const activeOptionCount = Object.keys(this.variants).length;
-
-            // Update rows with incomplete flag
             this.vitems = this.vitems.map(item => {
                 const optKeyCount = Object.keys(item.optvalue).length;
                 return {
@@ -1791,8 +1700,6 @@ export default {
                     incomplete: optKeyCount < activeOptionCount
                 };
             });
-
-            // Only remove incomplete if at least 2 active option groups
             if (activeOptionCount > 1) {
                 const hasIncomplete = this.vitems.some(item => item.incomplete);
                 if (hasIncomplete) {
@@ -1825,10 +1732,6 @@ export default {
             if (item.preview) {
                 return item.preview;
             }
-            // if (!item.variantImage) return "";
-            // if (typeof item.variantImage === "object" && item.variantImage.preview) {
-            //     return item.variantImage.preview;
-            // }
             if (typeof item.variantImage === "string") {
                 return this.cdn + item.variantImage;
             }
@@ -1849,23 +1752,11 @@ export default {
             const file = event.target.files[0];
             if (!file) return;
             const previewURL = URL.createObjectURL(file);
-
             this.vitems.splice(index, 1, {
                 ...this.vitems[index],
                 variantImage: file, // ✅ keep file
                 preview: previewURL // for displaying image
             });
-            // const reader = new FileReader();
-            // reader.onload = (e) => {
-            //     this.vitems[index] = {
-            //         ...this.vitems[index],
-            //         variantImage: {
-            //             file: file,
-            //             preview: e.target.result
-            //         }
-            //     };
-            // };
-            // reader.readAsDataURL(file);
         },
         editProductById(){
             this.isLoading = true;
@@ -1908,11 +1799,7 @@ export default {
             }
             axios.post('/sadmin/product/update/'+this.product_id,epro,uheaders)
                 .then((resp) => {
-                    this.$store.commit('UPDATE_PRODUCT',resp.data.product)
-                    this.$store.dispatch('fetchShopResources')
-                        .then(()=>{
-                            this.getProductByID();
-                        })
+                    this.getProductByID();
                     window.Toast.success(resp.data.message);
                 })
                 .catch((err) => {
@@ -1935,10 +1822,7 @@ export default {
             axios.post('/sadmin/product/delete/'+this.product_id,sdelete,uheaders)
                 .then((resp)=>{
                     const now = new Date().toISOString()
-                    this.$store.commit('UPDATE_PRODUCT',{
-                        product_id: Number(this.product_id),
-                        deleted_at: now,
-                    })
+                    this.getProductByID();
                     this.pro.archived = true
                     window.Toast.success(resp.data.message);
                 })
@@ -1954,10 +1838,7 @@ export default {
             }
             axios.post('/sadmin/product/delete/'+this.product_id,restore,uheaders)
                 .then((resp)=>{
-                    this.$store.commit('UPDATE_PRODUCT',{
-                        product_id: Number(this.product_id),
-                        deleted_at: null,
-                    })
+                    this.getProductByID();
                     window.Toast.success(resp.data.message);
                     this.pro.archived = false;
                 })
@@ -1974,9 +1855,6 @@ export default {
             axios.post('/sadmin/product/delete/'+this.product_id,pdelete,uheaders)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
-                    this.$store.commit('DELETE_PRODUCT',{
-                        product_id:Number(this.product_id)
-                    })
                     this.$router.push({name:'products'});
                 })
                 .catch((err)=>{
@@ -2016,7 +1894,6 @@ export default {
                 .then((resp)=>{
                     if(resp.data.success && resp.data.ptype){
                         const newType = resp.data.ptype;
-                        this.$store.commit('ADD_PRODUCT_TYPE',newType)
                         // const exists = this.mptypes.some(pt => pt.product_type_id === newType.product_type_id);
                         // if (!exists) {
                         //     this.mptypes.push(newType);
@@ -2025,9 +1902,7 @@ export default {
                         this.typedPtype = '';
                         const inputEl = this.$refs.ptypeInputRef?.$el?.querySelector('input');
                         if (inputEl) inputEl.value = '';
-                        this.$store.dispatch('fetchShopResources').then(() => {
-                            this.getProductByID();
-                        });
+                        this.getProductByID();
                         window.Toast.success('New Type Added')
                     }
                 })
@@ -2055,7 +1930,6 @@ export default {
                 .then((resp)=>{
                     if(resp.data.success && resp.data.brand){
                         const newBrand = resp.data.brand;
-                        this.$store.commit('ADD_BRAND',newBrand)
                         // const exists = this.mbrands.some(pt => pt.brand_id === newBrand.brand_id);
                         // if (!exists) {
                         //     this.mbrands.push(newBrand);
@@ -2066,9 +1940,7 @@ export default {
                         if (inputEl) inputEl.value = '';
                         window.Toast.success('New Brand Added')
                     }
-                    this.$store.dispatch('fetchShopResources').then(() => {
-                        this.getProductByID();
-                    });
+                    this.getProductByID();
                 })
                 .catch((error)=>{
                     window.Toast.error('Some error to add Brand')
@@ -2094,7 +1966,6 @@ export default {
                 .then((resp)=>{
                     if(resp.data.success && resp.data.tag){
                         const newTag = resp.data.tag;
-                        this.$store.commit('ADD_TAG',newTag)
                         // const exists = this.mtags.some(tag => tag.tag_id === newTag.tag_id);
                         // if (!exists) {
                         //     this.mtags.push(newTag);
@@ -2105,9 +1976,7 @@ export default {
                         this.typedTag = '';
                         const inputEl = this.$refs.tagInputRef?.$el?.querySelector('input');
                         if (inputEl) inputEl.value = '';
-                        this.$store.dispatch('fetchShopResources').then(() => {
-                            this.getProductByID();
-                        });
+                        this.getProductByID();
                         window.Toast.success('New Tag Added')
                     }
                 })
@@ -2120,9 +1989,7 @@ export default {
             const sdata = {
                 product_id:this.product_id,
                 stype_id:this.selectToAdd.stype_id,
-                section_json:this.selectToAdd,
-                // sort_order:1,
-                // selected_item:this.selectToAdd.stype_id
+                section_json:this.selectToAdd
             }
             axios.post('/sadmin/product/section/add/new',sdata)
                 .then((resp)=>{
@@ -2442,9 +2309,6 @@ export default {
             }
             axios.post('/sadmin/product/bulk/update',uprice)
                 .then((resp)=>{
-                    this.$store.commit('UPDATE_PRODUCT', {
-                        product_id:Number(this.product_id)
-                    })
                     window.Toast.success(resp.data.message);
                     this.getProductByID();
                     this.selectedVariants = [];
@@ -2460,9 +2324,6 @@ export default {
             }
             axios.post('/sadmin/product/bulk/update',uqty)
                 .then((resp)=>{
-                    this.$store.commit('UPDATE_PRODUCT', {
-                        product_id:Number(this.product_id)
-                    })
                     window.Toast.success(resp.data.message);
                     this.getProductByID();
                     this.selectedVariants = [];

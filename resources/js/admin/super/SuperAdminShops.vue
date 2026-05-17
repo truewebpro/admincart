@@ -184,9 +184,7 @@ export default {
         },
         canSubmit() {
             if (!this.shopForm.shop_name || !this.shopForm.shop_slug) return false;
-
             if (!this.isEdit && this.slugAvailable === false) return false;
-
             return true
         }
     },
@@ -237,17 +235,14 @@ export default {
         },
         async saveShop() {
             this.errors = {}
-
             try {
                 if (this.isEdit) {
                     await axios.put(`/superadmin/shop/update/${this.selectedShop.shop_id}`, this.shopForm)
                 } else {
                     await axios.post('/superadmin/shop/add', this.shopForm)
                 }
-
                 this.shopDialog = false
                 this.fetchShops()
-
             } catch (e) {
                 if (e.response?.status === 422) {
                     this.errors = e.response.data.errors
@@ -260,25 +255,18 @@ export default {
                 const res = await axios.get('/superadmin/shops/check-slug', {
                     params: { slug }
                 })
-
                 console.log('Slug check response:', res.data) // 👈 debug
-
                 this.slugAvailable = res.data.available
-
             } catch (e) {
                 console.error(e)
                 this.slugAvailable = false
             }
-
             this.slugChecking = false
         },
         onSlugInput(val) {
             this.slugAvailable = null
-
             if (!val || this.isEdit) return
-
             clearTimeout(this.debounceTimer)
-
             this.debounceTimer = setTimeout(() => {
                 this.checkSlug(val)
             }, 500)

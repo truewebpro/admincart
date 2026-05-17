@@ -46,11 +46,21 @@
                         </v-menu>
                     </div>
                     <div>
-                        <v-data-table :items="filteredOrders" :headers="ordersHeaders" density="comfortable"
-                                      hover show-select :search="osearch" :custom-filter="customFilter"
-                                      items-per-page="50" :itemsPerPageOptions="[{value:50,title:'50'},{value:100,title:'100'}]"
-                                      items-per-page-text="per page"
-                                      :loading="isLoading" loading-text="Loading Orders">
+                        <v-data-table-server
+                            v-model:page="page"
+                            v-model:items-per-page="itemsPerPage"
+                            v-model:sort-by="sortBy"
+                            :items="orders"
+                            :headers="ordersHeaders"
+                            :items-length="totalItems"
+                            density="comfortable"
+                            hover
+                            show-select
+                            :itemsPerPageOptions="[{value:50,title:'50'},{value:100,title:'100'}]"
+                            items-per-page-text="per page"
+                            :loading="isLoading"
+                            @update:options="loadItems"
+                            loading-text="Loading Orders">
                             <template v-slot:item="{item}">
                                 <tr class="text-no-wrap" :title="item.deleted_at !== null ? 'archived' :item.order_status"
                                     :class="item.deleted_at !== null ? 'bg-red-lighten-5 archived' : item.order_status"
@@ -142,7 +152,7 @@
                                     </td>
                                 </tr>
                             </template>
-                        </v-data-table>
+                        </v-data-table-server>
                     </div>
                 </v-card>
             </v-col>
@@ -153,12 +163,19 @@
 import axios from "axios";
 import {mergeProps} from "vue";
 import dayjs from "dayjs";
+import debounce from "lodash/debounce";
 export default {
     name:"AdminOrders",
     data(){
         return{
             cdn:this.$store.state.cdn,
             osearch:'',
+            page: 1,
+            itemsPerPage: 50,
+            totalItems: 0,
+            sortBy: [],
+            sort_by: '',
+            sort_order: 'desc',
             orders:[],
             isLoading: false,
             status:"all",
@@ -177,60 +194,73 @@ export default {
             pbrands:[],
             atags:[],
             ordersHeaders:[
-                {title:'Order',value:'order_number',width:150},
+                {title:'Order',key:'order_number',width:150},
                 {title:'Date',value:'placed_at',width:150},
-                {title:'Customer',value:'shipping_name',maxWidth:375},
-                {title:'Total',value:'order_total'},
-                {title:'Payment Status',value:'payment_status'},
-                {title:'Fulfillment Status',value:'fulfillment_status'},
-                {title:'Items',value:'order_items_count'},
+                {title:'Customer',key:'shipping_name',maxWidth:375},
+                {title:'Total',key:'order_total'},
+                {title:'Payment Status',key:'payment_status'},
+                {title:'Fulfillment Status',key:'fulfillment_status'},
+                {title:'Items',key:'order_items_count'},
                 {title:'Delivery Method',value:'shipping_method'},
                 {title:'Label Status',value:'label_status'},
             ]
         }
     },
-    mounted() {
-        this.getAllOrders();
-    },
-    computed:{
-        filteredOrders(){
-            let filtered = this.orders.filter((o) => {
-                const matchStatus = this.status === "all" || o.order_status === this.status;
-                return matchStatus;
-            });
-            return filtered;
-        }
+    created() {
+        this.debouncedSearch = debounce(() => {
+            this.page = 1;
+            this.getAllOrders();
+        }, 400);
     },
     methods:{
         dayjs,
         mergeProps,
-        customFilter(value, search, item) {
-            if (!search) return true;
-            const title = value?.toString().toLowerCase() || '';
-            const searchTerms = search.toLowerCase().split(' ');
-            return searchTerms.every(term => title.includes(term));
+        loadItems(options) {
+            this.page = options.page;
+            this.itemsPerPage = options.itemsPerPage;
+            if (options.sortBy.length > 0) {
+                this.sort_by = options.sortBy[0].key;
+                this.sort_order = options.sortBy[0].order;
+            } else {
+                this.sort_by = 'placed_at';
+                this.sort_order = 'desc';
+            }
+            this.getAllOrders();
         },
          async getAllOrders(){
             this.isLoading = true;
             try {
-               await this.$store.dispatch('fetchOrders');
-                const aorders = this.$store.state.orders;
-                this.orders = aorders?.map((item) => {
-                    if (item.deleted_at !== null) {
-                        return {...item, order_status: "archived"};
+                const resp = await axios.get('/sadmin/orders', {
+                    params: {
+                        page: this.page,
+                        per_page: this.itemsPerPage,
+                        search: this.osearch,
+                        status: this.status,
+                        sort_by: this.sort_by,
+                        sort_order: this.sort_order,
                     }
-                    return item;
                 });
-
+                const allOrders = resp.data.orders;
+                this.orders = allOrders.data;
+                this.totalItems = allOrders.total;
+                this.page = allOrders.current_page;
             } catch (e) {
                 console.error("Failed to load orders", e);
             } finally {
                 this.isLoading = false;
             }
         }
+    },
+    watch: {
+        osearch() {
+            this.debouncedSearch();
+        },
+        status() {
+            this.page = 1;
+            this.getAllOrders();
+        }
     }
 }
-
 </script>
 
 <style scoped>

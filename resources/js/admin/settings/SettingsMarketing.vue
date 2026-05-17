@@ -306,12 +306,6 @@ export default {
         VDateInput
     },
     computed:{
-        products(){
-            return this.$store.state.products;
-        },
-        cats(){
-            return this.$store.state.cats;
-        },
         isEditMode(){
             return !!this.defaultCoupon?.coupon_id;
         },
@@ -358,6 +352,8 @@ export default {
             activeDialog: null, // 'fixed' | 'bogo' | 'bundle'
             showCouponDialog: false,
             defaultCoupon: this.getDefaultCoupon(),
+            products:[],
+            cats:[],
         }
     },
     watch: {
@@ -517,6 +513,8 @@ export default {
             axios.get('/sadmin/coupons/list')
                 .then((resp)=>{
                     this.allcoupons = resp.data.coupons;
+                    this.cats = resp.data.cats;
+                    this.products = resp.data.products;
                 })
         },
         getCouponLabel(c){

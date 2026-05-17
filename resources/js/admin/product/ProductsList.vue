@@ -107,9 +107,21 @@
                         </v-col>
                     </v-row>
                     <div>
-                        <v-data-table :items="filteredPros" :headers="prosHeaders" density="comfortable" v-model="selectedPros"
-                                      hover show-select :search="psearch" :custom-filter="customFilter" return-object
-                                      :loading="isLoading" items-per-page="50" mobileBreakpoint="sm">
+                        <v-data-table-server
+                            v-model:page="page"
+                            v-model:sort-by="sortBy"
+                            v-model:items-per-page="itemsPerPage"
+                            :items="pros"
+                            :headers="prosHeaders"
+                            :items-length="totalItems"
+                            :items-per-page="itemsPerPage"
+                            v-model="selectedPros"
+                            hover show-select
+                            return-object
+                            :loading="isLoading"
+                            @update:options="loadItems"
+                            density="comfortable"
+                            mobileBreakpoint="sm">
                             <template v-slot:item.title="{item}">
                                 <div class="title d-flex align-center justify-space-between">
                                     <router-link :to="{ name: 'ProductEdit', params: { product_id: item.product_id } }"
@@ -126,8 +138,8 @@
                                 <v-img v-else :src="cdn+'noimage.png'" lazy-src="https://dummyimage.com/150x150/efe6f2/01010a.png&text=No+Image" max-width="40"></v-img>
                             </template>
                             <template v-slot:item.product_status="{item}">
-                                <v-chip size="small" class="bg-light-green-accent-1 text-black"  v-if="item.display_status === 'Active'">{{item.display_status}}</v-chip>
-                                <v-chip size="small" v-else>{{item.display_status}}</v-chip>
+                                <v-chip size="small" class="bg-light-green-accent-1 text-black"  v-if="item.deleted_at === null">{{item.product_status}}</v-chip>
+                                <v-chip size="small" v-else>{{'Archived'}}</v-chip>
                             </template>
                             <template v-slot:item.astock_sum_quantity="{item}">
                                 <div v-if="item.astock_sum_quantity > 0">{{ item.astock_sum_quantity }} in stock
@@ -137,7 +149,7 @@
                                     <span v-if="item.variants[0].options != null">for {{item.variants.length}} variants</span>
                                 </div>
                             </template>
-                        </v-data-table>
+                        </v-data-table-server>
                     </div>
                 </v-card>
             </v-col>
@@ -240,12 +252,19 @@
 <script>
 import axios from "axios";
 import {mergeProps} from "vue";
+import debounce from "lodash/debounce";
 
 export default {
     name:"ProductsList",
     data(){
         return{
             psearch:'',
+            page: 1,
+            itemsPerPage: 50,
+            totalItems: 0,
+            sort_by: '',
+            sort_order: 'desc',
+            sortBy: [],
             selectedPros:[],
             pros:[],
             isLoading: false,
@@ -253,7 +272,7 @@ export default {
             selectedType: null,
             selectedBrand: null,
             selectedTag: null,
-            prostatus:[],
+            prostatus:['All', 'Active', 'Draft', 'Archived'],
             protypes:[],
             pbrands:[],
             atags:[],
@@ -261,7 +280,7 @@ export default {
             domain:this.$store.state.shop.maindomain || this.$store.state.shop.subdomain,
             prosHeaders:[
                 {title:'Image',value:'featured_image',width:60},
-                {title:'Title',value:'title',maxWidth:375},
+                {title:'Title',key:'title',maxWidth:375},
                 {title:'Status',value:'product_status'},
                 {title:'Inventory',value:'astock_sum_quantity'},
                 {title:'Type',key:'ptype.product_type_name'},
@@ -270,7 +289,7 @@ export default {
             addBulkTagDialog:false,
             removeBulkTagDialog:false,
             seltags:[],
-            sortKey: 'updated_at', // default sort
+            sortKey: 'updated_at',
             sortDirection: 'desc',
             ipros:null,
             uploadValid:false,
@@ -280,57 +299,69 @@ export default {
             ]
         }
     },
-    mounted() {
-        this.getAllPros();
+    created() {
+        this.debouncedSearch = debounce(() => {
+            this.page = 1;
+            this.getAllPros();
+        }, 400);
+    },
+    watch:{
+        psearch() {
+            this.debouncedSearch();
+        },
+        status() {
+            this.page = 1;
+            this.getAllPros();
+        },
+        selectedType() {
+            this.page = 1;
+            this.getAllPros();
+        },
+        selectedBrand() {
+            this.page = 1;
+            this.getAllPros();
+        },
+        selectedTag() {
+            this.page = 1;
+            this.getAllPros();
+        }
     },
     computed: {
-        filteredPros() {
-            let filtered = this.pros.filter((p) => {
-                const status = p.display_status || p.product_status
-                const matchStatus = this.status === "All" || status === this.status;
-                const matchType = !this.selectedType || p.ptype?.product_type_name === this.selectedType;
-                const matchBrand = !this.selectedBrand || p.brand?.brand_name === this.selectedBrand;
-                const matchTag = !this.selectedTag || (p.tags && p.tags.includes(this.selectedTag));
-                return matchStatus && matchType && matchBrand && matchTag;
-            });
-
-            // Sort the filtered list
-            if (this.sortKey) {
-                filtered = filtered.sort((a, b) => {
-                    const aVal = this.getSortValue(a, this.sortKey) ?? ""
-                    const bVal = this.getSortValue(b, this.sortKey) ?? ""
-
-                    if (typeof aVal === 'number' && typeof bVal === 'number') {
-                        return this.sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
-                    }
-
-                    return this.sortDirection === 'asc'
-                        ? String(aVal).localeCompare(String(bVal), undefined, { sensitivity: "base" })
-                        : String(bVal).localeCompare(String(aVal), undefined, { sensitivity: "base" })
-                });
-            }
-
-            return filtered;
-        },
-        aptags(){
-            return this.$store.state.tags;
-        },
         filteredAptags() {
             return this.aptags.filter(tag => !this.seltags.includes(tag.tag_name));
         },
     },
     methods:{
         mergeProps,
-        setSort(key) {
-            if (this.sortKey === key) {
-                this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        loadItems(options) {
+            this.page = options.page;
+            this.itemsPerPage = options.itemsPerPage;
+            if (options.sortBy.length > 0) {
+                this.sort_by = options.sortBy[0].key;
+                this.sort_order = options.sortBy[0].order;
             } else {
-                this.sortKey = key;
-                this.sortDirection = 'asc';
+                this.sort_by = 'product_id';
+                this.sort_order = 'desc';
             }
+            this.getAllPros();
         },
-        setDirection(dir) {
-            this.sortDirection = dir;
+        setSort(key) {
+            this.sortBy = [{
+                key: key,
+                order: this.sort_order || 'asc'
+            }];
+            this.sort_by = key;
+            this.page = 1;
+            this.getAllPros();
+        },
+        setDirection(direction) {
+            this.sort_order = direction;
+            this.sortBy = [{
+                key: this.sort_by || 'product_id',
+                order: direction
+            }];
+            this.page = 1;
+            this.getAllPros();
         },
         getSortValue(item, key) {
             return key.split('.').reduce((obj, prop) => obj?.[prop], item) ?? '';
@@ -344,31 +375,32 @@ export default {
             this.seltags = [];
             this.selectedPros = [];
         },
-        customFilter(value, search, item) {
-            if (!search) return true;
-
-            const title = value?.toString().toLowerCase() || '';
-            const searchTerms = search.toLowerCase().split(' ');
-
-            // Return true only if all search terms are found somewhere in the title
-            return searchTerms.every(term => title.includes(term));
-        },
         async getAllPros(){
             this.isLoading = true;
             try {
-                await this.$store.dispatch('fetchProducts');
-                let apros = this.$store.state.products;
-                this.pros = apros;
-                this.pros = apros.map(item => ({
-                    ...item,
-                    display_status: item.deleted_at ? "Archived" : item.product_status
-                }));
-                let statuses = [...new Set(this.pros.map(item => item.display_status))];
-                this.prostatus = ["All", ...statuses];
-                this.protypes = [...new Set(apros.map(p => p.ptype.product_type_name))];
-                this.pbrands = [...new Set(apros.map(p => p.brand.brand_name))];
-                const allTags = apros.flatMap(p => Array.isArray(p.tags) ? p.tags : []);
-                this.atags = [...new Set(allTags)];
+                const resp = await axios.get('/sadmin/pros',{
+                    params:{
+                        page:this.page,
+                        search:this.psearch,
+                        per_page: this.itemsPerPage,
+                        sort_by:this.sort_by,
+                        sort_order:this.sort_order,
+                        type: this.selectedType,
+                        brand: this.selectedBrand,
+                        tag: this.selectedTag,
+                        status: this.status,
+                    }
+                });
+                const respData = resp.data;
+                const allData = respData.products;
+                this.pros = allData.data;
+                this.totalItems = allData.total;
+                this.page = allData.current_page;
+                const filtersData = respData.filters;
+                this.protypes = filtersData.types || [];
+                this.pbrands = filtersData.brands || [];
+                this.atags = filtersData.tags || [];
+                this.aptags = respData.aptags || [];
             } catch (e) {
                 console.error("Failed to load products", e);
             } finally {
@@ -385,9 +417,6 @@ export default {
             }
             axios.post('/sadmin/products/bulk-delete',sdeletes,uheaders)
                 .then((resp)=>{
-                    this.$store.commit('UPDATE_PRODUCTS_STATUS',{
-                        ids: productIds,
-                    })
                     window.Toast.success(resp.data.message);
                     this.selectedPros = [];
                     this.getAllPros();
@@ -407,7 +436,6 @@ export default {
             }
             axios.post('/sadmin/products/bulk-delete',perdeletes,uheaders)
                 .then((resp)=>{
-                    this.$store.commit('DELETE_PRODUCTS', {ids: productIds})
                     window.Toast.success(resp.data.message);
                     this.selectedPros = [];
                     this.getAllPros();
@@ -428,10 +456,6 @@ export default {
             }
             axios.post('/sadmin/products/bulk-tag-add',atags,uheaders)
                 .then((resp)=>{
-                    this.$store.commit('ADD_TAGS_TO_PRODUCTS',{
-                        ids:productIds,
-                        tags:this.seltags
-                    })
                     window.Toast.success(resp.data.message);
                     this.closeTag();
                     this.getAllPros();
@@ -448,15 +472,10 @@ export default {
             }
             axios.post('/sadmin/products/bulk-tag-add',rtags,uheaders)
                 .then((resp)=>{
-                    this.$store.commit('REMOVE_TAGS_FROM_PRODUCTS',{
-                        ids:productIds,
-                        tags:this.seltags
-                    })
                     window.Toast.success(resp.data.message);
                     this.closeTag();
                     this.getAllPros();
                 })
-            console.log('rtags',rtags);
         },
         exportProducts(){
             const token = localStorage.getItem('token');
@@ -473,7 +492,7 @@ export default {
                 window.Toast.success(resp.data.message)
                 this.uploadDialog = false;
                 this.ipros = null;
-                await this.$store.dispatch('fetchProducts',true);
+                await this.getAllPros();
             })
                 .catch(err=>{
                     window.Toast.error("Import failed")

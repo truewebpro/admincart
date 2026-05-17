@@ -333,30 +333,22 @@ export default{
             ptypeRule:[(v) => !!v || "Type is required",],
             brandRule:[(v) => !!v || "Brand is required",],
             typedPtype:"",
+            ptypes:[],
             typedBrand:"",
+            pbrands:[],
             typedTag:"",
+            ptags:[],
+            poptions:[],
         }
     },
     created() {
-        this.getProDetails();
         this.generateSKU();
     },
     mounted() {
+        this.getProDetails();
         this.prepareVariantsForSave();
     },
     computed: {
-        pbrands(){
-            return this.$store.state.brands;
-        },
-        ptags(){
-            return this.$store.state.tags;
-        },
-        ptypes(){
-            return this.$store.state.productTypes;
-        },
-        poptions(){
-            return this.$store.state.poptions;
-        },
         optionInputsTrimmed() {
             return this.optionValueInputs.map(v => (v ?? '').trim());
         },
@@ -365,11 +357,9 @@ export default{
             return lowers.length === new Set(lowers).size;
         },
         canAddAnother() {
-            // every current input must be non-empty AND all unique (case-insensitive)
             return this.optionInputsTrimmed.every(v => v.length > 0) && this.isAllUniqueCI;
         },
         canSaveVariant() {
-            // must have an option selected and current inputs valid
             return !!this.selectedOption && this.optionValueInputs.length > 0 && this.canAddAnother;
         },
         variantItems(){
@@ -537,10 +527,15 @@ export default{
             if (firstIdx !== -1 && firstIdx !== idx) return 'Duplicate';
             return '';
         },
-        getProDetails(){
-            axios.get('/sadmin/pros/new')
+        async getProDetails(){
+            await axios.get('/sadmin/pros/new')
                 .then((resp)=>{
-                    this.location = resp.data.location;
+                    const respData = resp.data;
+                    this.location = respData.location;
+                    this.pbrands = respData.brands || [];
+                    this.ptypes = respData.ptypes || [];
+                    this.ptags = respData.tags || [];
+                    this.poptions = respData.poptions || [];
                 });
         },
         generateSKU() {
@@ -588,9 +583,8 @@ export default{
         removeOption(key) {
             if (this.variants[key]) {
                 delete this.variants[key];
-                // If the deleted option is currently being edited, reset the edit form
                 if (this.isEditingVariant && this.previousOptionKey === key) {
-                    this.cancelVariant(); // already clears all edit states
+                    this.cancelVariant();
                 }
             }
         },
@@ -601,7 +595,6 @@ export default{
                     this.removeOption(key);
                 }
             }
-            // If currently editing this option, update inputs too
             if (this.isEditingVariant && (this.previousOptionKey === key || this.selectedOption === key)) {
                 this.optionValueInputs = this.optionValueInputs.filter(v => v !== value);
             }
@@ -646,12 +639,11 @@ export default{
             }
             axios.post('/sadmin/product/new',nprod,uheaders)
                 .then((resp)=>{
-                    this.$store.commit('ADD_PRODUCT',resp.data.product);
                     window.Toast.success(resp.data.message);
                     this.$router.push({name:'productview',params:{product_id:resp.data.product_id}});
                 })
                 .catch((err)=>{
-                    window.Toast.error(resp.err.message);
+                    window.Toast.error(err.message);
                 })
                 .finally(()=>{
                     this.isLoading = false;
@@ -685,7 +677,6 @@ export default{
                 .then((resp)=>{
                     if(resp.data.success && resp.data.ptype){
                         const newType = resp.data.ptype;
-                        this.$store.commit('ADD_PRODUCT_TYPE',newType);
                         // const exists = this.ptypes.some(pt => pt.product_type_id === newType.product_type_id);
                         // if (!exists) {
                         //     this.ptypes.push(newType);
@@ -694,9 +685,7 @@ export default{
                         this.typedPtype = '';
                         const inputEl = this.$refs.ptypeInputRef?.$el?.querySelector('input');
                         if (inputEl) inputEl.value = '';
-                        this.$store.dispatch('fetchShopResources').then(() => {
-                            this.getProDetails();
-                        });
+                        this.getProDetails();
                         window.Toast.success('New Type Added')
                     }
                 })
@@ -724,7 +713,6 @@ export default{
                 .then((resp)=>{
                     if(resp.data.success && resp.data.brand){
                         const newBrand = resp.data.brand;
-                        this.$store.commit('ADD_BRAND',newBrand);
                         // const exists = this.pbrands.some(pt => pt.brand_id === newBrand.brand_id);
                         // if (!exists) {
                         //     this.pbrands.push(newBrand);
@@ -735,9 +723,7 @@ export default{
                         if (inputEl) inputEl.value = '';
                         window.Toast.success('New Brand Added')
                     }
-                    this.$store.dispatch('fetchShopResources').then(() => {
-                        this.getProDetails();
-                    });
+                    this.getProDetails();
                 })
                 .catch((error)=>{
                     window.Toast.error('Some error to add Brand')
@@ -763,7 +749,6 @@ export default{
                 .then((resp)=>{
                     if(resp.data.success && resp.data.tag){
                         const newTag = resp.data.tag;
-                        this.$store.commit('ADD_TAG',newTag);
                         // const exists = this.ptags.some(tag => tag.tag_id === newTag.tag_id);
                         // if (!exists) {
                         //     this.ptags.push(newTag);
@@ -774,9 +759,7 @@ export default{
                         this.typedTag = '';
                         const inputEl = this.$refs.tagInputRef?.$el?.querySelector('input');
                         if (inputEl) inputEl.value = '';
-                        this.$store.dispatch('fetchShopResources').then(() => {
-                            this.getProDetails();
-                        });
+                        this.getProDetails();
                         window.Toast.success('New Tag Added')
                     }
                 })

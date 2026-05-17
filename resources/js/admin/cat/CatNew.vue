@@ -232,17 +232,7 @@ export default {
     name:"CatView",
     components:{QuillEditor, VFileUpload},
     computed:{
-        pbrands(){
-            return this.$store.state.brands;
-        },
-        ptags(){
-            return this.$store.state.tags;
-        },
-        ptypes(){
-            return this.$store.state.productTypes;
-        },
         plainTextDesc() {
-            // Remove HTML tags
             return this.cat.cat_desc
                 .replace(/<br\s*\/?>/gi, '\n')
                 .replace(/<[^>]+>/g, '');
@@ -303,6 +293,9 @@ export default {
             psearch:'',
             selectedPros:[],
             pros:[],
+            pbrands:[],
+            ptypes:[],
+            ptags:[],
             prosHeaders:[
                 {title:"Image",value:'featured_image',width:80},
                 {title:"Tile",value:'title'},
@@ -415,7 +408,11 @@ export default {
         getCategory(){
             axios.get('/sadmin/cats/new')
                 .then((resp)=>{
-                    this.pros = resp.data.pros;
+                    const allData = resp.data;
+                    this.pros = allData.pros || [];
+                    this.pbrands = allData.brands || [];
+                    this.ptypes = allData.ptypes || [];
+                    this.ptags = allData.tags || [];
                 })
         },
         getRelations(rule) {
@@ -515,7 +512,6 @@ export default {
             axios.post('/sadmin/cat/new',ncat,uheaders)
                 .then((resp)=>{
                     let cat = resp.data.cat;
-                    this.$store.commit('ADD_CAT',cat)
                     window.Toast.success('Collection added Successfully')
                     this.$router.push({
                         name:'CatView',

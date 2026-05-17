@@ -64,9 +64,17 @@
                         </v-row>
                     </div>
                     <div>
-                        <v-data-table :items="filteredPros" :headers="prosHeaders" density="comfortable"
-                                      hover show-select select-strategy="single" item-value="variant_id" :search="psearch" :custom-filter="customFilter"
-                                      :loading="isLoading" items-per-page="50" mobileBreakpoint="sm">
+                        <v-data-table-server density="comfortable" mobileBreakpoint="sm"
+                            v-model:page="page" loading-text="Loading All Stock"
+                            v-model:sort-by="sortBy"
+                            v-model:items-per-page="itemsPerPage"
+                            :items="variants"
+                            :items-length="totalItems"
+                            :items-per-page="itemsPerPage"
+                            :loading="isLoading" hover
+                            :headers="prosHeaders"
+                            @update:options="loadItems"
+                        >
                             <template v-slot:item.variant_image="{item}">
                                 <v-img :src="cdn+item.variant_image" lazy-src="https://dummyimage.com/150x150/efe6f2/01010a.png&text=No+Image" max-width="40"></v-img>
                             </template>
@@ -86,24 +94,17 @@
                             <template v-slot:item.committed="{item}">
                                 <span>{{item.committed}}</span>
                             </template>
-                            <!--                        <template v-slot:item.available="{item}">-->
-                            <!--                            <v-btn v-if="item.available > 10" variant="text" density="comfortable" color="success">-->
-                            <!--                                {{item.available}}</v-btn>-->
-                            <!--                            <v-btn v-else variant="text" density="comfortable" color="red">-->
-                            <!--                                {{item.available}}</v-btn>-->
-                            <!--                        </template>-->
                             <template v-slot:item.quantity="{item}">
                                 <v-btn v-if="item.quantity > 10" variant="outlined" density="comfortable" color="primary" class="text-decoration-underline"
                                        @click="editItem(item)">{{item.quantity}}</v-btn>
                                 <v-btn v-else variant="outlined" density="comfortable" color="red" class="text-decoration-underline"
                                        @click="editItem(item)">{{item.quantity}}</v-btn>
                             </template>
-
                             <template v-slot:item.product_status="{item}">
                                 <v-chip size="small" class="bg-light-green-accent-1 text-black"  v-if="item.product_status === 'Active'">{{item.product_status}}</v-chip>
                                 <v-chip size="small" v-else>{{item.product_status}}</v-chip>
                             </template>
-                        </v-data-table>
+                        </v-data-table-server>
                         <v-dialog max-width="300" v-model="editDialog">
                             <v-card>
                                 <v-card-title class="text-body-2">{{editedItem.title}}</v-card-title>
@@ -143,6 +144,7 @@
     </v-container>
 </template>
 <script>
+import debounce from 'lodash/debounce';
 import axios from "axios";
 import {mergeProps} from "vue";
 
@@ -151,27 +153,33 @@ export default {
     data(){
         return{
             psearch:'',
+            page: 1,
+            itemsPerPage: 50,
+            totalItems: 0,
+            sort_by:'',
+            sortBy:[],
+            sort_order:"desc",
+            variants:[],
             itab:'set',
-            pros:[],
             isLoading: false,
             status:"All",
             selectedType: null,
             selectedBrand: null,
             selectedTag: null,
-            prostatus:[],
+            prostatus:['All', 'Active', 'Draft', 'Archived'],
             protypes:[],
             pbrands:[],
             atags:[],
             cdn:this.$store.state.cdn,
             prosHeaders:[
-                {title:'Image',value:'variant_image',width:60},
-                {title:'Title',value:'title',maxWidth:375},
-                {title:'SKU',value:'sku'},
+                {title:'Image',key:'variant_image',sortable:false,width:60},
+                {title:'Title',key:'title',maxWidth:375},
+                {title:'SKU',key:'sku'},
                 {title:'Unavailable',key:'backorder_qty'},
                 {title:'Committed',key:'committed'},
                 // {title:'Available',value:'available'},
                 {title:'On Hand',key:'quantity'},
-                {title:'Status',value:'product_status'},
+                {title:'Status',key:'product_status'},
             ],
             editedIndex:-1,
             defaultItem:{
@@ -195,57 +203,76 @@ export default {
             addDialog:false,
         }
     },
-    mounted() {
-        this.getAllPros();
+    created() {
+        this.debouncedSearch = debounce(() => {
+            this.page = 1;
+            this.getAllStock();
+        }, 400);
     },
-    computed: {
-        filteredPros() {
-            // if (this.status === "All") return this.pros;
-            if (this.status === "Archived") return this.pros.filter(p => p.product_status === "Archived");
-            // return this.pros.filter(p => p.product_status === this.status);
-            return this.pros.filter((p) => {
-                const matchStatus = this.status === "All" || p.product_status === this.status;
-                const matchType = !this.selectedType || p.product_type_name === this.selectedType;
-                const matchBrand = !this.selectedBrand || p.brand_name === this.selectedBrand;
-                const matchTag = !this.selectedTag || (p.tags && p.tags.includes(this.selectedTag));
-                return matchStatus && matchType && matchBrand && matchTag;
-            });
+    watch: {
+        psearch() {
+            this.debouncedSearch();
+        },
+        status() {
+            this.page = 1;
+            this.getAllStock();
+        },
+        selectedType() {
+            this.page = 1;
+            this.getAllStock();
+        },
+        selectedBrand() {
+            this.page = 1;
+            this.getAllStock();
+        },
+        selectedTag() {
+            this.page = 1;
+            this.getAllStock();
         }
     },
     methods:{
         mergeProps,
-        customFilter(value, search, item) {
-            if (!search) return true;
-
-            const title = value?.toString().toLowerCase() || '';
-            const searchTerms = search.toLowerCase().split(' ');
-
-            // Return true only if all search terms are found somewhere in the title
-            return searchTerms.every(term => title.includes(term));
-        },
-        async getAllPros(){
+        getAllStock(){
             this.isLoading = true;
-            try {
-                await this.$store.dispatch('fetchInstocks');
-                this.pros = this.$store.state.instocks;
-                let statuses = [...new Set(this.pros.map(item => item.product_status))];
-
-                // Remove "Archive" if already present
-                statuses = statuses.filter(status => status !== "Archived");
-
-                // Add "All" at the beginning and "Archive" at the end
-                this.prostatus = ["All", ...statuses, "Archived"];
-                this.protypes = [...new Set(this.pros.map(p => p.product_type_name))];
-                this.pbrands = [...new Set(this.pros.map(p => p.brand_name))];
-
-                const allTags = this.pros.flatMap(p => Array.isArray(p.tags) ? p.tags : []);
-                // Remove duplicates
-                this.atags = [...new Set(allTags)];
-            } catch (e) {
-                console.error("Failed to load Inventory", e);
-            } finally {
-                this.isLoading = false;
+            axios.get('/sadmin/inventory',{
+                params: {
+                    page:this.page,
+                    search:this.psearch,
+                    per_page: this.itemsPerPage,
+                    sort_by:this.sort_by,
+                    sort_order:this.sort_order,
+                    type: this.selectedType,
+                    brand: this.selectedBrand,
+                    tag: this.selectedTag,
+                    status: this.status,
+                }
+            })
+                .then((resp)=>{
+                    const respData = resp.data;
+                    const allData = respData.variants;
+                    this.variants = allData.data;
+                    this.totalItems = allData.total;
+                    this.page = allData.current_page;
+                    const filtersData = respData.filters;
+                    this.protypes = filtersData.types || [];
+                    this.pbrands = filtersData.brands || [];
+                    this.atags = filtersData.tags || [];
+                })
+                .finally(()=>{
+                    this.isLoading = false;
+                })
+        },
+        loadItems(options) {
+            this.page = options.page;
+            this.itemsPerPage = options.itemsPerPage;
+            if (options.sortBy.length > 0) {
+                this.sort_by = options.sortBy[0].key;
+                this.sort_order = options.sortBy[0].order;
+            } else {
+                this.sort_by = 'variants.variant_id';
+                this.sort_order = 'desc';
             }
+            this.getAllStock();
         },
         updateStock(){
             const ustock = {
@@ -260,17 +287,17 @@ export default {
             }
             axios.post('/sadmin/inventory/update',ustock)
                 .then((respo)=>{
-                    this.$store.commit('UPDATE_INSTOCK',respo.data.stock)
+                    window.Toast.success(respo.data.message);
                     this.editDialog = false;
                     this.adjust = 0;
-                    this.getAllPros();
+                    this.getAllStock();
                 })
         },
         editItem(item){
-            this.editedIndex = this.pros.indexOf(item);
+            this.editedIndex = this.variants.indexOf(item);
             this.editedItem = Object.assign({},item)
             this.editDialog = true;
-        },
+        }
     }
 }
 

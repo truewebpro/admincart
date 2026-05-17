@@ -91,6 +91,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/cart/{cart_id}',[HomeController::class,'getCartById']);
         Route::post('/create-viva-missing-order',[CartController::class,'createMissingOrder']);
         Route::get('/orders', [HomeController::class, 'allOrders'])->name('all-orders');
+        Route::get('/order-stats', [HomeController::class, 'orderStats'])->name('order-stats');
         Route::get('/order/{order_id}',[HomeController::class,'getOrderById']);
         Route::post('/order/update',[HomeController::class,'updateAdminOrder']);
         Route::post('/order/sendtosendcloud/single',[HomeController::class,'sendToSendCloudSingle']);

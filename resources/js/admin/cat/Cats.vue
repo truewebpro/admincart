@@ -9,7 +9,7 @@
             <v-col cols="12">
                 <v-card flat class="border">
                     <div class="px-2 py-2 d-flex">
-                        <v-text-field v-model="psearch" class="w-50 me-2" variant="outlined" density="compact" clearable hide-details
+                        <v-text-field v-model="csearch" class="w-50 me-2" variant="outlined" density="compact" clearable hide-details
                                       placeholder="Searching all Products"
                                       prepend-inner-icon="mdi-magnify"
                         ></v-text-field>
@@ -57,9 +57,9 @@
                             </v-menu>
                         </v-toolbar>
                     <div class="pt-2">
-                        <v-data-table :items="filteredCats" :headers="catsHeaders" density="comfortable" items-per-page="20"
-                                      hover show-select :search="psearch" :custom-filter="customFilter" :loading="isLoading"
-                                      v-model="selectedCats" return-object>
+                        <v-data-table :items="filteredCats" :headers="catsHeaders" density="comfortable" items-per-page="50"
+                                      hover show-select :search="csearch" :custom-filter="customFilter" :loading="isLoading"
+                                      v-model="selectedCats" return-object :hideDefaultFooter="filteredCats?.length < 50">
                             <template v-slot:item.cat_image="{item}">
                                 <v-img v-if="item.cat_image != null" :src="cdn+item.cat_image"
                                        max-width="45" max-height="45" contain></v-img>
@@ -92,7 +92,7 @@ export default {
     name:"Cats",
     data(){
         return{
-            psearch:'',
+            csearch:'',
             cats:[],
             selectedCats:[],
             isLoading: false,
@@ -101,9 +101,9 @@ export default {
             cdn:this.$store.state.cdn,
             catsHeaders:[
                 {title:'Image',value:'cat_image',width:60},
-                {title:'Title',value:'cat_name',maxWidth:375,sortable:true},
-                {title:'Type',value:'cat_type'},
-                {title:'Products',value:'catpros_count'},
+                {title:'Title',key:'cat_name',maxWidth:375,sortable:true},
+                {title:'Type',key:'cat_type'},
+                {title:'Products',key:'catpros_count'},
                 {title:'Product Condition',value:'rules'},
                 {title:'Status',value:'cat_status'},
                 {title:'Actions',value:'actions'},
@@ -114,30 +114,23 @@ export default {
     },
     mounted() {
         this.getAllCats();
-        this.$store.dispatch('fetchCats');
     },
     created() {
     },
     computed: {
         filteredCats() {
-            // if (this.status === "All") return this.cats;
             if (this.status === "Archived") return this.cats.filter(p => p.cat_status === "Archived");
-            // return this.cats.filter(p => p.product_status === this.status);
             let filtered = this.cats.filter((p)=>{
                 const matchStatus = this.status === "All" || p.cat_status === this.status;
                 return matchStatus;
             })
-
-            // Sort the filtered list
             if (this.sortKey) {
                 filtered = filtered.sort((a, b) => {
                     const aVal = this.getSortValue(a, this.sortKey).toString();
                     const bVal = this.getSortValue(b, this.sortKey).toString();
-
                     if (typeof aVal === 'number' && typeof bVal === 'number') {
                         return this.sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
                     }
-
                     return this.sortDirection === 'asc'
                         ? aVal.toString().localeCompare(bVal.toString(), undefined, { sensitivity: 'base' })
                         : bVal.toString().localeCompare(aVal.toString(), undefined, { sensitivity: 'base' });
@@ -164,22 +157,19 @@ export default {
         },
         customFilter(value, search, item) {
             if (!search) return true;
-
             const title = value?.toString().toLowerCase() || '';
             const searchTerms = search.toLowerCase().split(' ');
-
-            // Return true only if all search terms are found somewhere in the title
             return searchTerms.every(term => title.includes(term));
         },
         async getAllCats(){
             this.isLoading = true;
             try {
-                await this.$store.dispatch('fetchCats');
-                this.cats = this.$store.state.cats;
+                const resp = await axios.get('/sadmin/categories');
+                const allData = resp.data;
+                this.cats = allData.cats;
                 let statuses = [...new Set(this.cats.map(item => item.cat_status))];
                 statuses = statuses.filter(status => status !== "Archived");
                 this.catstatus = ["All", ...statuses, "Archived"];
-
             } catch (e) {
                 console.error("Failed to load categories", e);
             } finally {
