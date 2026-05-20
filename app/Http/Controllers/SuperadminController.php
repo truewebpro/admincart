@@ -28,7 +28,7 @@ class SuperadminController extends Controller
 
     public function allShops()
     {
-        $shops = Shop::latest()->get();
+        $shops = Shop::with('users')->latest()->get();
 
         return response()->json([
             'success' => true,
@@ -94,6 +94,45 @@ class SuperadminController extends Controller
         return response()->json([
             'success' => true,
             'shop' => $shop
+        ]);
+    }
+
+    public function assignUserToShop(Request $request)
+    {
+        $validated = $request->validate([
+            'shop_id' => 'required|exists:shops,shop_id',
+            'email' => 'required|email',
+            'name' => 'nullable|string',
+            'role' => 'required|in:owner,staff,developer,superadmin',
+        ]);
+
+        $shop = Shop::findOrFail($validated['shop_id']);
+        $user = User::where('email', $validated['email'])->first();
+        if (!$user) {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => bcrypt($request->password) ?? bcrypt('654321'), // temporary password
+            ]);
+        }
+        $alreadyAssigned = $shop->users()->where('users.id', $user->id)->exists();
+        if ($alreadyAssigned) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User already added to this shop'
+            ], 422);
+        }
+
+        $shop->users()->syncWithoutDetaching([
+            $user->id => [
+                'role' => $validated['role'],
+                'shop_user_status' => 'Active'
+            ]
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'User assigned successfully.'
         ]);
     }
 

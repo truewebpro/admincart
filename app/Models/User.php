@@ -65,6 +65,7 @@ class User extends Authenticatable implements JWTSubject
             'id',
             'shop_id'
         )
-            ->withPivot('role', 'shop_user_status');
+            ->withPivot('role', 'shop_user_status')
+            ->withTimestamps();
     }
 }

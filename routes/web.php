@@ -61,6 +61,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
     Route::prefix('superadmin')->group(function(){
         Route::get('/dashboard', [SuperadminController::class, 'superadminDashboard']);
         Route::get('/shops', [SuperadminController::class, 'allShops']);
+        Route::post('/shops/assign-user',[SuperadminController::class, 'assignUserToShop']);
         Route::get('/shop-users', [SuperadminController::class, 'shopUsers']);
         Route::put('/shop/update/{shop_id}', [SuperadminController::class, 'updateShop']);
         Route::post('/shop/add', [SuperadminController::class, 'storeShop']);

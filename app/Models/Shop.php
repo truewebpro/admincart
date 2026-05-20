@@ -65,7 +65,8 @@ class Shop extends Model
             'user_id',
             'shop_id',
             'id'
-        )->withPivot('role', 'shop_user_status');
+        )->withPivot('role', 'shop_user_status')
+            ->withTimestamps();
     }
 
     public function shippingMethods()

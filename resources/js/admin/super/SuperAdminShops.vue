@@ -13,7 +13,7 @@
                 <v-card>
                     <v-text-field density="compact" variant="outlined" class="pa-2" hide-details
                                   placeholder="Search Shop..." persistentPlaceholder label="Search Shop"></v-text-field>
-                    <v-data-table :items="allshops" :search="shopsearch" :headers="allshopsHeader"
+                    <v-data-table :items="allshops" :search="shopsearch" :headers="allshopsHeader" hover
                                   itemsPerPage="50" :hideDefaultFooter="allshops?.length < 50">
                         <template #item.shop_name="{item}">
                             <div class="d-flex flex-column ga-1 py-1">
@@ -28,6 +28,24 @@
                                 </div>
 
                             </div>
+                        </template>
+                        <template #item.users="{item}">
+                            <ul v-if="item?.users?.length">
+                                <li v-for="(user) in item.users" :key="user.id" class="border-b-sm my-1">
+                                    <div class="mb-1 d-flex ga-1">
+                                        <div class="d-flex flex-column">
+                                            <span class="font-weight-medium">{{user.name}}</span>
+                                            <span>{{user.email}}</span>
+                                        </div>
+                                        <v-chip size="small" density="compact" class="font-weight-medium" color="success">{{ user?.pivot?.role }}</v-chip>
+                                    </div>
+                                </li>
+                            </ul>
+
+                           <v-btn @click="openAddDialog(item)" density="comfortable" color="info" variant="tonal" size="small"
+                                  prependIcon="mdi-account-plus" class="mb-1">
+                               add User
+                           </v-btn>
                         </template>
                         <template #item.subdomain="{item}">
                             <div>
@@ -140,6 +158,23 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-dialog v-model="addUserDialog" maxWidth="400">
+            <v-card>
+                <v-form v-model="addValid" @submit.prevent="addNewUser">
+                    <v-card-title>Add User {{selectedShop.shop_name}}</v-card-title>
+                    <v-card-text>
+                        <v-text-field v-model="addForm.name" :rules="nameRule" label="Name" variant="underlined" density="comfortable"/>
+                        <v-text-field v-model="addForm.email" :rules="emailRule" label="Email" variant="underlined" density="comfortable"/>
+                        <v-select v-model="addForm.role" :items="roles" :rules="[rules.required]" label="Role" variant="underlined" density="comfortable"/>
+                        <v-text-field v-model="addForm.password" :rules="passwordRule" label="Password" variant="underlined" density="comfortable"/>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-btn @click="addUserDialog = false" color="red" variant="outlined" density="comfortable">Cancel</v-btn>
+                        <v-btn type="submit" :disabled="!addValid" color="success" variant="elevated" density="comfortable">Create</v-btn>
+                    </v-card-actions>
+                </v-form>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 <script>
@@ -151,10 +186,13 @@ export default {
         return {
             shopsearch:"",
             shopDialog: false,
+            addValid: false,
+            addUserDialog: false,
             selectedShop: null,
             allshopsHeader:[
                 {title:'Shop',key:'shop_name'},
                 {title:'Domain',key:'subdomain'},
+                {title:'Users / Role',key:'users'},
                 {title:'Status',key:'shop_status'},
                 {title:'Plan',key:'stripe_id'},
                 {title:'Actions',key:'actions'},
@@ -172,6 +210,25 @@ export default {
             rules: {
                 required: v => !!v || 'Required',
                 slug: v => /^[a-z0-9-]+$/.test(v) || 'Only lowercase, numbers, hyphen'
+            },
+            nameRule: [
+                v => !!v || 'Name is Required',
+                v => (v && v.length >= 3) || 'Name must be at least 3 characters'
+            ],
+            emailRule: [
+                v => !!v || 'Email is Required',
+                v => /.+@.+\..+/.test(v) || 'Email must be valid'
+            ],
+            passwordRule: [
+                v => !!v || 'Password is Required',
+                v => (v && v.length >= 5) || 'Password must be at least 5 characters'
+            ],
+            roles:['owner','staff','developer'],
+            addForm: {
+                email:"",
+                name:"",
+                role:"staff",
+                password:"",
             }
         }
     },
@@ -219,7 +276,6 @@ export default {
             this.errors = {}
             this.slugAvailable = true // already valid
             this.slugTouched = true
-
             this.shopDialog = true
         },
         async switchShop(shopId) {
@@ -270,7 +326,30 @@ export default {
             this.debounceTimer = setTimeout(() => {
                 this.checkSlug(val)
             }, 500)
-        }
+        },
+        openAddDialog(item){
+            this.selectedShop = item;
+            this.addUserDialog = true;
+        },
+        addNewUser(){
+            const adata = {
+                shop_id:this.selectedShop.shop_id,
+                name:this.addForm.name,
+                email:this.addForm.email,
+                role:this.addForm.role,
+                password:this.addForm.password,
+            }
+            axios.post('/superadmin/shops/assign-user',adata)
+                .then((resp)=>{
+                    window.Toast.success(resp.data.message);
+                    this.addUserDialog = false;
+                    this.addForm.name = "";
+                    this.addForm.email = "";
+                    this.addForm.role = "";
+                    this.addForm.password = "";
+                    this.fetchShops();
+                })
+        },
     },
     watch: {
         'shopForm.shop_name'(val) {
