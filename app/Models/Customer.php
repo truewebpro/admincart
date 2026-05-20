@@ -35,4 +35,10 @@ class Customer extends Authenticatable  implements JWTSubject
     {
         return $this->hasMany(Order::class, 'customer_id', 'customer_id');
     }
+
+    public function defaultaddress(){
+        return $this->hasOne(CustomerAddress::class, 'customer_id', 'customer_id')
+            ->where('is_default', true);
+    }
+    
 }

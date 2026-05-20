@@ -2488,28 +2488,67 @@ class HomeController extends Controller
         }
     }
 
-    public function allCustomers()
+    public function allCustomers(Request $request)
     {
         $shopId = session('shop_id');
+        $search = $request->search;
+        $status = $request->status;
+        $query = Customer::query()->with(['defaultaddress'])
+            ->join('customer_shops', 'customer_shops.customer_id', '=', 'customers.customer_id')
+            ->where('customer_shops.shop_id','=',$shopId)
+            ->select('customers.*','customer_shops.ctags','customer_shops.shop_id','customer_shops.status as cstatus')
+            ->withCount([
+                'orders as ordercount' => function ($q) use ($shopId) {
+                    $q->where('shop_id', $shopId);
+                }
+            ])
+            ->withSum([
+                'orders as amount_spent' => function ($q) use ($shopId) {
+                    $q->where('shop_id', $shopId);
+                }
+            ], 'order_total');
+        if ($search) {
+            $terms = preg_split('/\s+/', trim($search));
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $q->where(function ($subQ) use ($term) {
+                        $subQ->where('customers.fname', 'LIKE', "%{$term}%")
+                            ->orWhere('customers.lname', 'LIKE', "%{$term}%")
+                            ->orWhere('customers.email', 'LIKE', "%{$term}%")
+                            ->orWhere('customers.phone', 'LIKE', "%{$term}%");
+                    });
+                }
+            });
+        }
+        if ($status && $status !== 'All') {
+            $query->where('customer_shops.status', $status);
+        }
+        $allowedSorts = [
+            'fname' => 'customers.fname',
+            'email' => 'customers.email',
+            'created_at' => 'customers.created_at',
+            'ordercount' => 'ordercount',
+            'amount_spent' => 'amount_spent',
+        ];
+        $sortBy = $allowedSorts[$request->sort_by]
+            ?? 'customers.created_at';
+        $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+        $perPage = (int) $request->per_page;
+        if ($perPage === -1) {
+            $perPage = min($query->count(), 500);
+        } else {
+            $perPage = $perPage > 0 ? min($perPage, 500) : 50;
+        }
+        $customers = $query->paginate($perPage);
+        $customers->getCollection()->transform(function ($customer) {
+            $customer->ctags = json_decode($customer->ctags, true);
+            return $customer;
+        });
         $shopusers = ShopUser::join('users','users.id','=','shop_users.user_id')
             ->whereNot('shop_users.role' ,'=','superadmin')
             ->select('shop_users.*','users.name','users.email','users.email_verified_at')
             ->where('shop_id','=',$shopId)->get();
-        $customers = Customer::join('customer_shops','customer_shops.customer_id','=','customers.customer_id')
-            ->where('customer_shops.shop_id','=',$shopId)
-            ->select('customers.*','customer_shops.ctags','customer_shops.shop_id','customer_shops.status as cstatus')
-            ->orderBy('customers.created_at','desc')
-            ->get();
-        foreach($customers as $customer){
-            $customer['ctags'] = json_decode($customer->ctags,true);
-            $orders = Order::where('customer_id','=',$customer->customer_id)
-                ->where('shop_id','=',$shopId)->get();
-            $customer['ordercount'] = count($orders);
-            $customer['amount_spent'] = $orders->sum('order_total');
-            $defaultAddress = CustomerAddress::where('customer_id','=',$customer->customer_id)
-                ->where('is_default','=',true)->first();
-            $customer['defaultaddress'] = $defaultAddress;
-        }
         return response()->json([
             'shopusers' => $shopusers,
             'customers' => $customers
