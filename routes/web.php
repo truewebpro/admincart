@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MailtrapController;
 use App\Http\Controllers\SuperadminController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -69,6 +70,8 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/shops/check-slug', [SuperadminController::class, 'checkSlug']);
         Route::post('/shops/{shop_id}/status', [SuperadminController::class, 'toggleShopStatus']);
         Route::get('/plans', [SuperadminController::class, 'plans']);
+        Route::get('/mailtrap/contacts/list', [MailtrapController::class, 'getMailtrapLists']);
+        Route::post('/mailtrap/contacts/list', [MailtrapController::class, 'createMailtrapList']);
     });
     Route::prefix('sadmin')->group(function(){
         Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');

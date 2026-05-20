@@ -17,6 +17,7 @@ const store = createStore({
             processing: 0,
         },
         alinks:[],
+        mlists:[],
         role: null,
         shops: [],
         contextLoaded: false,
@@ -138,6 +139,9 @@ const store = createStore({
         SET_ALL_SHOPS(state, shops) {
             state.allshops = shops
         },
+        SET_MAILTRAP_LISTS(state, lists) {
+            state.mlists = lists
+        },
         SET_CONTEXT(state, data) {
             state.shop_id = data.shop_id
             state.role = data.user_role
@@ -201,6 +205,10 @@ const store = createStore({
         async fetchAllShops({ commit }) {
             const res = await axios.get('/superadmin/shops')
             commit('SET_ALL_SHOPS', res.data.shops);
+        },
+        async fetchMailtrapList({ commit }) {
+            const res = await axios.get('/superadmin/mailtrap/contacts/list')
+            commit('SET_MAILTRAP_LISTS', res.data.lists);
         },
         async loadContext({ commit }, force = false) {
             if (!force && this.state.contextLoaded) return

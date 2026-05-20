@@ -18,6 +18,14 @@
                         <template #item.shop_name="{item}">
                             <div class="d-flex flex-column ga-1 py-1">
                                 <div>
+                                    <div v-if="item?.maindomain">
+                                        <v-btn class="text-none" variant="text" color="success" density="compact">{{item.maindomain}}</v-btn>
+                                    </div>
+                                    <div v-else>
+                                        <v-btn class="text-none" variant="text" color="success" density="compact">{{item.subdomain}}</v-btn>
+                                    </div>
+                                </div>
+                                <div>
                                     Name: <span class="font-weight-medium">{{item.shop_name}}</span>
                                 </div>
                                 <div>
@@ -26,7 +34,6 @@
                                 <div>
                                     Order Prefix: <span class="font-weight-medium">{{item.order_prefix}}</span>
                                 </div>
-
                             </div>
                         </template>
                         <template #item.users="{item}">
@@ -47,14 +54,19 @@
                                add User
                            </v-btn>
                         </template>
-                        <template #item.subdomain="{item}">
-                            <div>
-                                <div v-if="item?.maindomain">
-                                    <v-btn class="text-none" variant="text" color="success" density="compact">{{item.maindomain}}</v-btn>
-                                </div>
-                                <div v-else>
-                                    <v-btn class="text-none" variant="text" color="success" density="compact">{{item.subdomain}}</v-btn>
-                                </div>
+                        <template #item.mailtrap_list="{item}">
+                            <div v-if="item?.mailtrap_list">
+                                <div class="font-weight-medium">ID: {{item?.mailtrap_list?.list_id}}</div>
+                                <div>{{item?.mailtrap_list?.list_name}}</div>
+                            </div>
+                            <div v-else class="text-grey">
+                                Mailtrap not Active
+                                <v-btn @click="createMailTrapList(item)"
+                                       :loading="mailLoading"
+                                       density="comfortable" variant="outlined"
+                                       color="success" prependIcon="mdi-email-sync-outline">
+                                    Add Mailtrap
+                                </v-btn>
                             </div>
                         </template>
                         <template #item.shop_status="{item}">
@@ -188,11 +200,12 @@ export default {
             shopDialog: false,
             addValid: false,
             addUserDialog: false,
+            mailLoading: false,
             selectedShop: null,
             allshopsHeader:[
                 {title:'Shop',key:'shop_name'},
-                {title:'Domain',key:'subdomain'},
                 {title:'Users / Role',key:'users'},
+                {title:'Mailtrap',key:'mailtrap_list'},
                 {title:'Status',key:'shop_status'},
                 {title:'Plan',key:'stripe_id'},
                 {title:'Actions',key:'actions'},
@@ -234,7 +247,10 @@ export default {
     },
     computed:{
         allshops() {
-            return this.$store.state.allshops
+            return this.$store.state.allshops;
+        },
+        mlists(){
+            return this.$store.state.mlists;
         },
         isEdit() {
             return !!this.selectedShop
@@ -246,11 +262,34 @@ export default {
         }
     },
     mounted() {
-        this.fetchShops()
+        this.fetchShops();
+        this.fetchmLists();
     },
     methods:{
         fetchShops() {
             this.$store.dispatch('fetchAllShops')
+        },
+        fetchmLists(){
+            this.$store.dispatch('fetchMailtrapList')
+        },
+        async createMailTrapList(shop){
+            this.mailLoading = true;
+            const cdata = {
+                shop_id:shop.shop_id,
+                name:shop.shop_slug,
+            }
+
+            try {
+                const resp = await axios.post('/superadmin/mailtrap/contacts/list',cdata);
+                window.Toast.success('Mailtrap active')
+                this.fetchShops();
+                this.fetchmLists();
+            } catch (e) {
+                console.log('error:',e)
+            } finally {
+                this.mailLoading = false;
+            }
+            console.log('cdata',cdata)
         },
         openCreate() {
             this.selectedShop = null

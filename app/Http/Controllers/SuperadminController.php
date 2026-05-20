@@ -28,7 +28,7 @@ class SuperadminController extends Controller
 
     public function allShops()
     {
-        $shops = Shop::with('users')->latest()->get();
+        $shops = Shop::with('users','mailtrapList')->latest()->get();
 
         return response()->json([
             'success' => true,

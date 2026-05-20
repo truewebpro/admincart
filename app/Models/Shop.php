@@ -109,4 +109,13 @@ class Shop extends Model
     {
         return $this->hasMany(\Laravel\Cashier\SubscriptionItem::class, 'shop_id', 'shop_id');
     }
+
+    public function mailtrapList():HasOne
+    {
+        return $this->hasOne(
+            ShopMailtrapList::class,
+            'shop_id',
+            'shop_id'
+        );
+    }
 }
