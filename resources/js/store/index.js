@@ -200,7 +200,7 @@ const store = createStore({
         },
         async fetchAllShops({ commit }) {
             const res = await axios.get('/superadmin/shops')
-            commit('SET_ALL_SHOPS', res.data.shops)
+            commit('SET_ALL_SHOPS', res.data.shops);
         },
         async loadContext({ commit }, force = false) {
             if (!force && this.state.contextLoaded) return
@@ -222,9 +222,9 @@ const store = createStore({
                     throw new Error('Switch failed')
                 }
                 commit('SET_SHOP', shopId)
-                commit('RESET_ALL_DATA')
                 await dispatch('loadContext', true)
                 await dispatch('fetchShopResources', true)
+                await dispatch('fetchOrderStats')
             } catch (e) {
                 console.error('Switch shop failed', e)
             } finally {
