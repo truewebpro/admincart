@@ -40,12 +40,12 @@
                                </v-tooltip>
                            </template>
                            <v-list density="compact">
-                               <v-list-item title="Last Update" />
-                               <v-list-item title="Amount Spent" />
-                               <v-list-item title="Total Orders" />
+                               <v-list-item @click="setSort('created_at')" title="Last Update" />
+                               <v-list-item @click="setSort('amount_spent')" title="Amount Spent" />
+                               <v-list-item @click="setSort('orderscount')" title="Total Orders" />
                                <v-divider/>
-                               <v-list-item title="A-Z" />
-                               <v-list-item title="Z-A" />
+                               <v-list-item @click="setDirection('asc')" title="A-Z" />
+                               <v-list-item @click="setDirection('desc')" title="Z-A" />
                            </v-list>
                        </v-menu>
                    </div>
@@ -187,7 +187,7 @@ export default {
         setDirection(direction) {
             this.sort_order = direction;
             this.sortBy = [{
-                key: this.sort_by || 'product_id',
+                key: this.sort_by || 'customer_id',
                 order: direction
             }];
             this.page = 1;
@@ -210,8 +210,8 @@ export default {
                     }
                 })
                 const respData = resp.data;
-                const allData = respData.customers || [];
-                this.custs = respData.customers.data;
+                const allData = respData.customers;
+                this.custs = allData.data || [];
                 this.totalItems = allData.total;
                 this.page = allData.current_page;
             } catch (e) {
