@@ -72,6 +72,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/plans', [SuperadminController::class, 'plans']);
         Route::get('/mailtrap/contacts/list', [MailtrapController::class, 'getMailtrapLists']);
         Route::post('/mailtrap/contacts/list', [MailtrapController::class, 'createMailtrapList']);
+        Route::get('/sync-mailtrap-customers', [MailtrapController::class, 'syncAllCustomers']);
     });
     Route::prefix('sadmin')->group(function(){
         Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
@@ -129,6 +130,8 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/inventory',[HomeController::class,'allInventory']);
         Route::post('/inventory/update',[HomeController::class,'updateInventory']);
         Route::get('/customers',[HomeController::class,'allCustomers']);
+        Route::post('/mailtrap/sync-customers',[HomeController::class,'syncCustomers']);
+        Route::post('/mailtrap/update-customer/{cshopId}', [HomeController::class, 'updateCustomer']);
         Route::get('/customer/details/{customer_id}',[HomeController::class,'getCustomerByID']);
         Route::post('/customer/add-new',[HomeController::class,'addNewCustomer']);
         Route::post('/customer/check-exists',[HomeController::class,'checkCustomerExists']);

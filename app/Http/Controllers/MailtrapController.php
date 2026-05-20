@@ -2,21 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CustomerShop;
 use App\Models\MailtrapAccount;
 use App\Models\ShopMailtrapList;
+use App\Services\MailtrapService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class MailtrapController extends Controller
 {
-    public function getMailtrapLists()
+    public function getMailtrapLists(MailtrapService $mailtrapService)
     {
-//        $account = MailtrapAccount::find($accountId);
         $account = MailtrapAccount::first();
-        $response = Http::withToken($account->api_key)
-            ->acceptJson()
-            ->get('https://mailtrap.io/api/contacts/lists');
-
+        $response = $mailtrapService->getLists($account);
         return response()->json([
             'status' => $response->status(),
             'success' => $response->successful(),
@@ -24,22 +22,15 @@ class MailtrapController extends Controller
         ]);
     }
 
-    public function createMailtrapList(Request $request)
+    public function createMailtrapList(Request $request,MailtrapService $mailtrapService)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'shop_id' => 'required|exists:shops,shop_id',
         ]);
         $account = MailtrapAccount::first();
-        $response = Http::withHeaders([
-            'Api-Token' => $account->api_key,
-            'Accept' => 'application/json',
-        ])->post(
-            'https://mailtrap.io/api/contacts/lists',
-            [
-                'name' => $request->name,
-            ]
-        );
+        $response = $mailtrapService->createList($account, $request->name);
+
         if (!$response->successful()) {
             return response()->json([
                 'success' => false,
@@ -63,6 +54,33 @@ class MailtrapController extends Controller
             'success' => true,
             'list' => $list,
             'mapping' => $mapping,
+        ]);
+    }
+
+    public function syncAllCustomers(MailtrapService $mailtrapService)
+    {
+        $customerShops = CustomerShop::with(['customer','shop'])
+            ->where('mailtrap_synced', false)
+            ->whereNull('mailtrap_contact_id')
+            ->whereHas('customer', function ($q) {
+                $q->whereNotNull('email');
+            })
+            ->get();
+        $success = 0;
+        $failed = 0;
+        foreach ($customerShops as $customerShop) {
+            $synced = $mailtrapService
+                ->syncCustomer($customerShop);
+            if ($synced) {
+                $success++;
+            } else {
+                $failed++;
+            }
+        }
+        return response()->json([
+            'success' => true,
+            'synced' => $success,
+            'failed' => $failed,
         ]);
     }
 

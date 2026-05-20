@@ -49,6 +49,12 @@
                            </v-list>
                        </v-menu>
                    </div>
+                   <div v-if="selectedCustomers.length > 0" class="mb-2 px-2">
+                       <v-btn variant="text" density="compact" class="font-weight-bold text-none">{{selectedCustomers.length}} Selected</v-btn>
+                       <v-btn :disabled="selectedCustomers.length === 0" density="compact" color="success" @click="syncSelectedCustomers">
+                           Sync Selected
+                       </v-btn>
+                   </div>
                    <div>
                        <v-data-table-server
                            v-model:page="page"
@@ -59,6 +65,9 @@
                            :items-length="totalItems"
                            :items-per-page="itemsPerPage"
                            hover
+                           show-select
+                           v-model="selectedCustomers"
+                           returnObject
                            :loading="isLoading"
                            @update:options="loadItems"
                            density="comfortable"
@@ -105,6 +114,22 @@
                                    </v-chip>
                                </div>
                            </template>
+                           <template #item.mailtrap_synced="{ item }">
+                               <v-chip v-if="item.mailtrap_synced" color="success" density="compact" variant="tonal">
+                                   Synced
+                               </v-chip>
+                               <v-chip v-else color="warning" density="compact" variant="tonal">
+                                   Pending
+                               </v-chip>
+                               <div class="mt-1">
+                                   <div v-if="item.mailtrap_contact_id" class="text-caption">
+                                       contact Updated
+                                   </div>
+                                   <v-btn v-else size="small" variant="outlined" density="compact" @click="updateContact(item)">
+                                       Update Contact
+                                   </v-btn>
+                               </div>
+                           </template>
                        </v-data-table-server>
                    </div>
                </v-card>
@@ -143,7 +168,9 @@ export default {
                 {title:'Orders',key:'ordercount'},
                 {title:'Amount Spent',key:'amount_spent'},
                 {title:'Tags',value:'ctags'},
-            ]
+                {title:'Mailtrap',value:'mailtrap_synced'},
+            ],
+            selectedCustomers:[]
         }
     },
     created() {
@@ -220,6 +247,24 @@ export default {
                 this.isLoading = false;
             }
 
+        },
+        async syncSelectedCustomers(){
+            try {
+                await axios.post('/sadmin/mailtrap/sync-customers', {
+                        ids: this.selectedCustomers.map(i => i.cshop_id)
+                    });
+                await this.getAllCusts();
+            } catch (e) {
+                console.error(e);
+            }
+        },
+        async updateContact(item){
+            try {
+                await axios.post(`/sadmin/mailtrap/update-customer/${item.cshop_id}`);
+                await this.getAllCusts();
+            } catch (e) {
+                console.error(e);
+            }
         },
         exportToCSV() {
             const headers = ['FirstName','LastName' ,'Email', 'Location','Country', 'Orders', 'Amount Spent', 'Tags'];

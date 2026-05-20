@@ -61,6 +61,7 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Models\Variant;
 use App\Models\VivaPayment;
+use App\Services\MailtrapService;
 use App\Services\SmartCategoryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -2496,7 +2497,11 @@ class HomeController extends Controller
         $query = Customer::query()->with(['defaultaddress'])
             ->join('customer_shops', 'customer_shops.customer_id', '=', 'customers.customer_id')
             ->where('customer_shops.shop_id','=',$shopId)
-            ->select('customers.*','customer_shops.ctags','customer_shops.shop_id','customer_shops.status as cstatus')
+            ->select('customers.*','customer_shops.cshop_id','customer_shops.ctags','customer_shops.shop_id',
+                'customer_shops.status as cstatus','customer_shops.mailtrap_contact_id',
+                'customer_shops.mailtrap_synced',
+                'customer_shops.mailtrap_synced_at',
+                'customer_shops.mailtrap_last_error')
             ->withCount([
                 'orders as ordercount' => function ($q) use ($shopId) {
                     $q->where('shop_id', $shopId);
@@ -2553,6 +2558,37 @@ class HomeController extends Controller
             'shopusers' => $shopusers,
             'customers' => $customers
         ],200);
+    }
+
+    public function syncCustomers(Request $request,MailtrapService $mailtrapService)
+    {
+        $customerShops = CustomerShop::with(['customer','shop'])
+            ->whereIn('cshop_id', $request->ids)
+            ->get();
+        $success = 0;
+        $failed = 0;
+        foreach ($customerShops as $customerShop) {
+            $synced = $mailtrapService->syncCustomer($customerShop);
+            if ($synced) {
+                $success++;
+            } else {
+                $failed++;
+            }
+        }
+        return response()->json([
+            'success' => true,
+            'synced' => $success,
+            'failed' => $failed,
+        ]);
+    }
+
+    public function updateCustomer($cshopId, MailtrapService $mailtrapService)
+    {
+        $customerShop = CustomerShop::with(['customer', 'shop'])->findOrFail($cshopId);
+        $synced = $mailtrapService->syncCustomer($customerShop);
+        return response()->json([
+            'success' => $synced
+        ]);
     }
 
     public function checkCustomerExists(Request $request)

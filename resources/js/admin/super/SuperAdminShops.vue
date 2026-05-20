@@ -4,8 +4,9 @@
             <v-col cols="12" md="6">
                 <h2>Shops List</h2>
             </v-col>
-            <v-col cols="12" md="6" class="text-end">
+            <v-col cols="12" md="6" class="text-end d-flex ga-1 justify-end">
                 <v-btn color="primary" density="comfortable" @click="openCreate">Add New Shop</v-btn>
+<!--                <v-btn color="primary" density="comfortable" @click="syncCustomers">Sync Customers</v-btn>-->
             </v-col>
         </v-row>
         <v-row>
@@ -389,6 +390,14 @@ export default {
                     this.fetchShops();
                 })
         },
+        async syncCustomers(){
+            try {
+                const resp = await axios.get('/superadmin/sync-mailtrap-customers');
+                window.Toast.success(`${resp.data.synced} synced`);
+            } catch (e) {
+                window.Toast.error('Sync failed');
+            }
+        }
     },
     watch: {
         'shopForm.shop_name'(val) {

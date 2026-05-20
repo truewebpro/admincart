@@ -19,8 +19,6 @@ return new class extends Migration
             $table->string('list_name');
             $table->boolean('enabled')->default(true);
             $table->boolean('sync_customers')->default(true);
-            $table->timestamp('last_synced_at')->nullable();
-            $table->text('last_error')->nullable();
             $table->timestamps();
 
             $table->unique(['shop_id']);
