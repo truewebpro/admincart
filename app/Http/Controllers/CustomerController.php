@@ -252,6 +252,19 @@ class CustomerController extends Controller
         ]);
     }
 
+    public function allAddresses(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $customer = auth()->guard('customer')->user();
+        $addresses = CustomerAddress::where('customer_id','=',$customer->customer_id)
+            ->orderBy('is_default','desc')
+            ->get();
+        return response()->json([
+            'success' => true,
+            'addresses' => $addresses,
+        ]);
+    }
+
     public function recentOrders(Request $request)
     {
         $shopId = $request->shop_id;
