@@ -58,6 +58,7 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/smethods',[ShopController::class,'shippingOptions']);
     Route::get('/pmethods',[ShopController::class,'paymentOptions']);
     Route::get('/blogs/all',[ShopController::class,'allBlogs']);
+    Route::get('/all-blogs',[ShopController::class,'getAllBlogs']);
     Route::get('/blogs/{blog_slug}',[ShopController::class,'getBlogbySlug']);
     Route::get('/blogs/comments/{blogId}', [CommentController::class, 'getBlogComments']);
     Route::get('/policies/{policy_slug}',[ShopController::class,'getPolicyBySlug']);

@@ -750,6 +750,7 @@ class ShopController extends Controller
     public function getAllProducts(Request $request,$shopname)
     {
         $shopId = $request->shop_id;
+        $rquery = $request->q;
         $query = Product::query()
             ->select('product_id','title','handle','featured_image','product_status','product_type_id', 'brand_id','tags')
             ->with('variants.astock','brand','ptype')
@@ -758,6 +759,14 @@ class ShopController extends Controller
             ->withSum('astock','quantity')
             ->where('shop_id','=',$shopId)
             ->where('product_status','=', 'Active');
+
+        if (!empty($rquery)) {
+            $query->where(function ($q) use ($rquery) {
+                foreach (explode(' ', trim($rquery)) as $word) {
+                    $q->where('title', 'LIKE', "%{$word}%");
+                }
+            });
+        }
         if ($request->brand) {
             $query->where('brand_id', $request->brand);
         }
@@ -913,6 +922,19 @@ class ShopController extends Controller
         ]);
     }
 
+    public function getAllBlogs(Request $request,$shopname)
+    {
+        $shopId = $request->shop_id;
+        $blogs = Blog::where('shop_id','=',$shopId)
+            ->where('blog_status','=','active')
+            ->latest()
+            ->paginate(12);
+        return response()->json([
+            'status' => true,
+            'blogs' => $blogs,
+        ]);
+    }
+
     public function getBlogbySlug(Request $request,$shopname,$blog_slug)
     {
         $shopId = $request->shop_id;
@@ -967,7 +989,7 @@ class ShopController extends Controller
         $blog->asections = $sectionsWithExtras;
         $rblogs = Blog::where('shop_id','=',$shopId)
             ->whereNotIn('blogs.blog_id', [$blog->blog_id])
-            ->orderBy('created_at','DESC')->get();
+            ->orderBy('created_at','DESC')->limit(6)->get();
         if($blog != null){
             return response()->json([
                 'status' => true,
@@ -1058,9 +1080,20 @@ class ShopController extends Controller
             })
             ->limit(24)->orderBy('updated_at','DESC')
             ->get();
+
+        $brands = Brand::query()
+            ->select('brand_id', 'brand_name')
+            ->where('shop_id','=',$shopId)
+            ->get();
+        $ptypes = ProductType::query()
+            ->select('product_type_id', 'product_type_name')
+            ->where('shop_id','=',$shopId)
+            ->get();
         return response()->json([
             'success' => !$products->isEmpty(),
-            'products' => $products->isEmpty() ? null : $products
+            'products' => $products->isEmpty() ? null : $products,
+            'brands' => $brands->isEmpty() ? null : $brands,
+            'ptypes' => $ptypes->isEmpty() ? null : $ptypes,
         ]);
     }
 

@@ -231,7 +231,6 @@ const store = createStore({
                 }
                 commit('SET_SHOP', shopId)
                 await dispatch('loadContext', true)
-                await dispatch('fetchShopResources', true)
                 await dispatch('fetchOrderStats')
             } catch (e) {
                 console.error('Switch shop failed', e)
