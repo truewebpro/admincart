@@ -22,6 +22,7 @@ use App\Models\ProductType;
 use App\Models\Proreview;
 use App\Models\Searchtag;
 use App\Models\Section;
+use App\Models\Setting;
 use App\Models\ShipMethod;
 use App\Models\Shop;
 use App\Models\ShopPaymentMethod;
@@ -68,6 +69,17 @@ class ShopController extends Controller
             'message' => 'Home Metas',
             'homemetas' => $homemetas,
             'shop' => $shop,
+        ]);
+    }
+
+    public function getShopSetting(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $setting = Setting::where('shop_id', $shopId)->first();
+        return response()->json([
+            'success' => true,
+            'message' => 'Shop Setting',
+            'setting' => $setting,
         ]);
     }
 
