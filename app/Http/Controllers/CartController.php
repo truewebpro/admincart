@@ -69,6 +69,7 @@ class CartController extends Controller
                 'subtotal' => $cart->subtotal,
                 'discount_amount' => $cart->discount_amount,
                 'shipping_amount' => $cart->shipping_amount,
+                'shipping_cost' => $cart->shipping_cost,
                 'tax_amount' => $cart->tax_amount,
                 'cart_total' => $cart->cart_total,
                 'cart_version' => $cart->cart_version,
@@ -232,7 +233,14 @@ class CartController extends Controller
         $item->price = $variant->price;
         $item->quantity = ($item->exists ? $item->quantity : 0) + $qty;
         $item->line_total = $item->price * $item->quantity;
-        $item->options_json = $request->options ?? [];
+//        $item->options_json = $request->options ?? [];
+//        $item->options_json = $variant->option_values ?? [];
+        $item->options_json = collect($variant->option_values ?? [])->map(function ($value, $key) {
+            return [
+                'name' => $key,
+                'value' => $value,
+            ];
+        })->values()->toArray();
 
         $item->save();
     }
@@ -254,6 +262,10 @@ class CartController extends Controller
         if($request->newQty <= 0){
             $item->delete();
             return;
+        }
+        $stock = $this->getVariantStock($request->variant_id);
+        if ($stock !== null && $request->newQty > $stock) {
+            abort(422, 'Not enough stock');
         }
 
         $item->quantity = $request->newQty;
@@ -765,7 +777,14 @@ class CartController extends Controller
         $cart->update([
             'items_count' => $itemCount,
             'subtotal' => $subtotal,
-            'cart_total' => $subtotal,
+            'cart_total' =>
+                (float)$subtotal
+                +
+                (float)$cart->shipping_cost
+                -
+                (float)$cart->discount_amount
+                +
+                (float)$cart->tax_amount,
             'last_activity_at' => now(),
             'expires_at' => now()->addHours(48),
             'cart_version' => $cart->cart_version + 1

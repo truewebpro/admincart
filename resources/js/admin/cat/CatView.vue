@@ -346,6 +346,7 @@
                 :categories="pcats"
                 :banners="allBanners"
                 :brands="pbrands"
+                :alink="alinks"
                 @save="updateSection"
             />
             <v-dialog v-model="deleteSectionDialog" max-width="400" transition="dialog-bottom-transition">
@@ -406,6 +407,7 @@ import SlideShowPreview from "@/components/previews/SlideShowPreview.vue";
 import FeaturedOptionsPreview from "@/components/previews/FeaturedOptionsPreview.vue";
 import PeopleSearchPreview from "@/components/previews/PeopleSearchPreview.vue";
 import VideoWithTextPreview from "@/components/previews/VideoWithTextPreview.vue";
+import FeaturedLinksPreview from "@/components/previews/FeaturedLinksPreview.vue";
 export default {
     name:"CatView",
     components:{QuillEditor, VFileUpload,
@@ -420,6 +422,7 @@ export default {
         ServicesPromoPreview,
         TextSectionPreview,
         FeaturedCollectionsPreview,
+        FeaturedLinksPreview,
         SlideShowPreview,
         FeaturedOptionsPreview,
         PeopleSearchPreview,
@@ -441,6 +444,9 @@ export default {
         }
     },
     computed:{
+        alinks(){
+            return this.$store.state.alinks;
+        },
         plainTextDesc() {
             return this.cat.cat_desc
                 .replace(/<br\s*\/?>/gi, '\n')
@@ -637,6 +643,9 @@ export default {
             },
             newrImage:null,
         }
+    },
+    mounted() {
+        this.$store.dispatch('fetchAlinks');
     },
     created() {
         this.getCategory();
@@ -982,6 +991,7 @@ export default {
                 services_promo: "ServicesPromoPreview",
                 text_section: "TextSectionPreview",
                 featured_collections: "FeaturedCollectionsPreview",
+                featured_links: "FeaturedLinksPreview",
                 slide_show: "SlideShowPreview",
                 featured_options: "FeaturedOptionsPreview",
                 people_search: "PeopleSearchPreview",
