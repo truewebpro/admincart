@@ -640,7 +640,7 @@ export default{
             axios.post('/sadmin/product/new',nprod,uheaders)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
-                    this.$router.push({name:'productview',params:{product_id:resp.data.product_id}});
+                    this.$router.push({name:'ProductEdit',params:{product_id:resp.data.product_id}});
                 })
                 .catch((err)=>{
                     window.Toast.error(err.message);
