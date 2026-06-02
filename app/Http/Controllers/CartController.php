@@ -31,7 +31,7 @@ class CartController extends Controller
                 'message' => 'cart_token missing'
             ],400);
         }
-        $cart = Acart::where('shop_id', $shopId)->where('is_active', true)->where('cart_token', $cartToken)->first();
+        $cart = Acart::with('applied_coupons')->where('shop_id', $shopId)->where('is_active', true)->where('cart_token', $cartToken)->first();
         if(!$cart){
             return response()->json([
                 'success' => true,
@@ -74,6 +74,7 @@ class CartController extends Controller
                 'cart_total' => $cart->cart_total,
                 'cart_version' => $cart->cart_version,
                 'checkout_id' => $cart->checkout_id,
+                'applied_coupons' => $cart->applied_coupons,
             ],
             'items' => $items
         ]);
@@ -1000,7 +1001,8 @@ class CartController extends Controller
         $this->recalculateCouponCart($acart);
 
         return response()->json([
-            'success' => true
+            'success' => true,
+            'message' => 'Coupon Applied'
         ]);
     }
 

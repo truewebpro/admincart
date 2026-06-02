@@ -64,4 +64,9 @@ class Acart extends Model
             ->orderBy('created_at', 'DESC')
             ->orderBy('acart_event_id', 'DESC');;
     }
+
+    public function applied_coupons(): HasMany
+    {
+        return $this->hasMany(AcartCoupon::class, 'acart_id', 'acart_id');
+    }
 }
