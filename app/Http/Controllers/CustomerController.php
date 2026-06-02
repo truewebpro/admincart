@@ -119,10 +119,12 @@ class CustomerController extends Controller
             'fname' => 'required|string|max:100',
             'lname' => 'nullable|string|max:100',
             'email' => 'required|email',
+            'password' => 'required_if:create_account,true|min:6',
         ]);
         if ($validatorData->fails()) {
             return response()->json(['errors'=> $validatorData->errors()],422);
         }
+        $password = $request->create_account ? Hash::make($request->password) : Hash::make('123456');
         $existingCustomer = Customer::where('email','=',$request->email)->first();
         if($existingCustomer){
             $alreadyInShop = CustomerShop::where('customer_id','=',$existingCustomer->customer_id)
@@ -140,7 +142,7 @@ class CustomerController extends Controller
             $existingAddress = CustomerAddress::where('customer_id','=',$existingCustomer->customer_id)
                 ->exists();
             if(!$existingAddress){
-                CustomerAddress::create([
+                $address = CustomerAddress::create([
                     'customer_id'   => $existingCustomer->customer_id,
                     'address_title' => 'default',
                     'fname'         => $request->fname,
@@ -154,7 +156,7 @@ class CustomerController extends Controller
                     'is_default'   => true,
                 ]);
             } else {
-                CustomerAddress::create([
+                $address = CustomerAddress::create([
                     'customer_id'   => $existingCustomer->customer_id,
                     'address_title' => 'Shipping',
                     'fname'         => $request->fname,
@@ -169,13 +171,17 @@ class CustomerController extends Controller
                 ]);
             }
             $token = JWTAuth::fromUser($existingCustomer);
-            return response()->json(['token' => $token],200);
+            return response()->json([
+                'token' => $token,
+                'customer' => $existingCustomer,
+                'address' => $address,
+            ],200);
         }
         $customer = Customer::create([
             'fname' => $request->fname,
             'lname'    => $request->lname,
             'email'    => $request->email,
-            'password' => Hash::make('123456'),
+            'password' => $password,
             'phone' => $request->phone ?? null,
             'status'   => 'active',
         ]);
@@ -186,7 +192,7 @@ class CustomerController extends Controller
             'status'        => 'active',
             'ctags'         => ['b2c'],
         ]);
-        CustomerAddress::create([
+       $address = CustomerAddress::create([
             'customer_id'   => $customer->customer_id,
             'address_title' => 'default',
             'fname'         => $request->fname,
@@ -203,6 +209,7 @@ class CustomerController extends Controller
         return response()->json([
             'token' => $token,
             'customer' => $customer,
+            'address' => $address,
         ]);
     }
 
