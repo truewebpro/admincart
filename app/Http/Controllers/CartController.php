@@ -136,6 +136,7 @@ class CartController extends Controller
                     'quantity'=>$request->newQty
                 ]);
                 break;
+
             case "checkout_started":
                 $this->logEvent($cart,'checkout_started',[
                     'process' => 'Reached to Checkout',
@@ -210,9 +211,15 @@ class CartController extends Controller
 
         $this->recalculateCart($cart);
 
+        $cartItems = $cart->items()->with([
+            'product:product_id,title,handle,featured_image',
+            'variant:variant_id,sku,variant_image,option_values'
+        ])->get();
+
         return response()->json([
             'success' => true,
             'cart' => $cart,
+            'items' => $cartItems
         ]);
     }
 
@@ -296,6 +303,7 @@ class CartController extends Controller
             'cost'   => $request->shipping_cost
         ]);
     }
+
     private function updateShippingProtection($cart, $request)
     {
         $cart->update([
