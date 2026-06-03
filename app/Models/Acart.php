@@ -15,6 +15,7 @@ class Acart extends Model
         'shop_id',
         'cart_token',
         'customer_id',
+        'address_id',
         'order_id',
         'is_active',
         'ip_address',
@@ -35,13 +36,20 @@ class Acart extends Model
         'last_activity_at',
         'checkout_id',
         'payment_method',
+        'payment_fee',
         'shipping_method',
         'shipping_cost',
+        'shipping_protection_enabled',
+        'shipping_protection_fee',
+        'notes',
         'expires_at'
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'shipping_protection_enabled' => 'boolean',
+        'shipping_protection_fee' => 'float',
+        'payment_fee' => 'float',
     ];
 
     public function items(){

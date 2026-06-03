@@ -70,7 +70,12 @@ class CartController extends Controller
                 'discount_amount' => $cart->discount_amount,
                 'shipping_amount' => $cart->shipping_amount,
                 'shipping_cost' => $cart->shipping_cost,
+                'shipping_protection_enabled' => $cart->shipping_protection_enabled,
+                'shipping_protection_fee' => $cart->shipping_protection_fee,
+                'payment_method' => $cart->payment_method,
+                'payment_fee' => $cart->payment_fee,
                 'tax_amount' => $cart->tax_amount,
+                'notes' => $cart->notes,
                 'cart_total' => $cart->cart_total,
                 'cart_version' => $cart->cart_version,
                 'checkout_id' => $cart->checkout_id,
@@ -139,6 +144,10 @@ class CartController extends Controller
 
             case "shipping_selected":
                 $this->updateShipping($cart, $request);
+                break;
+
+            case "shipping_protection_updated":
+                $this->updateShippingProtection($cart, $request);
                 break;
 
             case "payment_selected":
@@ -287,16 +296,31 @@ class CartController extends Controller
             'cost'   => $request->shipping_cost
         ]);
     }
+    private function updateShippingProtection($cart, $request)
+    {
+        $cart->update([
+            'shipping_protection_enabled' => $request->shipping_protection_enabled,
+            'shipping_protection_fee'   => $request->shipping_protection_fee,
+            'cart_status'     => 'shipping_protection_updated'
+        ]);
+
+        $this->logEvent($cart, 'shipping_protection_updated', [
+            'shipping_protection_enabled' => $request->shipping_protection_enabled,
+            'shipping_protection_fee'   => $request->shipping_protection_fee,
+        ]);
+    }
 
     private function updatePayment($cart, $request)
     {
         $cart->update([
             'payment_method' => $request->payment_method,
+            'payment_fee' => $request->payment_fee ?? 0,
             'cart_status'    => 'payment_selected'
         ]);
 
         $this->logEvent($cart, 'payment_selected', [
-            'method' => $request->payment_method
+            'method' => $request->payment_method,
+            'payment_fee' => $request->payment_fee ?? 0,
         ]);
     }
 
@@ -304,6 +328,7 @@ class CartController extends Controller
     {
         $cart->update([
             'customer_id' => $request->customer_id,
+            'address_id' => $request->address_id ?? null,
             'cart_status' => 'customer_attached'
         ]);
 
@@ -785,6 +810,10 @@ class CartController extends Controller
                 -
                 (float)$cart->discount_amount
                 +
+                (float)$cart->payment_fee
+                +
+                (float)$cart->shipping_protection_fee
+                +
                 (float)$cart->tax_amount,
             'last_activity_at' => now(),
             'expires_at' => now()->addHours(48),
@@ -845,6 +874,35 @@ class CartController extends Controller
                 $product = Product::where('product_id', $item->product_id)
                     ->first();
                 $item['pimage'] = $product->featured_image ?? 'noimage.png';
+            }
+            return response()->json([
+                'success' => true,
+                'message' => 'Order placed successfully',
+                'order_id' => $request->order_id,
+                'corder' => $corder,
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found',
+                'order_id' => $request->order_id,
+                'corder' => null,
+            ]);
+        }
+    }
+
+    public function getOrderDetail(Request $request)
+    {
+        $user = auth()->guard('customer')->user();
+        $corder = Order::with('items')
+            ->where('order_id', $request->order_id)
+            ->where('customer_id', $user->customer_id)
+            ->first();
+        $productImages = Product::whereIn('product_id', $corder->items->pluck('product_id'))
+            ->pluck('featured_image', 'product_id');
+        if ($corder) {
+            foreach ($corder->items as $item) {
+                $item['pimage'] = $productImages[$item->product_id] ?? 'noimage.png';
             }
             return response()->json([
                 'success' => true,
