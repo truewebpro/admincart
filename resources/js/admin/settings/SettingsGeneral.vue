@@ -115,6 +115,10 @@
                             </v-radio-group>
                             <v-number-input v-model="setting.shipping_protection_fee"
                                             label="Shipping Protection Fee" variant="outlined" control-variant="split"
+                                            density="compact" :min="0" :precision="2" prefix="GBP">
+
+                            </v-number-input><v-number-input v-model="setting.free_delivery_amount"
+                                            label="Free Delivery Amount" variant="outlined" control-variant="split"
                                             density="compact" :min="0" :precision="2" prefix="GBP"></v-number-input>
 
                             <h4>Vat Included on Checkout</h4>
@@ -234,6 +238,7 @@ export default {
                 hide_price:false,
                 shipping_protection_enabled:false,
                 shipping_protection_fee:0,
+                free_delivery_amount:40,
             },
             settingValid:false,
         }
@@ -275,6 +280,7 @@ export default {
                 hide_price:this.setting.hide_price,
                 shipping_protection_enabled:this.setting.shipping_protection_enabled,
                 shipping_protection_fee:this.setting.shipping_protection_fee,
+                free_delivery_amount:this.setting.free_delivery_amount,
             }
             axios.post('/sadmin/shop/setting/update',sdata)
                 .then((resp)=>{

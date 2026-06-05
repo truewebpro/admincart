@@ -100,6 +100,7 @@ class HomeController extends Controller
                     'hide_price' => false,
                     'shipping_protection_enabled' => false,
                     'shipping_protection_fee' => 0,
+                    'free_delivery_amount' => 40,
                 ]
             );
             return response()->json([
@@ -183,6 +184,7 @@ class HomeController extends Controller
         $setting->hide_price = $request->hide_price;
         $setting->shipping_protection_enabled = $request->shipping_protection_enabled ?? false;
         $setting->shipping_protection_fee = $request->shipping_protection_fee ?? 0;
+        $setting->free_delivery_amount = $request->free_delivery_amount ?? 40;
         $setting->update();
         return response()->json([
             'success' => true,

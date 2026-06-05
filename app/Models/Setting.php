@@ -16,12 +16,14 @@ class Setting extends Model
         'hide_price',
         'shipping_protection_enabled',
         'shipping_protection_fee',
+        'free_delivery_amount',
     ];
 
     protected $casts = [
         'vat_included' => 'boolean',
         'hide_price' => 'boolean',
         'shipping_protection_enabled' => 'boolean',
+        'free_delivery_amount' => 'float',
     ];
 
     public $hidden = ['created_at', 'updated_at'];
