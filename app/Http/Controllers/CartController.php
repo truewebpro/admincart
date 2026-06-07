@@ -95,7 +95,8 @@ class CartController extends Controller
                 'message' => 'cart_token missing'
             ]);
         }
-        $cart = Acart::where('shop_id', $shopId)
+        $cart = Acart::with('applied_coupons')
+            ->where('shop_id', $shopId)
             ->where('cart_token', $cartToken)
             ->where('is_active', true)
             ->first();
@@ -218,6 +219,7 @@ class CartController extends Controller
 
         return response()->json([
             'success' => true,
+            'message' => $request->type." ". "success",
             'cart' => $cart,
             'items' => $cartItems
         ]);

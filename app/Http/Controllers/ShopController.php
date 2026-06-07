@@ -27,6 +27,7 @@ use App\Models\ShipMethod;
 use App\Models\Shop;
 use App\Models\ShopPaymentMethod;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 
 class ShopController extends Controller
@@ -877,28 +878,58 @@ class ShopController extends Controller
     public function siteMap(Request $request,$shopname)
     {
         $shopId = $request->shop_id;
-        $products = Product::where('shop_id','=',$shopId)
-            ->select('handle','updated_at')->get();
-        foreach ($products as $product) {
-            $product['handle'] = 'products/'.$product->handle;
-        }
-        $cats = Cat::where('shop_id','=',$shopId)
-            ->select('cat_slug as handle','updated_at')->get();
-        foreach ($cats as $cat) {
-            $cat['handle'] = 'collections/'.$cat->handle;
-        }
-        $brands = Brand::where('shop_id','=',$shopId)
-            ->select('brand_slug as handle','updated_at')->get();
-        foreach ($brands as $brand){
-            $brand['handle'] = 'brands/'.$brand->handle;
-        }
+        $urls = Cache::remember(
+            "sitemap_urls_{$shopId}",
+            now()->addHours(12),
+            function () use ($shopId){
+                $products = Product::where('shop_id', $shopId)
+                    ->selectRaw("CONCAT('products/', handle) as handle, updated_at")
+                    ->get();
+
+                $categories = Cat::where('shop_id', $shopId)
+                    ->selectRaw("CONCAT('collections/', cat_slug) as handle, updated_at")
+                    ->get();
+
+                $brands = Brand::where('shop_id', $shopId)
+                    ->selectRaw("CONCAT('brands/', brand_slug) as handle, updated_at")
+                    ->get();
+
+                return $products
+                    ->concat($categories)
+                    ->concat($brands)
+                    ->values();
+            }
+        );
         return response()->json([
             'status' => true,
-            'allurls' => [...$cats,...$products,...$brands],
-//            'products' => $products,
-//            'cats' => $cats,
-//            'brands' => $brands,
-        ],200);
+            'allurls' => $urls,
+        ]);
+//        $products = Product::where('shop_id','=',$shopId)
+//            ->select('handle','updated_at')->get()
+//            ->map(fn ($item) => [
+//                'handle' => 'products/' . $item->handle,
+//                'updated_at' => $item->updated_at,
+//            ]);
+//        $cats = Cat::where('shop_id','=',$shopId)
+//            ->select('cat_slug','updated_at')->get()
+//            ->map(fn ($item) => [
+//                'handle' => 'collections/' . $item->cat_slug,
+//                'updated_at' => $item->updated_at,
+//            ]);
+//        $brands = Brand::where('shop_id','=',$shopId)
+//            ->select('brand_slug','updated_at')->get()
+//            ->map(fn ($item) => [
+//                'handle' => 'brands/' . $item->brand_slug,
+//                'updated_at' => $item->updated_at,
+//            ]);
+//        return response()->json([
+//            'status' => true,
+//            'allurls' => $cats
+//                ->concat($brands)
+//                ->concat($products)
+//                ->values(),
+////            'allurls' => [...$cats,...$products,...$brands],
+//        ],200);
     }
 
     public function shippingOptions(Request $request,$shopname)
