@@ -27,7 +27,8 @@ class OrderPlacedMail extends Mailable
     {
         $this->order = $order;
         $this->shop = Shop::find($order->shop_id);
-        $this->preference = Preference::find($order->shop_id);
+//        $this->preference = Preference::find($order->shop_id);
+        $this->preference = Preference::firstWhere('shop_id', $order->shop_id);
     }
 
     /**
