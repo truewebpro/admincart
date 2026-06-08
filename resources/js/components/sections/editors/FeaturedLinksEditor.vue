@@ -5,11 +5,12 @@
             label="Heading"
         />
         <v-select v-model="localModel.stype_json.style" label="Style" density="compact" variant="underlined"
-                  :items="['style1','style1b','style2','style3','style4','style5','style5b','style6']" class="mb-2"
-                  hint="Style1 with Name shape & style1b transparent with button, Style2 With no Name Seen, Style3 with no Link, style4 links/name under image, style5 links/name in top & style5b bottom center of image, style6 circle with link/name" persistent-hint></v-select>
+                  :items="['style1','style1b','style2','style3','style4','style5','style5b','style6','style7a','style7b']"
+                  class="mb-2"
+                  hint="Style1 with Name shape & style1b transparent with button, Style2 With no Name Seen, Style3 with no Link, style4 links/name under image, style5 links/name in top & style5b bottom center of image, style6 circle with link/name style7a/style7b only links with box" persistent-hint></v-select>
         <SubtextEditor v-model="localModel.stype_json.subtext" />
         <v-row class="mt-4">
-            <v-col cols="12" lg="3" v-for="(alink, adx) in localModel.stype_json.alinks" :key="adx">
+            <v-col cols="12" :lg="localModel.stype_json.style === 'style7a' || localModel.stype_json.style === 'style7b' ? 2 : 3" v-for="(alink, adx) in localModel.stype_json.alinks" :key="adx">
                 <v-text-field v-model="alink.ctitle" variant="underlined" density="compact" label="Custom Title" persistentPlaceholder></v-text-field>
                 <v-autocomplete
                     v-if="localModel.stype_json.style !== 'style3'"

@@ -2,8 +2,10 @@
     <v-card class="pa-4">
         <h2>{{ section.section_json.stype_json.heading }}</h2>
         <div v-html="section.section_json.stype_json.subtext"></div>
-        <v-row class="mt-3">
-            <v-col cols="6" lg="3" v-for="(alink,sdx) in section.section_json.stype_json.alinks" :key="sdx">
+        <v-row class="mt-3" align="stretch" justify="center">
+            <v-col cols="6" md="3"
+                   :lg="section.section_json.stype_json.style === 'style7a' || section.section_json.stype_json.style === 'style7b' ? 2 : 3"
+                   v-for="(alink,sdx) in section.section_json.stype_json.alinks" :key="sdx">
                 <v-card v-if="section.section_json.stype_json.style === 'style1'" class="position-relative style1" >
                     <v-img v-if="alink.image_url" :src="cdn + alink.image_url" :aspect-ratio="4/5" cover position="top"></v-img>
                     <v-img v-else :src="cdn + 'noimage.png'" :aspect-ratio="4/5" cover position="top"></v-img>
@@ -53,6 +55,23 @@
                     <v-img v-else :src="cdn + 'noimage.png'" :aspect-ratio="1" cover position="top" class="rounded-circle"></v-img>
                     <v-card-text  class="position-relative text-center">
                         <h2 class="bg-white pa-2">{{alink.ctitle || alink.title}}</h2>
+                    </v-card-text>
+                </v-card>
+                <v-card
+                    variant="elevated"
+                    color="primary"
+                    v-if="section.section_json.stype_json.style === 'style7a'"
+                    class="position-relative style7a fill-height" >
+                    <v-card-text  class="position-relative text-center">
+                        <h3>{{alink.ctitle || alink.title}}</h3>
+                    </v-card-text>
+                </v-card>
+                <v-card
+                    variant="outlined"
+                    v-if="section.section_json.stype_json.style === 'style7b'"
+                    class="position-relative style7b fill-height border-md border-primary" >
+                    <v-card-text  class="position-relative text-center">
+                        <h3>{{alink.ctitle || alink.title}}</h3>
                     </v-card-text>
                 </v-card>
             </v-col>
