@@ -5010,7 +5010,8 @@ class HomeController extends Controller
     {
         $order = Order::with('items')->findOrFail($id);
         $shop = Shop::find($order->shop_id);
-        $preference = Preference::find($order->shop_id);
+//        $preference = Preference::find($order->shop_id);
+        $preference = Preference::firstWhere('shop_id', $order->shop_id);
         $business = BusinessShop::leftjoin('businesses','businesses.business_id','=','business_shops.business_id')
             ->where('business_shops.shop_id','=',$order->shop_id)
             ->first();
