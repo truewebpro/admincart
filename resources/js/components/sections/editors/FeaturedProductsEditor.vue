@@ -12,6 +12,7 @@
         <v-radio-group inline v-model="localModel.stype_json.type">
             <v-checkbox-btn label="Slider" value="slider"></v-checkbox-btn>
             <v-checkbox-btn label="Grid" value="grid"></v-checkbox-btn>
+            <v-checkbox-btn label="SlideImage" value="slideimage"></v-checkbox-btn>
         </v-radio-group>
 <!--        <v-combobox-->
 <!--            v-model="localModel.product_ids"-->
