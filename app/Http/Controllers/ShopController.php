@@ -106,7 +106,7 @@ class ShopController extends Controller
             $sectionJson = $section->section_json;
             $stypeJson = $sectionJson['stype_json'];
             $catId = $stypeJson['cat_id'];
-            $catSlug = Cat::where('cat_id', $catId)->value('cat_slug');
+            $cat = Cat::where('cat_id', $catId)->first();
             $products = Product::with(['variants.astock', 'brand', 'ptype'])
                 ->where('shop_id','=',$shopId)
                 ->withCount('reviews')->withAvg('reviews','rating')
@@ -117,8 +117,9 @@ class ShopController extends Controller
                 })
                 ->limit($sectionJson['plimit'] ?? 12)
                 ->get();
-            $stypeJson['cat_slug'] = $catSlug;
-            $stypeJson['catpros'] = $products;
+            $stypeJson['cat_slug'] = $cat->cat_slug ?? null;
+            $stypeJson['cat_image'] = $cat->cat_image ?? null;
+            $stypeJson['catpros'] = $products ?? [];
             $sectionJson['stype_json'] = $stypeJson;
             $section->section_json = $sectionJson;
         }
