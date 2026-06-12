@@ -8,6 +8,7 @@ use App\Models\AcartCoupon;
 use App\Models\AcartEvent;
 use App\Models\AcartItem;
 use App\Models\Coupon;
+use App\Models\CustomerAddress;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -186,6 +187,9 @@ class CartController extends Controller
             case "pay_bank_transfer":
                 return $this->bankCheckout($cart, $request);
 
+            case "pay_by_bank_transfer":
+                return $this->payByBankTransfer($cart, $request);
+
             case "start_stripe_payment":
                 $this->startStripePayment($cart, $request);
                 $this->logEvent($cart,'start_stripe_payment',[
@@ -206,7 +210,8 @@ class CartController extends Controller
             default:
                 return response()->json([
                     'success'=>false,
-                    'message'=>'Invalid event type'
+                    'message'=>'Invalid event type',
+                    'cart' => $cart,
                 ],400);
         }
 
@@ -690,6 +695,114 @@ class CartController extends Controller
                     'message' => $e->getMessage()
                 ], 500);
             }
+        }
+    }
+
+    private function payByBankTransfer($cart,$request){
+        if($cart->order_id){
+            return response()->json([
+                'success'=>true,
+                'order_id'=>$cart->order_id
+            ]);
+        }
+        DB::beginTransaction();
+        try {
+            $items = $cart->items;
+            if (empty($items)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cart is empty'
+                ], 400);
+            }
+            $prefix = Shop::where('shop_id', $cart->shop_id)->value('order_prefix') ?? "#";
+            $lastOrder = Order::withTrashed()->where('shop_id', $cart->shop_id)->orderByDesc('order_id')->first();
+            $lastOrderNumber = $lastOrder ? intval(preg_replace('/[^0-9]/', '', $lastOrder->order_number)): 1000;
+            $orderNumber = $prefix . ($lastOrderNumber + 1);
+            $address = CustomerAddress::where('address_id', $cart->address_id)->first();
+            $order = Order::create([
+                'order_number' => $orderNumber,
+                'shop_id' => $cart->shop_id,
+                'customer_id' => $cart->customer_id,
+                'address_id' => $cart->address_id,
+                'order_status' => 'pending',
+                'label_status' => 'no_label',
+                'payment_method' => $cart->payment_method,
+                'payment_status' => 'pending',
+                'fulfillment_status' => 'unfulfilled',
+                'shipping_method' => $cart->shipping_method,
+                'shipping_cost' => $cart->shipping_cost,
+                'coupon_id' => $cart->coupon_id,
+                'coupon_code' => $cart->coupon_code,
+                'discount_amount' => $cart->discount_amount,
+                'coupon_discount' => $cart->coupon_discount,
+                'subtotal' => $cart->subtotal,
+                'order_total' => $cart->cart_total,
+                'tax_amount' => $cart->tax_amount,
+                'currency_code' => $cart->currency,
+                'is_guest_order' => false,
+                'shipping_name' => $address->fname ." " . $address->lname,
+                'shipping_phone' =>  $address->phone,
+                'shipping_address_line1' =>  $address->address_line1,
+                'shipping_address_line2' =>  $address->address_line2,
+                'shipping_city' =>  $address->city,
+                'shipping_postcode' =>  $address->postcode,
+                'shipping_country' =>  $address->country ?? "United Kingdom",
+                'notes' => $cart->notes,
+                'checkout_id' => $request->checkout_id,
+                'placed_at' => now(),
+                'payment_fee' => $cart->payment_fee ?? 0,
+                'shipping_protection_fee' => $cart->shipping_protection_fee ?? 0,
+            ]);
+            foreach ($items as $item) {
+                $stock = Stock::where('variant_id', $item['variant_id'])
+                    ->where('shop_id', $cart->shop_id)
+                    ->lockForUpdate()
+                    ->first();
+                $available = $stock ? $stock->quantity : 0;
+                $ordered = $item['quantity'];
+                $allocated = min($available, $ordered);
+                $backorder = $ordered - $allocated;
+                $shipped = 0;
+                // Deduct only allocated
+                if ($stock && $allocated > 0) {
+                    $stock->decrement('quantity', $allocated);
+                }
+                OrderItem::create([
+                    'order_id' => $order->order_id,
+                    'product_id' => $item['product_id'],
+                    'variant_id' => $item['variant_id'],
+                    'title' => $item['title'],
+                    'options' => $item['options_json'],
+                    'price' => $item['price'],
+                    'quantity' => $ordered,
+                    'total' => $item['line_total'],
+                    'allocated_quantity' => $allocated,
+                    'backorder_quantity' => $backorder,
+                    'shipped_quantity' => $shipped,
+                ]);
+            }
+            $cart->update([
+                'order_id' => $order->order_id,
+                'checkout_id' => $request->checkout_id,
+                'cart_status' => 'converted',
+                'is_active'=>false,
+                'cart_token'=>$request->checkout_id,
+            ]);
+            $this->logEvent($cart, 'order_created', [
+                'order_id' => $order->order_id
+            ]);
+            DB::commit();
+            broadcast(new OrderCreated($order));
+            return response()->json([
+                'success'=>true,
+                'order_id'=>$order->order_id
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 
