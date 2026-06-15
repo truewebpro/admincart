@@ -12,6 +12,7 @@ use App\Models\CustomerAddress;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\Shop;
 use App\Models\Stock;
 use App\Models\Variant;
@@ -136,6 +137,13 @@ class CartController extends Controller
                 $this->logEvent($cart,'quantity_updated',[
                     'variant_id'=>$request->variant_id,
                     'quantity'=>$request->newQty
+                ]);
+                break;
+
+            case "order_notes_updated":
+                $cart->update(['notes' => $request->notes,]);
+                $this->logEvent($cart,'order_notes_updated',[
+                    'notes'=>$request->notes,
                 ]);
                 break;
 
@@ -983,31 +991,56 @@ class CartController extends Controller
 
     private function recalculateCart($cart)
     {
-        $subtotal = AcartItem::where('acart_id',$cart->acart_id)
-            ->sum('line_total');
+        $subtotal = AcartItem::where('acart_id',$cart->acart_id)->sum('line_total');
 
-        $itemCount = AcartItem::where('acart_id',$cart->acart_id)
-            ->sum('quantity');
+        $itemCount = AcartItem::where('acart_id',$cart->acart_id)->sum('quantity');
+
+        $settings = Setting::where('shop_id',$cart->shop_id)->first();
+
+        $preTaxTotal =
+            (float)$subtotal
+            + (float)$cart->shipping_cost
+            - (float)$cart->discount_amount
+            + (float)$cart->payment_fee
+            + (float)$cart->shipping_protection_fee;
+
+        if ($settings->vat_included) {
+            $taxAmount = $preTaxTotal - ($preTaxTotal / 1.20);
+            $cartTotal = $preTaxTotal;
+        } else {
+            $taxAmount = $preTaxTotal * 0.20;
+            $cartTotal = $preTaxTotal + $taxAmount;
+        }
 
         $cart->update([
             'items_count' => $itemCount,
             'subtotal' => $subtotal,
-            'cart_total' =>
-                (float)$subtotal
-                +
-                (float)$cart->shipping_cost
-                -
-                (float)$cart->discount_amount
-                +
-                (float)$cart->payment_fee
-                +
-                (float)$cart->shipping_protection_fee
-                +
-                (float)$cart->tax_amount,
+            'tax_amount' => round($taxAmount, 2),
+            'cart_total' => round($cartTotal, 2),
             'last_activity_at' => now(),
             'expires_at' => now()->addHours(48),
-            'cart_version' => $cart->cart_version + 1
+            'cart_version' => $cart->cart_version + 1,
         ]);
+
+//        $cart->update([
+//            'items_count' => $itemCount,
+//            'subtotal' => $subtotal,
+//            'cart_total' =>
+//                (float)$subtotal
+//                +
+//                (float)$cart->shipping_cost
+//                -
+//                (float)$cart->discount_amount
+//                +
+//                (float)$cart->payment_fee
+//                +
+//                (float)$cart->shipping_protection_fee
+//                +
+//                (float)$cart->tax_amount,
+//            'last_activity_at' => now(),
+//            'expires_at' => now()->addHours(48),
+//            'cart_version' => $cart->cart_version + 1
+//        ]);
     }
 
     private function deviceType($agent)
