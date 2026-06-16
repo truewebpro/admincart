@@ -95,12 +95,16 @@
                                     <v-list-item base-color="error" @click="deleteProducts">
                                         <v-list-item-title><v-icon class="me-2">mdi-trash-can-outline</v-icon>Delete Products</v-list-item-title>
                                     </v-list-item>
-                                    <v-divider/>
+                                    <v-divider class="mt-1"/>
                                     <v-list-item @click="addBulkTagDialog = true">
                                         <v-list-item-title><v-icon class="me-2">mdi-tag-plus-outline</v-icon>Add Tags</v-list-item-title>
                                     </v-list-item>
                                     <v-list-item base-color="error" @click="removeBulkTagDialog = true">
                                         <v-list-item-title><v-icon class="me-2">mdi-tag-remove-outline</v-icon>Remove Tags</v-list-item-title>
+                                    </v-list-item>
+                                    <v-divider class="mt-1"/>
+                                    <v-list-item base-color="success" @click="exportSelectedProducts">
+                                        <v-list-item-title><v-icon class="me-2">mdi-export</v-icon>Export Products</v-list-item-title>
                                     </v-list-item>
                                 </v-list>
                             </v-menu>
@@ -480,6 +484,16 @@ export default {
         exportProducts(){
             const token = localStorage.getItem('token');
             const url = `/sadmin/products/export?token=${token}`;
+            window.open(url, '_blank');
+        },
+        exportSelectedProducts(){
+            const params = new URLSearchParams();
+            const productIds = this.selectedPros.map(p => p.product_id);
+            productIds.forEach(id => {
+                params.append('product_ids[]', id);
+            });
+            const token = localStorage.getItem('token');
+            const url = `/sadmin/products/selected/export?${params.toString()}&token=${token}`;
             window.open(url, '_blank');
         },
         uploadProducts() {

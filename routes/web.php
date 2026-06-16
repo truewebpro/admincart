@@ -80,6 +80,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/shop/business/update',[HomeController::class,'updateShopBusiness']);
         Route::post('/shop/setting/update',[HomeController::class,'updateShopSetting']);
         Route::get('/products/export',[HomeController::class,'shopProductExport']);
+        Route::get('/products/selected/export',[HomeController::class,'shopSelectedProductsExport']);
         Route::post('/products/import',[HomeController::class,'shopProductImport']);
         Route::get('/homepage/default',[HomeController::class,'getHomePage']);
         Route::post('/homepage/section/add/new',[HomeController::class,'addNewHomeSection']);

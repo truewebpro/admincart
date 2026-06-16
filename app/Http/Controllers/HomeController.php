@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\OrderUpdated;
 use App\Exports\ProductsExport;
+use App\Exports\SelectedProductsExport;
 use App\Imports\ProductsImport;
 use App\Mail\OrderPlacedMail;
 use App\Models\Acart;
@@ -196,6 +197,16 @@ class HomeController extends Controller
     {
         $shopId = session('shop_id');
         return Excel::download(new ProductsExport($shopId), 'products.csv');
+    }
+
+    public function shopSelectedProductsExport(Request $request)
+    {
+        $shopId = session('shop_id');
+        $productIds = $request->product_ids;
+        return Excel::download(
+            new SelectedProductsExport($shopId, $productIds),
+            'selected_products.csv'
+        );
     }
 
     public function shopProductImport(Request $request)

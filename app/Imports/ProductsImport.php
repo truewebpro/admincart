@@ -31,6 +31,8 @@ class ProductsImport implements ToCollection, WithHeadingRow
     {
         $grouped = $rows->groupBy('handle');
 
+        $location = Location::where('shop_id', '=', $this->shopId)->firstOrFail();
+
         foreach ($grouped as $handle => $items) {
             $first = $items->first();
 
@@ -92,10 +94,8 @@ class ProductsImport implements ToCollection, WithHeadingRow
                             );
                         }
                     }
-
-                    $location = Location::where('shop_id', '=', $this->shopId)->firstOrFail();
                     $stock = new Stock();
-                    $stock->quantity = $item['stock'];
+                    $stock->quantity = $item['stock'] ?? 0;
                     $stock->location_id = $location['location_id'];
                     $stock->variant_id = $variant->variant_id;
                     $stock->product_id = $product->product_id;
