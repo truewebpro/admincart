@@ -655,7 +655,7 @@ export default {
                 description: item.title,
                 quantity: item.quantity,
                 weight: item.variant.weight || 0.5,
-                value: item.price,
+                value: Number(Number(item.price).toFixed(2)),
                 sku: item.variant.sku,
                 product_id: item.product_id,
                 item_id: item.variant_id,
