@@ -54,18 +54,24 @@
                 </v-card>
             </v-col>
         </v-row>
-        <v-row v-if="specifics.length">
+        <v-row v-if="specifics.length" dense>
             <v-col v-for="(spec,sdx) in specifics" :key="sdx" cols="6" md="3">
-                <v-card>
-                    <v-card-text>
-                        <div class="text-h5">{{ spec.stitle }}</div>
-                        <div class="text-body-1">{{ spec.svalue }}</div>
-                    </v-card-text>
-                    <v-card-actions>
-                        <v-spacer/>
-                        <v-btn density="compact" color="info" @click="editSpec(spec)">Edit</v-btn>
-                        <v-btn density="compact" color="red" @click="deleteSpec(spec)">Remove</v-btn>
-                    </v-card-actions>
+                <v-card class="mb-2">
+                    <v-card-item>
+                        <template #prepend>
+                            <v-icon>mdi-chevron-triple-right</v-icon>
+                        </template>
+                        <template #append>
+                            <div class="d-flex flex-column ga-2">
+                                <v-icon color="info" @click="editSpec(spec)">mdi-pencil</v-icon>
+                                <v-icon color="red" @click="deleteSpec(spec)">mdi-delete</v-icon>
+                            </div>
+                        </template>
+                        <template #title>
+                            <div class="text-h6 font-weight-bold">{{ spec.stitle }}</div>
+                            <div class="text-body-1">{{ spec.svalue }}</div>
+                        </template>
+                    </v-card-item>
                 </v-card>
             </v-col>
         </v-row>
