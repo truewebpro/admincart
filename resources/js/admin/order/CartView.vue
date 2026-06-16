@@ -199,13 +199,13 @@
                         <div class="font-weight-medium">{{customer.email}}</div>
                         <div class="font-weight-medium">+44 {{customer?.phone}}</div>
                         <h3 class="small my-2">Shipping Address</h3>
-                        <div class="font-weight-medium">{{order?.shipping_name}}</div>
-                        <div class="font-weight-medium">{{order?.shipping_address_line1}}</div>
-                        <div class="font-weight-medium">{{order?.shipping_address_line2}}</div>
-                        <div class="font-weight-medium">{{order?.shipping_city}}</div>
-                        <div class="font-weight-medium">{{order?.shipping_postcode}}</div>
-                        <div class="font-weight-medium">{{order?.shipping_country}}</div>
-                        <div class="font-weight-medium">+44 {{order?.shipping_phone}}</div>
+                        <div class="font-weight-medium">{{order?.shipping_name || address?.fname + " " + address?.lname}}</div>
+                        <div class="font-weight-medium">{{order?.shipping_address_line1 || address?.address_line1}}</div>
+                        <div class="font-weight-medium">{{order?.shipping_address_line2 || address?.address_line2}}</div>
+                        <div class="font-weight-medium">{{order?.shipping_city || address?.city}}</div>
+                        <div class="font-weight-medium">{{order?.shipping_postcode || address?.postcode}}</div>
+                        <div class="font-weight-medium">{{order?.shipping_country || address?.country}}</div>
+                        <div class="font-weight-medium">+44 {{order?.shipping_phone || address?.phone}}</div>
                     </v-card-text>
                 </v-card>
                 <v-card class="border-sm mt-3">
@@ -289,6 +289,7 @@ export default {
             lstatus:'',
             markPaidDialog:false,
             order:0,
+            address:null,
         }
     },
     created() {
@@ -309,6 +310,7 @@ export default {
                     this.pstatus = carDetail.order?.payment_status || 'pending';
                     this.fstatus = carDetail.order?.fulfillment_status || 'unfulfilled';
                     this.lstatus = carDetail.order?.label_status || 'no_label';
+                    this.address = carDetail.address || {};
                 })
         },
         createVivaOrder(item){

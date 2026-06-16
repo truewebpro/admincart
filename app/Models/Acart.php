@@ -66,6 +66,11 @@ class Acart extends Model
         return $this->hasOne(Customer::class, 'customer_id', 'customer_id');
     }
 
+    public function address()
+    {
+        return $this->hasOne(CustomerAddress::class, 'address_id', 'address_id');
+    }
+
     public function aevents(): HasMany
     {
         return $this->hasMany(AcartEvent::class, 'acart_id', 'acart_id')

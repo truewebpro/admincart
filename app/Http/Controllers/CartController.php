@@ -27,13 +27,19 @@ class CartController extends Controller
     {
         $shopId = $request->shop_id;
         $cartToken = $request->cart_token;
+        $customer = auth()->guard('customer')->user();
         if(!$cartToken){
             return response()->json([
                 'success' => false,
                 'message' => 'cart_token missing'
             ],400);
         }
-        $cart = Acart::with('applied_coupons')->where('shop_id', $shopId)->where('is_active', true)->where('cart_token', $cartToken)->first();
+        $cart = Acart::with('applied_coupons')
+            ->where('shop_id', $shopId)
+            ->where('is_active', true)
+            ->where('cart_token', $cartToken)
+            ->first();
+
         if(!$cart){
             return response()->json([
                 'success' => true,
@@ -61,6 +67,22 @@ class CartController extends Controller
             'variant:variant_id,sku,variant_image,option_values'
             ])
             ->get();
+
+        if ($customer && $cart->customer_id !== $customer->customer_id) {
+            $cart->update([
+                'customer_id' => $customer->customer_id,
+            ]);
+        }
+        if($customer){
+            $address = CustomerAddress::where('customer_id', $customer->customer_id)
+                ->where('is_default', true)
+                ->first();
+            if($address && $cart->address_id !== $address->address_id){
+                $cart->update([
+                    'address_id' => $address->address_id,
+                ]);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -90,6 +112,7 @@ class CartController extends Controller
     public function event(Request $request)
     {
         $shopId = $request->shop_id;
+        $customer = auth()->guard('customer')->user();
         $cartToken = $request->cart_token;
         if(!$cartToken){
             return response()->json([
@@ -180,14 +203,14 @@ class CartController extends Controller
                 break;
 
             case "start_viva_wallet":
-                $this->startVivaPayment($cart, $request);
-                $this->logEvent($cart,'start_viva_wallet',[
-                    'orderCode' => $request->checkout_id,
-                    'checkout_id' => $request->checkout_id,
-                    'order_items' => $cart->items(),
-                    'cart_data' => $cart,
-                ]);
-                break;
+            $this->startVivaPayment($cart, $request);
+            $this->logEvent($cart,'start_viva_wallet',[
+                'orderCode' => $request->checkout_id,
+                'checkout_id' => $request->checkout_id,
+                'order_items' =>  $cart->items()->get()->toArray(),
+                'cart_data' => $cart,
+            ]);
+            break;
 
             case "viva_cancel_payment":
                 $this->vivaCancelPayment($cart, $request);
@@ -237,6 +260,22 @@ class CartController extends Controller
                     'message'=>'Invalid event type',
                     'cart' => $cart,
                 ],400);
+        }
+
+        if ($customer && $cart->customer_id !== $customer->customer_id) {
+            $cart->update([
+                'customer_id' => $customer->customer_id,
+            ]);
+        }
+        if($customer){
+            $address = CustomerAddress::where('customer_id', $customer->customer_id)
+                ->where('is_default', true)
+                ->first();
+            if($address && $cart->address_id !== $address->address_id){
+                $cart->update([
+                    'address_id' => $address->address_id,
+                ]);
+            }
         }
 
         $this->recalculateCart($cart);
@@ -365,16 +404,24 @@ class CartController extends Controller
 
     private function attachCustomer($cart, $request)
     {
-        $cart->update([
-            'customer_id' => $request->customer_id,
-            'address_id' => $request->address_id ?? null,
-            'cart_status' => 'customer_attached'
-        ]);
+        $updates = [];
+        if ($request->filled('customer_id') && $cart->customer_id != $request->customer_id) {
+            $updates['customer_id'] = $request->customer_id;
+        }
 
-        $this->logEvent($cart, 'customer_attached', [
-            'customer_id' => $request->customer_id,
-            'address_id' => $request->address_id
-        ]);
+        if ($request->filled('address_id') && $cart->address_id != $request->address_id) {
+            $updates['address_id'] = $request->address_id;
+        }
+
+        if (!empty($updates)) {
+            $updates['cart_status'] = 'customer_attached';
+            $cart->update($updates);
+
+            $this->logEvent($cart, 'customer_attached', [
+                'customer_id' => $updates['customer_id'] ?? $cart->customer_id,
+                'address_id' => $updates['address_id'] ?? $cart->address_id,
+            ]);
+        }
     }
 
     private function startVivaPayment($cart, $request)

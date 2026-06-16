@@ -1003,12 +1003,7 @@ class HomeController extends Controller
     {
         $shop = session('shop');
         $shopId = session('shop_id');
-//        $cart = Cart::with('order','cartItems.product','cartItems.variant','customer')
-//            ->withCount('cartItems')
-//            ->where('cart_id','=',$cart_id)
-//            ->where('shop_id','=',$shopId)
-//            ->first();
-        $cart = Acart::with('order.orderItems','items.product','items.variant','customer','aevents')
+        $cart = Acart::with('order.orderItems','items.product','items.variant','customer','address','aevents')
             ->withCount('items')
             ->where('acart_id','=',$cart_id)
             ->where('shop_id','=',$shopId)

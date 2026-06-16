@@ -33,6 +33,7 @@ class Variant extends Model
         'istax' => 'boolean',
         'isdefault' => 'boolean',
     ];
+
     protected function price(): Attribute
     {
         return Attribute::make(
