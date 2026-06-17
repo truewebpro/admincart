@@ -299,7 +299,7 @@ class VivaWebhookController extends Controller
                 $merchantId = 'f058087e-8de7-44b9-9b48-312969b64532';
                 $apiKey = 'up9kGaHV14VchY7agO0z3Lk93Fo2xU';
             }
-            
+
             $vportmerchantId = 'c104ea18-8667-42b8-86d3-cdfe6e56760b';
             $vportapiKey = 'hxX009b2H2cf1B2G9mB165Ao87aR9C';
             $tokenUrl = 'https://www.vivapayments.com';
