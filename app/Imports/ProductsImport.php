@@ -102,6 +102,7 @@ class ProductsImport implements ToCollection, WithHeadingRow
                     $stock->shop_id = $this->shopId;
                     $stock->save();
                 }
+                app(SmartCategoryService::class)->syncProduct($product);
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
