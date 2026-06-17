@@ -119,7 +119,7 @@ class CustomerController extends Controller
             'fname' => 'required|string|max:100',
             'lname' => 'nullable|string|max:100',
             'email' => 'required|email',
-            'password' => 'required_if:create_account,true|min:6',
+            'password' => 'nullable|required_if:create_account,true|min:6',
         ]);
         if ($validatorData->fails()) {
             return response()->json(['errors'=> $validatorData->errors()],422);
