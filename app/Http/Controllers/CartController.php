@@ -14,6 +14,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Models\Shop;
+use App\Models\ShopPaymentMethod;
 use App\Models\Stock;
 use App\Models\Variant;
 use App\Models\VivaPayment;
@@ -92,6 +93,7 @@ class CartController extends Controller
                 'items_count' => $cart->items_count,
                 'subtotal' => $cart->subtotal,
                 'discount_amount' => $cart->discount_amount,
+                'shipping_method' => $cart->shipping_method,
                 'shipping_amount' => $cart->shipping_amount,
                 'shipping_cost' => $cart->shipping_cost,
                 'shipping_protection_enabled' => $cart->shipping_protection_enabled,
@@ -392,13 +394,11 @@ class CartController extends Controller
     {
         $cart->update([
             'payment_method' => $request->payment_method,
-            'payment_fee' => $request->payment_fee ?? 0,
             'cart_status'    => 'payment_selected'
         ]);
 
         $this->logEvent($cart, 'payment_selected', [
             'method' => $request->payment_method,
-            'payment_fee' => $request->payment_fee ?? 0,
         ]);
     }
 
@@ -1042,13 +1042,15 @@ class CartController extends Controller
 
         $itemCount = AcartItem::where('acart_id',$cart->acart_id)->sum('quantity');
 
+        $paymentFee = $this->calculatePaymentFee($cart, $subtotal);
+
         $settings = Setting::where('shop_id',$cart->shop_id)->first();
 
         $preTaxTotal =
             (float)$subtotal
             + (float)$cart->shipping_cost
             - (float)$cart->discount_amount
-            + (float)$cart->payment_fee
+            + (float)$paymentFee
             + (float)$cart->shipping_protection_fee;
 
         if ($settings->vat_included) {
@@ -1062,32 +1064,43 @@ class CartController extends Controller
         $cart->update([
             'items_count' => $itemCount,
             'subtotal' => $subtotal,
+            'payment_fee' => $paymentFee,
             'tax_amount' => round($taxAmount, 2),
             'cart_total' => round($cartTotal, 2),
             'last_activity_at' => now(),
             'expires_at' => now()->addHours(48),
             'cart_version' => $cart->cart_version + 1,
         ]);
+    }
 
-//        $cart->update([
-//            'items_count' => $itemCount,
-//            'subtotal' => $subtotal,
-//            'cart_total' =>
-//                (float)$subtotal
-//                +
-//                (float)$cart->shipping_cost
-//                -
-//                (float)$cart->discount_amount
-//                +
-//                (float)$cart->payment_fee
-//                +
-//                (float)$cart->shipping_protection_fee
-//                +
-//                (float)$cart->tax_amount,
-//            'last_activity_at' => now(),
-//            'expires_at' => now()->addHours(48),
-//            'cart_version' => $cart->cart_version + 1
-//        ]);
+    private function calculatePaymentFee($cart, $subtotal)
+    {
+        if(!$cart->payment_method) {
+            return 0;
+        }
+
+        $paymentMethod = ShopPaymentMethod::where('shop_id',$cart->shop_id)
+            ->where('payment_name',$cart->payment_method)
+            ->select('fee_type','handling_fee')
+            ->first();
+        if(!$paymentMethod) {
+            return 0;
+        }
+        $feeValue = (float) $paymentMethod->handling_fee;
+        if ($paymentMethod->fee_type === 'fixed') {
+            return round($feeValue, 2);
+        }
+        return round(
+            (
+                (
+                    (float)$subtotal
+                    - (float)$cart->discount_amount
+                    + (float)$cart->shipping_cost
+                    + (float)$cart->shipping_protection_fee
+                ) * $feeValue
+            ) / 100,
+            2
+        );
     }
 
     private function deviceType($agent)
