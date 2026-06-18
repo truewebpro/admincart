@@ -48,6 +48,7 @@ use App\Models\RelatedCat;
 use App\Models\Reviewer;
 use App\Models\Searchtag;
 use App\Models\Section;
+use App\Models\Sendcloud;
 use App\Models\Setting;
 use App\Models\ShipMethod;
 use App\Models\Shop;
@@ -903,19 +904,12 @@ class HomeController extends Controller
 
     public function sendToSendCloudSingle(Request $request)
     {
-//        $shop = session('shop');
         $shopId = session('shop_id');
         $shop = Shop::where('shop_id','=',$shopId)->first();
-        if($shop->shop_slug === 'vapecraze'){
-            $publicKey = '09411732-d74b-4dde-8fb6-efa662ce7d8c';
-            $secretKey = 'f7a2bdf1f81e4be2b53c888ea12ffc8c';
-        } elseif ($shop->shop_slug === 'vapeportwholesale'){
-            $publicKey = 'e45a1551-5849-40db-b82a-6a1a55c2596f';
-            $secretKey = 'c81db58e751b466ebe4c9e08c6c45bbf';
-        } else {
-            $publicKey = '1636f116-3e02-4da5-a455-492b573b9976';
-            $secretKey = '613b5889a7594244a1f4792d7cd62229';
-        }
+        $sendcloud = Sendcloud::where('shop_id','=',$shopId)->first();
+
+        $publicKey = $sendcloud->public_key ?? '1636f116-3e02-4da5-a455-492b573b9976';
+        $secretKey = $sendcloud->secret_key ?? '613b5889a7594244a1f4792d7cd62229';
 
         $payload = $request->input();
         $response = Http::withBasicAuth($publicKey, $secretKey)
@@ -3250,24 +3244,39 @@ class HomeController extends Controller
     {
         $shopId = session('shop_id');
         $location = Location::where('shop_id','=',$shopId)->first();
-        if($location){
-            $ship_methods = ShipMethod::with('courier')
-                ->where('shop_id','=',$shopId)
-                ->get();
-            return response()->json([
-                'status'=> true,
-                'couriers' => Courier::all(),
-                'ship_methods' => $ship_methods,
-                'location' => $location,
-            ]);
-        } else {
-            return response()->json([
-                'status'=> false,
-                'couriers' => Courier::all(),
-                'ship_methods' => [],
-                'location' => null,
-            ]);
-        }
+        $sendcloud = Sendcloud::firstOrNew([
+            'shop_id' => session('shop_id')
+        ]);
+        $ship_methods = ShipMethod::with('courier')
+            ->where('shop_id','=',$shopId)
+            ->get();
+
+        return response()->json([
+            'status'=> true,
+            'couriers' => Courier::all(),
+            'ship_methods' => $ship_methods ?? [],
+            'location' => $location ?? null,
+            'sendcloud' => $sendcloud ?? null,
+        ]);
+
+    }
+
+    public function updateSendCloud(Request $request)
+    {
+        $sendcloud = Sendcloud::updateOrCreate(
+            ['shop_id' => session('shop_id')],
+            [
+                'public_key' => $request->public_key,
+                'secret_key' => $request->secret_key,
+                'is_active' => $request->is_active,
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "updated Successfully",
+            'sendcloud' => $sendcloud,
+        ]);
     }
 
     public function updateOrAddAdminShipMethod(Request $request)

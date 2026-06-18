@@ -118,4 +118,9 @@ class Shop extends Model
             'shop_id'
         );
     }
+
+    public function sendcloud(): HasOne
+    {
+        return $this->hasOne(SendCloud::class, 'shop_id', 'shop_id');
+    }
 }

@@ -161,6 +161,94 @@
                 </v-card>
             </v-col>
         </v-row>
+        <v-row>
+            <v-col cols="12" md="12" class="pb-0">
+                <h2 class="text-decoration-underline text-grey-darken-3"> <v-icon class="me-1">mdi-cog</v-icon> Shipping Carriers</h2>
+            </v-col>
+            <v-col cols="12" md="12" class="pb-0">
+                <p class="text-body-1">
+                    Seamlessly connect to the best carriers via our pre-negotiated contracts, or upload your own and integrate with our API
+                </p>
+            </v-col>
+            <v-col cols="12" md="4">
+                <v-card class="elevation-3 bg-white rounded-lg">
+                    <v-card-text class="d-flex align-center">
+                        <div class="me-2 overflow-hidden">
+                            <v-img class="rounded-lg" :src="cdn+'icons/sendcloud.png'" contain aspectRatio="1" min-width="60" max-width="60" max-height="60" min-height="60"/>
+                        </div>
+                        <div>
+                            <div class="font-weight-bold text-h5">Sendcloud</div>
+                            <div>Manage All couriers at 1 Place</div>
+                        </div>
+                        <div class="ms-auto">
+                            <v-icon size="x-large">mdi-chevron-right</v-icon>
+                        </div>
+                    </v-card-text>
+                    <v-dialog v-model="addSendDialog" maxWidth="400">
+                        <v-card>
+                            <v-card-title>Add Sendcloud</v-card-title>
+                            <v-card-text>
+                                <v-text-field
+                                    v-model="sendcloud.public_key"
+                                    label="Public Key"
+                                    density="compact"
+                                    variant="outlined"
+                                    persistentPlaceholder></v-text-field>
+                                <v-text-field
+                                    v-model="sendcloud.secret_key"
+                                    label="Secret Key"
+                                    density="compact"
+                                    variant="outlined"
+                                    persistentPlaceholder></v-text-field>
+                                <v-switch v-model="sendcloud.is_active" color="success" label="Is Active"></v-switch>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-btn
+                                    @click="addSendCloud"
+                                    density="compact"
+                                    variant="elevated"
+                                    color="success">Save</v-btn>
+                                <v-btn @click="addSendDialog = false" density="compact" variant="elevated" color="red">Cancel</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
+                    <v-dialog v-model="editSendDialog" maxWidth="400">
+                        <v-card>
+                            <v-card-title>Edit Sendcloud</v-card-title>
+                            <v-card-text>
+                                <v-text-field
+                                    v-model="sendcloud.public_key"
+                                    label="Public Key"
+                                    density="compact"
+                                    variant="outlined"
+                                    persistentPlaceholder></v-text-field>
+                                <v-text-field
+                                    v-model="sendcloud.secret_key"
+                                    label="Secret Key"
+                                    density="compact"
+                                    variant="outlined"
+                                    persistentPlaceholder></v-text-field>
+                                <v-switch density="compact" v-model="sendcloud.is_active" hide-details
+                                          color="success" label="Is Active"></v-switch>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-btn
+                                    @click="updateSendCloud"
+                                    density="compact"
+                                    variant="elevated"
+                                    color="success">Update</v-btn>
+                                <v-btn @click="editSendDialog = false" density="compact" variant="elevated" color="red">Cancel</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
+                    <v-card-actions>
+                        <v-spacer/>
+                        <v-btn v-if="isConfigured" @click="editSendDialog = true" variant="outlined" density="compact" color="info">Edit</v-btn>
+                        <v-btn v-else @click="addSendDialog = true" variant="elevated" density="compact" color="success">Add</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-col>
+        </v-row>
     </v-container>
 </template>
 <script>
@@ -191,7 +279,20 @@ export default {
                 method:'',
                 price:'',
                 zone:''
-            }
+            },
+            showSendDialog:false,
+            editSendDialog:false,
+            addSendDialog:false,
+            sendcloud: {
+                public_key: '',
+                secret_key: '',
+                is_active: true,
+            },
+        }
+    },
+    computed: {
+        isConfigured() {
+            return !!this.sendcloud?.id;
         }
     },
     created() {
@@ -204,6 +305,7 @@ export default {
                     this.couriers = resp.data.couriers;
                     this.ship_methods = resp.data.ship_methods;
                     this.location = resp.data.location;
+                    this.sendcloud = resp.data.sendcloud;
                 })
         },
         addNewMethod(){
@@ -261,6 +363,22 @@ export default {
                 })
                 .finally(()=>{
                     this.getShipping();
+                })
+        },
+        addSendCloud(){
+            axios.post('/sadmin/settings/update/sendcloud',this.sendcloud)
+                .then((resp)=>{
+                    this.addSendDialog = false
+                    this.getShipping();
+                    window.Toast.success(resp.data.message);
+                })
+        },
+        updateSendCloud(){
+            axios.post('/sadmin/settings/update/sendcloud',this.sendcloud)
+                .then((resp)=>{
+                    this.editSendDialog = false
+                    this.getShipping();
+                    window.Toast.success(resp.data.message);
                 })
         }
     }
