@@ -1,0 +1,260 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Cat;
+use App\Models\Catpro;
+use App\Models\Product;
+use Illuminate\Http\Request;
+
+class CatController extends Controller
+{
+    public function allCats(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $shopcats = Cat::where('shop_id','=',$shopId)
+            ->where('cat_status','=','Active')->get();
+        foreach ($shopcats as $shopcat){
+            $productId = Catpro::where('cat_id','=',$shopcat->cat_id)->first();
+            if($productId != null){
+                $product = Product::where('product_id','=',$productId->product_id)->first();
+                $proimage = $product->featured_image;
+            }
+            $shopcat['proimage'] = $proimage ?? null;
+
+        }
+        return response()->json([
+            'status' => true,
+            'cats' => $shopcats,
+        ],200);
+
+    }
+
+    public function getAllCats(Request $request,$shopname)
+    {
+        $shopId = $request->shop_id;
+        $shopcats = Cat::where('shop_id','=',$shopId)
+            ->where('cat_status','=','Active')
+            ->select('cat_id','cat_slug','cat_name','cat_status','cat_image','shop_id')
+            ->get();
+        foreach ($shopcats as $shopcat){
+            $proimage = null;
+            $productId = Catpro::where('cat_id', '=', $shopcat->cat_id)->value('product_id');
+            if($productId){
+                $proimage = Product::where('product_id', '=', $productId)->value('featured_image');
+            }
+            $shopcat['proimage'] = $proimage;
+        }
+        return response()->json([
+            'status' => true,
+            'cats' => $shopcats,
+        ],200);
+    }
+
+    public function getCatBySlug(Request $request,$shopname,$slug)
+    {
+        $shopId = $request->shop_id;
+        $cat = Cat::with('rcats')
+            ->where('shop_id','=',$shopId)
+            ->where('cat_slug','=',$slug)
+            ->first();
+        if (!$cat) {
+            return response()->json([
+                'status' => false,
+                'type' => null,
+                'slug' => $slug,
+                'cat' => null,
+            ]);
+        }
+
+        $catId = $cat->cat_id;
+        $alpros = Product::query()
+            ->select('product_id','title','handle','featured_image','product_status','product_type_id',
+                'brand_id','tags')->with(['variants.astock', 'brand', 'ptype'])
+            ->where('shop_id','=',$shopId)
+            ->withCount('reviews')->withAvg('reviews','rating')
+            ->whereIn('product_id', function ($query) use ($catId) {
+                $query->select('product_id')
+                    ->from('catpros')
+                    ->where('cat_id', $catId);
+            })
+            ->paginate(24);
+
+        $cat['catpros'] = $alpros;
+        return response()->json([
+            'status' => true,
+            'type' => 'Category',
+            'slug' => $slug,
+            'cat' => $cat,
+        ]);
+    }
+
+    public function getCatSections(Request $request,$shopname,$slug)
+    {
+        $shopId = $request->shop_id;
+        $cat = Cat::with('csections')
+            ->where('shop_id','=',$shopId)
+            ->where('cat_slug','=',$slug)
+            ->first();
+        if (!$cat) {
+            return response()->json([
+                'status' => false,
+                'sections' => null,
+                'slug' => $slug,
+            ]);
+        }
+        $sectionsWithExtras = [];
+        foreach ($cat->csections as $section){
+            $sectionArray = $section->toArray();
+            if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
+                $catId = $sectionArray['section_json']['stype_json']['cat_id'];
+                $catSlug = Cat::where('cat_id', $catId)->value('cat_slug');
+                $products = Product::query()
+                    ->select('product_id','title','handle','featured_image','product_status','product_type_id',
+                        'brand_id','tags')->with(['variants.astock', 'brand', 'ptype'])
+                    ->where('shop_id','=',$shopId)
+                    ->withCount('reviews')->withAvg('reviews','rating')
+                    ->whereIn('product_id', function ($query) use ($catId) {
+                        $query->select('product_id')
+                            ->from('catpros')
+                            ->where('cat_id', $catId);
+                    })
+                    ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
+                    ->get();
+
+                $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
+                $sectionArray['section_json']['stype_json']['catpros'] = $products;
+            }
+            $sectionsWithExtras[] = $sectionArray;
+        }
+        return response()->json([
+            'status' => true,
+            'sections' => $sectionsWithExtras,
+            'slug' => $slug,
+        ]);
+    }
+
+    public function getCatorProduct(Request $request,$shopname,$slug)
+    {
+        $shopId = $request->shop_id;
+        $catpros = Cat::where('shop_id','=',$shopId)
+            ->where('cat_slug','=',$slug)
+            ->first();
+        if($catpros != null){
+            $catId = $catpros->cat_id;
+            $alpros = Product::with(['variants.astock', 'brand', 'ptype'])
+                ->withCount('reviews')->withAvg('reviews','rating')
+                ->whereIn('product_id', function ($query) use ($catId) {
+                    $query->select('product_id')
+                        ->from('catpros')
+                        ->where('cat_id', $catId);
+                })
+                ->get();
+            $catpros['cat_products'] = $alpros;
+            return response()->json([
+                'status' => true,
+                'type' => "Category",
+                'catpros' => $catpros,
+                'sproduct'=> null,
+            ],200);
+        } else {
+            $sproduct = Product::where('shop_id','=',$shopId)
+                ->with('brand','ptype','variants.astock','highs')
+                ->withCount('reviews')->withAvg('reviews','rating')
+                ->where('handle','=',$slug)
+                ->first();
+            if($sproduct != null){
+                $related_products = Product::with('brand','ptype','variants.astock')
+                    ->withCount('reviews')->withAvg('reviews','rating')
+                    ->where('shop_id','=',$shopId)
+                    ->where('brand_id','=',$sproduct->brand_id)
+                    ->whereNotIn('products.product_id', [$sproduct->product_id])
+                    ->where('product_status','=','Active')
+                    ->limit(12)->get();
+                $addons = Product::with('brand','ptype','variants.astock')
+                    ->withCount('reviews')->withAvg('reviews','rating')
+                    ->where('shop_id','=',$shopId)
+                    ->where('product_type_id','=',$sproduct->product_type_id)
+                    ->whereNotIn('products.product_id', [$sproduct->product_id])
+                    ->where('product_status','=','Active')
+                    ->inRandomOrder()->limit(12)->get();
+                return response()->json([
+                    'status' => true,
+                    'type' => "Product",
+                    'slug'=> $slug,
+                    'catpros' => null,
+                    'sproduct'=> [
+                        'single_product'=>$sproduct,
+                        'addons'=>$addons,
+                        'related_products'=>$related_products,
+                    ]
+                ],200);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'type' => null,
+                    'slug'=> $slug,
+                    'catpros' => null,
+                    'sproduct'=> null,
+                ]);
+            }
+        }
+    }
+
+    public function getCategory(Request $request,$shopname,$slug)
+    {
+        $shopId = $request->shop_id;
+        $cat = Cat::with('rcats','csections')
+            ->where('shop_id','=',$shopId)
+            ->where('cat_slug','=',$slug)
+            ->first();
+        if($cat != null){
+            $catId = $cat->cat_id;
+            $alpros = Product::with(['variants.astock', 'brand', 'ptype'])
+                ->withCount('reviews')->withAvg('reviews','rating')
+                ->whereIn('product_id', function ($query) use ($catId) {
+                    $query->select('product_id')
+                        ->from('catpros')
+                        ->where('cat_id', $catId);
+                })->inRandomOrder()
+                ->get();
+            $cat['catpros'] = $alpros;
+            $sectionsWithExtras = [];
+            foreach ($cat->csections as $section){
+                $sectionArray = $section->toArray();
+                if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
+                    $catId = $sectionArray['section_json']['stype_json']['cat_id'];
+                    $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
+                    $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                        ->where('shop_id','=',$shopId)
+                        ->withCount('reviews')->withAvg('reviews','rating')
+                        ->whereIn('product_id', function ($query) use ($catId) {
+                            $query->select('product_id')
+                                ->from('catpros')
+                                ->where('cat_id', $catId);
+                        })
+                        ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
+                        ->get();
+
+                    $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
+                    $sectionArray['section_json']['stype_json']['catpros'] = $products;
+                }
+                $sectionsWithExtras[] = $sectionArray;
+            }
+            $cat->asections = $sectionsWithExtras;
+            return response()->json([
+                'status' => true,
+                'type' => "Category",
+                'slug'=> $slug,
+                'cat' => $cat,
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'type' => null,
+                'slug'=> $slug,
+                'cat' => null,
+            ]);
+        }
+    }
+}
