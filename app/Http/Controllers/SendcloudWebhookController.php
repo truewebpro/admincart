@@ -153,4 +153,84 @@ class SendcloudWebhookController extends Controller
 
         return response()->json(['message' => 'Webhook processed'], 200);
     }
+
+    public function handleSendCloudWebHookEvents(Request $request,$shopname)
+    {
+        Log::info('✅ Sendcloud Webhook Received:', $request->all());
+        $payload = $request->all();
+        if (!isset($payload['parcel']['id'])) {
+            return response()->json(['message' => 'No parcel data'], 200);
+        }
+        $parcel = $payload['parcel'];
+        $tracking = $parcel['tracking_number'] ?? null;
+        $labelUrl = $parcel['label']['normal_printer'][0] ?? null;
+        $shipmentStatus = $parcel['status']['message'] ?? 'updated';
+        $sendcloudParcelId = $parcel['id'];
+        $courierName = $parcel['carrier']['name'] ?? null;
+
+        $order = Order::where('parcel_id','=',$sendcloudParcelId)->first();
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 200);
+        }
+        switch ($shipmentStatus) {
+            case 'Being announced':
+                $order->update(['label_status' => 'pending']);
+                OrderLog::create([
+                    'order_id' => $order->order_id,
+                    'event' => 'status_updated',
+                    'description' => 'Order Label Staus updated in SendCloud Account',
+                    'meta' => [
+                        'from'=>'no_label',
+                        'to'=>'pending',
+                    ]
+                ]);
+                break;
+
+            case 'Ready to send':
+                $order->update(['label_status' => 'created','fulfillment_status' => 'fulfilled']);
+                OrderLog::create([
+                    'order_id' => $order->order_id,
+                    'event' => 'status_updated',
+                    'description' => 'Order Label Staus updated in SendCloud Account',
+                    'meta' => [
+                        'from'=>'pending',
+                        'to'=>'created',
+                    ]
+                ]);
+                break;
+                case 'Parcel en route':
+                    $order->update(['label_status' => 'printed','order_status' => 'completed','fulfillment_status' => 'fulfilled']);
+                    OrderLog::create([
+                        'order_id' => $order->order_id,
+                        'event' => 'status_updated',
+                        'description' => 'Order Label Staus updated in SendCloud Account',
+                        'meta' => [
+                            'from'=>'created',
+                            'to'=>'printed',
+                        ]
+                    ]);
+                    break;
+
+        }
+
+        $order->update([
+            'tracking_number' => $tracking,
+        ]);
+
+        broadcast(new OrderUpdated($order));
+        if($tracking) {
+            OrderLog::create([
+                'order_id' => $order->order_id,
+                'event' => 'status_updated',
+                'description' => 'Order Tracking Staus updated ' . $tracking,
+                'meta' => [
+                    'from' => 'no_label',
+                    'to' => 'pending',
+                ]
+            ]);
+        }
+
+        return response()->json(['message' => 'Webhook processed'], 200);
+
+    }
 }
