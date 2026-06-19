@@ -22,7 +22,7 @@ class ProductObserver
     {
         ShopCacheService::forgetProduct(
             $product->shop_id,
-            $product->slug
+            $product->handle
         );
     }
 
@@ -33,7 +33,7 @@ class ProductObserver
     {
         ShopCacheService::forgetProduct(
             $product->shop_id,
-            $product->slug
+            $product->handle
         );
     }
 
@@ -44,7 +44,7 @@ class ProductObserver
     {
         ShopCacheService::forgetProduct(
             $product->shop_id,
-            $product->slug
+            $product->handle
         );
     }
 
@@ -55,7 +55,7 @@ class ProductObserver
     {
         ShopCacheService::forgetProduct(
             $product->shop_id,
-            $product->slug
+            $product->handle
         );
     }
 }

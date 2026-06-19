@@ -14,7 +14,7 @@ class PageObserver
     {
         ShopCacheService::forgetPage(
             $page->shop_id,
-            $page->slug
+            $page->page_slug
         );
     }
 
@@ -25,7 +25,7 @@ class PageObserver
     {
         ShopCacheService::forgetPage(
             $page->shop_id,
-            $page->slug
+            $page->page_slug
         );
     }
 
@@ -36,7 +36,7 @@ class PageObserver
     {
         ShopCacheService::forgetPage(
             $page->shop_id,
-            $page->slug
+            $page->page_slug
         );
     }
 
@@ -47,7 +47,7 @@ class PageObserver
     {
         ShopCacheService::forgetPage(
             $page->shop_id,
-            $page->slug
+            $page->page_slug
         );
     }
 
@@ -58,7 +58,7 @@ class PageObserver
     {
         ShopCacheService::forgetPage(
             $page->shop_id,
-            $page->slug
+            $page->page_slug
         );
     }
 }

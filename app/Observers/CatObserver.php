@@ -22,7 +22,7 @@ class CatObserver
     {
         ShopCacheService::forgetCategory(
             $cat->shop_id,
-            $cat->slug
+            $cat->cat_slug
         );
     }
 
@@ -33,7 +33,7 @@ class CatObserver
     {
         ShopCacheService::forgetCategory(
             $cat->shop_id,
-            $cat->slug
+            $cat->cat_slug
         );
     }
 
@@ -44,7 +44,7 @@ class CatObserver
     {
         ShopCacheService::forgetCategory(
             $cat->shop_id,
-            $cat->slug
+            $cat->cat_slug
         );
     }
 
@@ -55,7 +55,7 @@ class CatObserver
     {
         ShopCacheService::forgetCategory(
             $cat->shop_id,
-            $cat->slug
+            $cat->cat_slug
         );
     }
 }

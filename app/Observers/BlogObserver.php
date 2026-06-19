@@ -22,7 +22,7 @@ class BlogObserver
     {
         ShopCacheService::forgetBlog(
             $blog->shop_id,
-            $blog->slug
+            $blog->blog_slug
         );
     }
 
@@ -33,7 +33,7 @@ class BlogObserver
     {
         ShopCacheService::forgetBlog(
             $blog->shop_id,
-            $blog->slug
+            $blog->blog_slug
         );
     }
 
@@ -44,7 +44,7 @@ class BlogObserver
     {
         ShopCacheService::forgetBlog(
             $blog->shop_id,
-            $blog->slug
+            $blog->blog_slug
         );
     }
 
@@ -55,7 +55,7 @@ class BlogObserver
     {
         ShopCacheService::forgetBlog(
             $blog->shop_id,
-            $blog->slug
+            $blog->blog_slug
         );
     }
 }
