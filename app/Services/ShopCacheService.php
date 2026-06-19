@@ -21,17 +21,15 @@ class ShopCacheService
 
     public static function forgetBrand(int $shopId, string $slug): void
     {
-        Cache::forget(
-            CacheKeys::brand($shopId, $slug)
-        );
+        Cache::forget(CacheKeys::brands($shopId));
 
-        Cache::forget(
-            CacheKeys::brands($shopId)
-        );
+        Cache::forget(CacheKeys::brand($shopId, $slug));
 
-        Cache::forget(
-            CacheKeys::brandProducts($shopId, $slug)
-        );
+        Cache::forget(CacheKeys::brandProducts($shopId, $slug));
+
+        Cache::forget(CacheKeys::brandSections($shopId, $slug));
+
+        Cache::forget(CacheKeys::brandPage($shopId, $slug));
     }
 
     public static function forgetBlog(int $shopId, string $slug): void

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -39,7 +40,7 @@ class Product extends Model
             ->select('variants.*','stocks.quantity as stock')->orderBy('variants.option_values', 'ASC');
     }
 
-    public function brand()
+    public function brand():BelongsTo
     {
         return $this->belongsTo(Brand::class, 'brand_id', 'brand_id')
             ->select(['brand_id', 'brand_name','brand_slug','brand_image']);

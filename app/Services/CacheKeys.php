@@ -19,4 +19,14 @@ class CacheKeys
     {
         return "shop:$shopId:brand-products:$slug";
     }
+
+    public static function brandSections($shopId, $slug): string
+    {
+        return "shop:$shopId:brand-sections:$slug";
+    }
+
+    public static function brandPage($shopId, $slug): string
+    {
+        return "shop:$shopId:brand-page:$slug";
+    }
 }

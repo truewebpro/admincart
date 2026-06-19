@@ -12,7 +12,12 @@ class ProductObserver
      */
     public function created(Product $product): void
     {
-        //
+        if ($product->brand) {
+            ShopCacheService::forgetBrand(
+                $product->shop_id,
+                $product->brand->brand_slug
+            );
+        }
     }
 
     /**
@@ -24,6 +29,14 @@ class ProductObserver
             $product->shop_id,
             $product->handle
         );
+
+        if ($product->brand) {
+            ShopCacheService::forgetBrand(
+                $product->shop_id,
+                $product->brand->brand_slug
+            );
+
+        }
     }
 
     /**
@@ -31,10 +44,7 @@ class ProductObserver
      */
     public function deleted(Product $product): void
     {
-        ShopCacheService::forgetProduct(
-            $product->shop_id,
-            $product->handle
-        );
+        $this->updated($product);
     }
 
     /**
@@ -42,10 +52,7 @@ class ProductObserver
      */
     public function restored(Product $product): void
     {
-        ShopCacheService::forgetProduct(
-            $product->shop_id,
-            $product->handle
-        );
+        $this->updated($product);
     }
 
     /**
@@ -53,9 +60,6 @@ class ProductObserver
      */
     public function forceDeleted(Product $product): void
     {
-        ShopCacheService::forgetProduct(
-            $product->shop_id,
-            $product->handle
-        );
+        $this->updated($product);
     }
 }
