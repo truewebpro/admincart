@@ -26,6 +26,7 @@ use App\Models\Setting;
 use App\Models\ShipMethod;
 use App\Models\Shop;
 use App\Models\ShopPaymentMethod;
+use App\Services\CacheKeys;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -329,22 +330,22 @@ class ShopController extends Controller
     public function getHomeMenu(Request $request,$shopname)
     {
         $shopId = $request->shop_id;
-        $menu = Menu::where('shop_id','=',$shopId)
-            ->where('menu_slug','=','main_menu')
-            ->first();
-        if($menu != null){
-            return response()->json([
-                'status' => true,
-                'mitems' => $menu->mitems,
-                'shop_id' => $shopId,
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'mitems' => null,
-                'shop_id' => $shopId,
-            ]);
-        }
+
+        $menu = Cache::remember(
+            CacheKeys::mainMenu($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                return Menu::where('shop_id', $shopId)
+                    ->where('menu_slug', 'main_menu')
+                    ->first();
+            }
+        );
+
+        return response()->json([
+            'status' => !is_null($menu),
+            'mitems' => $menu?->mitems,
+            'shop_id' => $shopId,
+        ]);
     }
 
     public function webSearch(Request $request,$shopname)

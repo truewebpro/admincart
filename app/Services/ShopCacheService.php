@@ -43,6 +43,11 @@ class ShopCacheService
         Cache::forget("shop:{$shopId}:page:{$slug}");
     }
 
+    public static function forgetMenu(int $shopId): void
+    {
+        Cache::forget(CacheKeys::mainMenu($shopId));
+    }
+
     public static function forgetShop(int $shopId): void
     {
         Cache::forget("shop:{$shopId}:settings");

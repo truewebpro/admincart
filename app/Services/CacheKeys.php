@@ -29,4 +29,9 @@ class CacheKeys
     {
         return "shop:$shopId:brand-page:$slug";
     }
+
+    public static function mainMenu($shopId): string
+    {
+        return "shop:$shopId:main_menu";
+    }
 }
