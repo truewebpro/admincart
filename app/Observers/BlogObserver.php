@@ -12,7 +12,10 @@ class BlogObserver
      */
     public function created(Blog $blog): void
     {
-        //
+        ShopCacheService::forgetBlog(
+            $blog->shop_id,
+            $blog->blog_slug
+        );
     }
 
     /**
@@ -24,6 +27,12 @@ class BlogObserver
             $blog->shop_id,
             $blog->blog_slug
         );
+        if ($blog->wasChanged('blog_slug')) {
+            ShopCacheService::forgetBlog(
+                $blog->shop_id,
+                $blog->getOriginal('blog_slug')
+            );
+        }
     }
 
     /**

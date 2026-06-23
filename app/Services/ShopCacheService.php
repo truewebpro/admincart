@@ -12,23 +12,25 @@ class ShopCacheService
         Cache::forget("shop:{$shopId}:product-sections:{$slug}");
     }
 
-    public static function forgetCategory(int $shopId, string $slug): void
+    public static function forgetProductFilters(int $shopId): void
     {
-        Cache::forget("shop:{$shopId}:category:{$slug}");
-        Cache::forget("shop:{$shopId}:category-products:{$slug}");
-        Cache::forget("shop:{$shopId}:categories");
+        Cache::forget(CacheKeys::productFilters($shopId));
+    }
+
+    public static function forgetCat(int $shopId, string $slug): void
+    {
+        Cache::forget(CacheKeys::cats($shopId));
+        Cache::forget(CacheKeys::cat($shopId,$slug));
+        Cache::forget(CacheKeys::catSections($shopId,$slug));
+        Cache::forget(CacheKeys::catSectionsData($shopId,$slug));
     }
 
     public static function forgetBrand(int $shopId, string $slug): void
     {
         Cache::forget(CacheKeys::brands($shopId));
-
         Cache::forget(CacheKeys::brand($shopId, $slug));
-
         Cache::forget(CacheKeys::brandProducts($shopId, $slug));
-
         Cache::forget(CacheKeys::brandSections($shopId, $slug));
-
         Cache::forget(CacheKeys::brandPage($shopId, $slug));
     }
 

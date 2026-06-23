@@ -259,32 +259,6 @@ class ShopController extends Controller
             'status' => true,
             'allurls' => $urls,
         ]);
-//        $products = Product::where('shop_id','=',$shopId)
-//            ->select('handle','updated_at')->get()
-//            ->map(fn ($item) => [
-//                'handle' => 'products/' . $item->handle,
-//                'updated_at' => $item->updated_at,
-//            ]);
-//        $cats = Cat::where('shop_id','=',$shopId)
-//            ->select('cat_slug','updated_at')->get()
-//            ->map(fn ($item) => [
-//                'handle' => 'collections/' . $item->cat_slug,
-//                'updated_at' => $item->updated_at,
-//            ]);
-//        $brands = Brand::where('shop_id','=',$shopId)
-//            ->select('brand_slug','updated_at')->get()
-//            ->map(fn ($item) => [
-//                'handle' => 'brands/' . $item->brand_slug,
-//                'updated_at' => $item->updated_at,
-//            ]);
-//        return response()->json([
-//            'status' => true,
-//            'allurls' => $cats
-//                ->concat($brands)
-//                ->concat($products)
-//                ->values(),
-////            'allurls' => [...$cats,...$products,...$brands],
-//        ],200);
     }
 
     public function shippingOptions(Request $request,$shopname)

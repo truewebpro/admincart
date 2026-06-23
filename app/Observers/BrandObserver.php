@@ -7,26 +7,45 @@ use App\Services\ShopCacheService;
 
 class BrandObserver
 {
-    /**
-     * Handle the Brand "saved" event.
-     */
-    public function saved(Brand $brand): void
+    public function created(Brand $brand): void
     {
+        ShopCacheService::forgetProductFilters(
+            $brand->shop_id
+        );
+
         ShopCacheService::forgetBrand(
             $brand->shop_id,
             $brand->brand_slug
         );
     }
 
-    /**
-     * Handle the Brand "deleted" event.
-     */
+    public function updated(Brand $brand): void
+    {
+        ShopCacheService::forgetProductFilters(
+            $brand->shop_id
+        );
+
+        ShopCacheService::forgetBrand(
+            $brand->shop_id,
+            $brand->brand_slug
+        );
+        if ($brand->wasChanged('brand_slug')) {
+            ShopCacheService::forgetBrand(
+                $brand->shop_id,
+                $brand->getOriginal('brand_slug')
+            );
+        }
+    }
+
     public function deleted(Brand $brand): void
     {
+        ShopCacheService::forgetProductFilters(
+            $brand->shop_id
+        );
+
         ShopCacheService::forgetBrand(
             $brand->shop_id,
             $brand->brand_slug
         );
     }
-
 }

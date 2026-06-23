@@ -12,6 +12,11 @@ class ProductObserver
      */
     public function created(Product $product): void
     {
+        ShopCacheService::forgetProduct(
+            $product->shop_id,
+            $product->handle
+        );
+
         if ($product->brand) {
             ShopCacheService::forgetBrand(
                 $product->shop_id,
@@ -30,6 +35,13 @@ class ProductObserver
             $product->handle
         );
 
+        if ($product->wasChanged('handle')) {
+            ShopCacheService::forgetProduct(
+                $product->shop_id,
+                $product->getOriginal('handle')
+            );
+        }
+
         if ($product->brand) {
             ShopCacheService::forgetBrand(
                 $product->shop_id,
@@ -37,6 +49,8 @@ class ProductObserver
             );
 
         }
+
+
     }
 
     /**

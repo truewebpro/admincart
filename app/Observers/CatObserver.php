@@ -12,7 +12,10 @@ class CatObserver
      */
     public function created(Cat $cat): void
     {
-        //
+        ShopCacheService::forgetCat(
+            $cat->shop_id,
+            $cat->cat_slug
+        );
     }
 
     /**
@@ -20,7 +23,7 @@ class CatObserver
      */
     public function updated(Cat $cat): void
     {
-        ShopCacheService::forgetCategory(
+        ShopCacheService::forgetCat(
             $cat->shop_id,
             $cat->cat_slug
         );
@@ -31,7 +34,7 @@ class CatObserver
      */
     public function deleted(Cat $cat): void
     {
-        ShopCacheService::forgetCategory(
+        ShopCacheService::forgetCat(
             $cat->shop_id,
             $cat->cat_slug
         );
@@ -42,7 +45,7 @@ class CatObserver
      */
     public function restored(Cat $cat): void
     {
-        ShopCacheService::forgetCategory(
+        ShopCacheService::forgetCat(
             $cat->shop_id,
             $cat->cat_slug
         );
@@ -53,7 +56,7 @@ class CatObserver
      */
     public function forceDeleted(Cat $cat): void
     {
-        ShopCacheService::forgetCategory(
+        ShopCacheService::forgetCat(
             $cat->shop_id,
             $cat->cat_slug
         );

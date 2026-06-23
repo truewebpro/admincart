@@ -8,6 +8,7 @@ use App\Models\Cat;
 use App\Models\Menu;
 use App\Models\Page;
 use App\Models\Product;
+use App\Models\ProductType;
 use App\Models\Setting;
 use App\Observers\BlogObserver;
 use App\Observers\BrandObserver;
@@ -15,6 +16,7 @@ use App\Observers\CatObserver;
 use App\Observers\MenuObserver;
 use App\Observers\PageObserver;
 use App\Observers\ProductObserver;
+use App\Observers\ProductTypeObserver;
 use App\Observers\SettingObserver;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -44,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
         Page::observe(PageObserver::class);
         Setting::observe(SettingObserver::class);
         Menu::observe(MenuObserver::class);
+        ProductType::observe(ProductTypeObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));
