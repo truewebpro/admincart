@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -27,6 +28,13 @@ class OrderItem extends Model
     protected $casts = [
         'options' => 'array',
     ];
+
+    protected function price(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => round((float) $value, 2),
+        );
+    }
 
     public function order()
     {

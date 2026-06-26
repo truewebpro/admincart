@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -25,6 +26,13 @@ class AcartItem extends Model
     protected $casts = [
         'options_json' => 'array',
     ];
+
+    protected function price(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => round((float) $value, 2),
+        );
+    }
 
     public function product(){
         return $this->belongsTo(Product::class, 'product_id', 'product_id');
