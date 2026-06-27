@@ -492,19 +492,21 @@ class ShopController extends Controller
 
     public function getAnnouncements(Request $request,$shopname)
     {
-        $announcements = Announcement::where('shop_id','=',$request->shop_id)
-            ->where('status','=','active')->get();
-        if($announcements != null){
-            return response()->json([
-                'status' => true,
-                'announcements' => $announcements,
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'announcements' => null,
-            ]);
-        }
+        $shopId = $request->shop_id;
+        $announcements = Cache::remember(
+            CacheKeys::announcements($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                return Announcement::where('shop_id','=',$shopId)
+                    ->where('status','=','active')
+                    ->get();
+            }
+        );
+
+        return response()->json([
+            'status' => $announcements->isNotEmpty(),
+            'announcements' => $announcements,
+        ]);
     }
 
     public function getSearchTags(Request $request,$shopname)
@@ -526,14 +528,25 @@ class ShopController extends Controller
 
     public function getFooter(Request $request,$shopname)
     {
-        $footer = Footer::where('shop_id','=',$request->shop_id)->first();
-        $company = BusinessShop::with('business')
-            ->where('shop_id','=',$request->shop_id)
-            ->first();
-        $footer['company'] = $company->business ?? null;
+        $shopId = $request->shop_id;
+        $footer = Cache::remember(
+            CacheKeys::footer($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                $footer = Footer::where('shop_id','=',$shopId)
+                    ->first();
+                if (!$footer) {
+                    return null;
+                }
+                $company = BusinessShop::with('business')
+                    ->where('shop_id','=',$shopId)
+                    ->first();
+                $footer['company'] = $company?->business;
+            }
+        );
 
         return response()->json([
-            'status' => true,
+            'status' => !is_null($footer),
             'footer' => $footer,
         ]);
     }

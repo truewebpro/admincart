@@ -105,4 +105,14 @@ class CacheKeys
     {
         return "shop:$shopId:lazy_sections";
     }
+
+    public static function footer(int $shopId): string
+    {
+        return "shop:$shopId:footer";
+    }
+
+    public static function announcements(int $shopId): string
+    {
+        return "shop:$shopId:announcements";
+    }
 }

@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Announcement;
 use App\Models\Blog;
 use App\Models\Brand;
+use App\Models\Business;
+use App\Models\BusinessShop;
 use App\Models\Cartpage;
 use App\Models\Cat;
 use App\Models\Homepage;
@@ -13,8 +16,11 @@ use App\Models\Policy;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\Setting;
+use App\Observers\AnnouncementObserver;
 use App\Observers\BlogObserver;
 use App\Observers\BrandObserver;
+use App\Observers\BusinessObserver;
+use App\Observers\BusinessShopObserver;
 use App\Observers\CartpageObserver;
 use App\Observers\CatObserver;
 use App\Observers\HomepageObserver;
@@ -56,6 +62,9 @@ class AppServiceProvider extends ServiceProvider
         Cartpage::observe(CartpageObserver::class);
         Policy::observe(PolicyObserver::class);
         Homepage::observe(HomepageObserver::class);
+        Business::observe(BusinessObserver::class);
+        BusinessShop::observe(BusinessShopObserver::class);
+        Announcement::observe(AnnouncementObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));

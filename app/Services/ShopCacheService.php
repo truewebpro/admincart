@@ -80,4 +80,14 @@ class ShopCacheService
         Cache::forget(CacheKeys::lazySections($shopId));
     }
 
+    public static function forgetFooter(int $shopId): void
+    {
+        Cache::forget(CacheKeys::footer($shopId));
+    }
+
+    public static function forgetAnnouncements(int $shopId): void
+    {
+        Cache::forget(CacheKeys::announcements($shopId));
+    }
+
 }
