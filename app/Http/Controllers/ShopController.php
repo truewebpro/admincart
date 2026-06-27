@@ -417,47 +417,52 @@ class ShopController extends Controller
     public function getPageBySlug(Request $request,$shopname,$page_slug)
     {
         $shopId = $request->shop_id;
-        $page = Page::where('shop_id','=',$shopId)->where('page_slug','=',$page_slug)->first();
-        $pagesections = Section::where('sectionable_id','=',$page->page_id)
-            ->where('sectionable_type',Page::class)
-            ->join('stypes','stypes.stype_id','=','sections.stype_id')
-            ->select('sections.section_id','sections.sectionable_id','sections.section_json',
-                'sections.sort_order','sections.section_status','sections.stype_id','stypes.stype_slug')
-            ->where('sections.section_status','=','show')
-            ->orderBy('sections.sort_order', 'ASC')
-            ->get();
-        $sectionsWithExtras = [];
-        foreach ($pagesections as $section){
-            $sectionArray = $section->toArray();
-            if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
-                $catId = $sectionArray['section_json']['stype_json']['cat_id'];
-                $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
-                $products = Product::with(['variants.astock', 'brand', 'ptype'])
-                    ->where('shop_id','=',$shopId)
-                    ->whereIn('product_id', function ($query) use ($catId) {
-                        $query->select('product_id')
-                            ->from('catpros')
-                            ->where('cat_id', $catId);
-                    })
-                    ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
+        $page = Cache::remember(
+            CacheKeys::page($shopId,$page_slug),
+            now()->addHours(12),
+            function () use ($shopId, $page_slug) {
+                $page = Page::where('shop_id','=',$shopId)
+                    ->where('page_slug','=',$page_slug)
+                    ->first();
+                if (!$page) {
+                    return null;
+                }
+                $pagesections = Section::where('sectionable_id','=',$page->page_id)
+                    ->where('sectionable_type',Page::class)
+                    ->join('stypes','stypes.stype_id','=','sections.stype_id')
+                    ->select('sections.section_id','sections.sectionable_id','sections.section_json',
+                        'sections.sort_order','sections.section_status','sections.stype_id','stypes.stype_slug')
+                    ->where('sections.section_status','=','show')
+                    ->orderBy('sections.sort_order', 'ASC')
                     ->get();
-                $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
-                $sectionArray['section_json']['stype_json']['catpros'] = $products;
+                $sectionsWithExtras = [];
+                foreach ($pagesections as $section){
+                    $sectionArray = $section->toArray();
+                    if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
+                        $catId = $sectionArray['section_json']['stype_json']['cat_id'];
+                        $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
+                        $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                            ->where('shop_id','=',$shopId)
+                            ->whereIn('product_id', function ($query) use ($catId) {
+                                $query->select('product_id')
+                                    ->from('catpros')
+                                    ->where('cat_id', $catId);
+                            })
+                            ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
+                            ->get();
+                        $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
+                        $sectionArray['section_json']['stype_json']['catpros'] = $products;
+                    }
+                    $sectionsWithExtras[] = $sectionArray;
+                }
+                $page->asections = $sectionsWithExtras;
+                return $page;
             }
-            $sectionsWithExtras[] = $sectionArray;
-        }
-        $page->asections = $sectionsWithExtras;
-        if($page != null) {
-            return response()->json([
-                'status' => true,
-                'page' => $page,
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'page' => null,
-            ]);
-        }
+        );
+        return response()->json([
+            'status' => !is_null($page),
+            'page' => $page,
+        ]);
 
     }
 

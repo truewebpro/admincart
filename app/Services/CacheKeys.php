@@ -86,4 +86,8 @@ class CacheKeys
     {
         return "shop:$shopId:html_sitemap";
     }
+
+    public static function page(int $shopId, string $slug): string {
+        return "shop:$shopId:page:$slug";
+    }
 }
