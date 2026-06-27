@@ -115,4 +115,9 @@ class CacheKeys
     {
         return "shop:$shopId:announcements";
     }
+
+    public static function searchTags(int $shopId): string
+    {
+        return "shop:$shopId:search_tags";
+    }
 }

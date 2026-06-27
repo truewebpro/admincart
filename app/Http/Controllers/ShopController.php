@@ -511,24 +511,26 @@ class ShopController extends Controller
 
     public function getSearchTags(Request $request,$shopname)
     {
-        $searchtags = Searchtag::where('shop_id','=',$request->shop_id)
-            ->where('status','=','active')->get();
-        if($searchtags != null){
-            return response()->json([
-                'status' => true,
-                'searchtags' => $searchtags,
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'searchtags' => null,
-            ]);
-        }
+        $shopId = $request->shop_id;
+        $searchtags = Cache::remember(
+            CacheKeys::searchTags($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                return Searchtag::where('shop_id','=',$shopId)
+                    ->where('status','=','active')
+                    ->get();
+            }
+        );
+        return response()->json([
+            'status' => $searchtags->isNotEmpty(),
+            'searchtags' => $searchtags,
+        ]);
     }
 
     public function getFooter(Request $request,$shopname)
     {
         $shopId = $request->shop_id;
+
         $footer = Cache::remember(
             CacheKeys::footer($shopId),
             now()->addHours(12),
@@ -542,6 +544,7 @@ class ShopController extends Controller
                     ->where('shop_id','=',$shopId)
                     ->first();
                 $footer['company'] = $company?->business;
+                return $footer;
             }
         );
 

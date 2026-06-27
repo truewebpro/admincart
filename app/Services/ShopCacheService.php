@@ -90,4 +90,8 @@ class ShopCacheService
         Cache::forget(CacheKeys::announcements($shopId));
     }
 
+    public static function forgetSearchTags(int $shopId): void {
+        Cache::forget(CacheKeys::searchTags($shopId));
+    }
+
 }
