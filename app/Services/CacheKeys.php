@@ -130,4 +130,14 @@ class CacheKeys
     {
         return "shop:$shopId:payment_methods";
     }
+
+    public static function shopSettings(int $shopId): string
+    {
+        return "shop:$shopId:settings";
+    }
+
+    public static function homeMetas(int $shopId): string
+    {
+        return "shop:$shopId:homemetas";
+    }
 }

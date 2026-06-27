@@ -51,11 +51,12 @@ class ShopCacheService
 
     public static function forgetShop(int $shopId): void
     {
-        Cache::forget("shop:{$shopId}:settings");
-        Cache::forget("shop:{$shopId}:homepage");
-        Cache::forget("shop:{$shopId}:homemetas");
-        Cache::forget("shop:{$shopId}:footer");
-        Cache::forget("shop:{$shopId}:menu");
+        Cache::forget(CacheKeys::shopSettings($shopId));
+        Cache::forget(CacheKeys::homeMetas($shopId));
+        Cache::forget(CacheKeys::footer($shopId));
+        Cache::forget(CacheKeys::mainMenu($shopId));
+        Cache::forget(CacheKeys::announcements($shopId));
+        Cache::forget(CacheKeys::searchTags($shopId));
     }
 
     public static function forgetCartPage(int $shopId): void {

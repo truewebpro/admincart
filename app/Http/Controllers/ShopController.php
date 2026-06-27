@@ -62,22 +62,46 @@ class ShopController extends Controller
     public function homeMetas(Request $request)
     {
         $shopId = $request->shop_id;
-        $homemetas = Preference::where('shop_id',$shopId)->first();
-        $shop = Shop::with('setting','subscribe_section')->where('shop_id', $homemetas->shop_id)->first();
-        $company = BusinessShop::where('shop_id', $homemetas->shop_id)->first();
-        $shop['business'] = $company->business ?? null;
+        $data = Cache::remember(
+            CacheKeys::homeMetas($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                $homemetas = Preference::where('shop_id',$shopId)->first();
+                if (!$homemetas) {
+                    return null;
+                }
+                $shop = Shop::with('setting','subscribe_section')
+                    ->where('shop_id', $shopId)
+                    ->first();
+                $company = BusinessShop::with('business')
+                    ->where('shop_id', $shopId)
+                    ->first();
+                $shop['business'] = $company?->business;
+                return [
+                    'homemetas' => $homemetas,
+                    'shop' => $shop,
+                ];
+            }
+        );
         return response()->json([
             'status' => 200,
             'message' => 'Home Metas',
-            'homemetas' => $homemetas,
-            'shop' => $shop,
+            'homemetas' => $data['homemetas'] ?? null,
+            'shop' => $data['shop'] ?? null,
         ]);
+
     }
 
     public function getShopSetting(Request $request)
     {
         $shopId = $request->shop_id;
-        $setting = Setting::where('shop_id', $shopId)->first();
+        $setting = Cache::remember(
+            CacheKeys::shopSettings($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                return Setting::where('shop_id', $shopId)->first();
+            }
+        );
         return response()->json([
             'success' => true,
             'message' => 'Shop Setting',

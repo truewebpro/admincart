@@ -14,6 +14,7 @@ use App\Models\Homepage;
 use App\Models\Menu;
 use App\Models\Page;
 use App\Models\Policy;
+use App\Models\Preference;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\Searchtag;
@@ -32,6 +33,7 @@ use App\Observers\HomepageObserver;
 use App\Observers\MenuObserver;
 use App\Observers\PageObserver;
 use App\Observers\PolicyObserver;
+use App\Observers\PreferenceObserver;
 use App\Observers\ProductObserver;
 use App\Observers\ProductTypeObserver;
 use App\Observers\SearchtagObserver;
@@ -77,6 +79,7 @@ class AppServiceProvider extends ServiceProvider
         Searchtag::observe(SearchtagObserver::class);
         ShipMethod::observe(ShipMethodObserver::class);
         ShopPaymentMethod::observe(ShopPaymentMethodObserver::class);
+        Preference::observe(PreferenceObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));
