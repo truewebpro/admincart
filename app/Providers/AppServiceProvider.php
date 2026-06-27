@@ -18,6 +18,8 @@ use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\Searchtag;
 use App\Models\Setting;
+use App\Models\ShipMethod;
+use App\Models\ShopPaymentMethod;
 use App\Observers\AnnouncementObserver;
 use App\Observers\BlogObserver;
 use App\Observers\BrandObserver;
@@ -34,6 +36,8 @@ use App\Observers\ProductObserver;
 use App\Observers\ProductTypeObserver;
 use App\Observers\SearchtagObserver;
 use App\Observers\SettingObserver;
+use App\Observers\ShipMethodObserver;
+use App\Observers\ShopPaymentMethodObserver;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Cashier;
@@ -71,6 +75,8 @@ class AppServiceProvider extends ServiceProvider
         BusinessShop::observe(BusinessShopObserver::class);
         Announcement::observe(AnnouncementObserver::class);
         Searchtag::observe(SearchtagObserver::class);
+        ShipMethod::observe(ShipMethodObserver::class);
+        ShopPaymentMethod::observe(ShopPaymentMethodObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));

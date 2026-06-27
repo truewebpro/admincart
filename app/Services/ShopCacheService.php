@@ -94,4 +94,14 @@ class ShopCacheService
         Cache::forget(CacheKeys::searchTags($shopId));
     }
 
+    public static function forgetShippingMethods(int $shopId): void
+    {
+        Cache::forget(CacheKeys::shippingMethods($shopId));
+    }
+
+    public static function forgetPaymentMethods(int $shopId): void
+    {
+        Cache::forget(CacheKeys::paymentMethods($shopId));
+    }
+
 }

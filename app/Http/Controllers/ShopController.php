@@ -292,7 +292,15 @@ class ShopController extends Controller
     public function shippingOptions(Request $request,$shopname)
     {
         $shopId = $request->shop_id;
-        $smethods = ShipMethod::with('courier')->where('shop_id','=',$shopId)->get();
+        $smethods = Cache::remember(
+            CacheKeys::shippingMethods($shopId),
+            now()->addHours(12),
+            function () use ($shopId){
+                return ShipMethod::with('courier')
+                    ->where('shop_id','=',$shopId)
+                    ->get();
+            }
+        );
         return response()->json([
             'status' => true,
             'smethods' => $smethods,
@@ -302,10 +310,16 @@ class ShopController extends Controller
     public function paymentOptions(Request $request,$shopname)
     {
         $shopId = $request->shop_id;
-        $pmethods = ShopPaymentMethod::where('shop_id','=',$shopId)
-            ->where('payment_status','=','active')
-            ->orderBy('sort_order','ASC')
-            ->get();
+        $pmethods = Cache::remember(
+            CacheKeys::paymentMethods($shopId),
+            now()->addHours(12),
+            function () use ($shopId){
+                return ShopPaymentMethod::where('shop_id','=',$shopId)
+                    ->where('payment_status','=','active')
+                    ->orderBy('sort_order','ASC')
+                    ->get();
+            }
+        );
         return response()->json([
             'status' => true,
             'pmethods' => $pmethods,

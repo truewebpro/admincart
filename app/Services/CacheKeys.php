@@ -120,4 +120,14 @@ class CacheKeys
     {
         return "shop:$shopId:search_tags";
     }
+
+    public static function shippingMethods(int $shopId): string
+    {
+        return "shop:$shopId:shipping_methods";
+    }
+
+    public static function paymentMethods(int $shopId): string
+    {
+        return "shop:$shopId:payment_methods";
+    }
 }
