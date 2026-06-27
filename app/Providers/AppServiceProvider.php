@@ -8,6 +8,7 @@ use App\Models\Cartpage;
 use App\Models\Cat;
 use App\Models\Menu;
 use App\Models\Page;
+use App\Models\Policy;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\Setting;
@@ -17,6 +18,7 @@ use App\Observers\CartpageObserver;
 use App\Observers\CatObserver;
 use App\Observers\MenuObserver;
 use App\Observers\PageObserver;
+use App\Observers\PolicyObserver;
 use App\Observers\ProductObserver;
 use App\Observers\ProductTypeObserver;
 use App\Observers\SettingObserver;
@@ -50,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         Menu::observe(MenuObserver::class);
         ProductType::observe(ProductTypeObserver::class);
         Cartpage::observe(CartpageObserver::class);
+        Policy::observe(PolicyObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));

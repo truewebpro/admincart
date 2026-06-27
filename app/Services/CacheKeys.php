@@ -90,4 +90,9 @@ class CacheKeys
     public static function page(int $shopId, string $slug): string {
         return "shop:$shopId:page:$slug";
     }
+
+    public static function policy(int $shopId, string $slug): string
+    {
+        return "shop:$shopId:policy:$slug";
+    }
 }

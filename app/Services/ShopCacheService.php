@@ -64,9 +64,12 @@ class ShopCacheService
 
     public static function forgetHtmlSitemap(int $shopId): void
     {
-        Cache::forget(
-            CacheKeys::htmlSitemap($shopId)
-        );
+        Cache::forget(CacheKeys::htmlSitemap($shopId));
+    }
+
+    public static function forgetPolicy(int $shopId, string $slug): void
+    {
+        Cache::forget(CacheKeys::policy($shopId, $slug));
     }
 
 }

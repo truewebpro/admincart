@@ -292,18 +292,19 @@ class ShopController extends Controller
     public function getPolicyBySlug(Request $request,$shopname,$policy_slug)
     {
         $shopId = $request->shop_id;
-        $policy = Policy::where('shop_id','=',$shopId)->where('policy_slug','=',$policy_slug)->first();
-        if($policy){
-            return response()->json([
-                'status' => true,
-                'policy' => $policy,
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'policy' => null,
-            ]);
-        }
+        $policy = Cache::remember(
+            CacheKeys::policy($shopId,$policy_slug),
+            now()->addDays(7),
+            function () use ($shopId,$policy_slug){
+                return Policy::where('shop_id','=',$shopId)
+                    ->where('policy_slug','=',$policy_slug)
+                    ->first();
+            }
+        );
+        return response()->json([
+            'status' => !is_null($policy),
+            'policy' => $policy,
+        ]);
     }
 
     public function getHomeMenu(Request $request,$shopname)
