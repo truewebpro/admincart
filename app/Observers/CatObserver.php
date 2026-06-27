@@ -16,6 +16,9 @@ class CatObserver
             $cat->shop_id,
             $cat->cat_slug
         );
+        ShopCacheService::forgetHtmlSitemap(
+            $cat->shop_id
+        );
     }
 
     /**
@@ -27,6 +30,9 @@ class CatObserver
             $cat->shop_id,
             $cat->cat_slug
         );
+        ShopCacheService::forgetHtmlSitemap(
+            $cat->shop_id
+        );
     }
 
     /**
@@ -37,6 +43,9 @@ class CatObserver
         ShopCacheService::forgetCat(
             $cat->shop_id,
             $cat->cat_slug
+        );
+        ShopCacheService::forgetHtmlSitemap(
+            $cat->shop_id
         );
     }
 

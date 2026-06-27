@@ -17,6 +17,9 @@ class BrandObserver
             $brand->shop_id,
             $brand->brand_slug
         );
+        ShopCacheService::forgetHtmlSitemap(
+            $brand->shop_id
+        );
     }
 
     public function updated(Brand $brand): void
@@ -35,6 +38,9 @@ class BrandObserver
                 $brand->getOriginal('brand_slug')
             );
         }
+        ShopCacheService::forgetHtmlSitemap(
+            $brand->shop_id
+        );
     }
 
     public function deleted(Brand $brand): void
@@ -46,6 +52,9 @@ class BrandObserver
         ShopCacheService::forgetBrand(
             $brand->shop_id,
             $brand->brand_slug
+        );
+        ShopCacheService::forgetHtmlSitemap(
+            $brand->shop_id
         );
     }
 }

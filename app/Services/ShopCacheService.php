@@ -59,4 +59,15 @@ class ShopCacheService
         Cache::forget("shop:{$shopId}:menu");
     }
 
+    public static function forgetCartPage(int $shopId): void {
+        Cache::forget(CacheKeys::cartPage($shopId));
+    }
+
+    public static function forgetHtmlSitemap(int $shopId): void
+    {
+        Cache::forget(
+            CacheKeys::htmlSitemap($shopId)
+        );
+    }
+
 }

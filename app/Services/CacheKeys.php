@@ -76,4 +76,14 @@ class CacheKeys
     {
         return "shop:$shopId:blog:$slug";
     }
+
+    public static function cartPage(int $shopId): string
+    {
+        return "shop:$shopId:cart_page";
+    }
+
+    public static function htmlSitemap(int $shopId): string
+    {
+        return "shop:$shopId:html_sitemap";
+    }
 }

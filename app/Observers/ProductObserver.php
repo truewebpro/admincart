@@ -23,6 +23,9 @@ class ProductObserver
                 $product->brand->brand_slug
             );
         }
+        ShopCacheService::forgetHtmlSitemap(
+            $product->shop_id
+        );
     }
 
     /**
@@ -47,8 +50,11 @@ class ProductObserver
                 $product->shop_id,
                 $product->brand->brand_slug
             );
-
         }
+
+        ShopCacheService::forgetHtmlSitemap(
+            $product->shop_id
+        );
 
 
     }

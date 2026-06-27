@@ -176,46 +176,51 @@ class ShopController extends Controller
     public function cartSections(Request $request,$shopname)
     {
         $shopId = $request->shop_id;
-        $cartpage = Cartpage::where('shop_id','=',$shopId)->first();
-        $cartsections = Section::where('sectionable_id','=',$cartpage->cartpage_id)
-            ->where('sectionable_type',Cartpage::class)
-            ->join('stypes','stypes.stype_id','=','sections.stype_id')
-            ->select('sections.section_id','sections.sectionable_id','sections.section_json',
-                'sections.sort_order','sections.section_status','sections.stype_id','stypes.stype_slug')
-            ->where('sections.section_status','=','show')
-            ->orderBy('sections.sort_order', 'ASC')
-            ->get();
-        $sectionsWithExtras = [];
-        foreach ($cartsections as $section){
-            $sectionArray = $section->toArray();
-            if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
-                $catId = $sectionArray['section_json']['stype_json']['cat_id'];
-                $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
-                $products = Product::with(['variants.astock', 'brand', 'ptype'])
-                    ->whereIn('product_id', function ($query) use ($catId) {
-                        $query->select('product_id')
-                            ->from('catpros')
-                            ->where('cat_id', $catId);
-                    })
-                    ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
+
+        $cartpage = Cache::remember(
+            CacheKeys::cartPage($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                $cartpage = Cartpage::where('shop_id','=',$shopId)->first();
+                if (!$cartpage) {
+                    return null;
+                }
+                $cartsections = Section::where('sectionable_id','=',$cartpage->cartpage_id)
+                    ->where('sectionable_type',Cartpage::class)
+                    ->join('stypes','stypes.stype_id','=','sections.stype_id')
+                    ->select('sections.section_id','sections.sectionable_id','sections.section_json',
+                        'sections.sort_order','sections.section_status','sections.stype_id','stypes.stype_slug')
+                    ->where('sections.section_status','=','show')
+                    ->orderBy('sections.sort_order', 'ASC')
                     ->get();
-                $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
-                $sectionArray['section_json']['stype_json']['catpros'] = $products;
+                $sectionsWithExtras = [];
+                foreach ($cartsections as $section){
+                    $sectionArray = $section->toArray();
+                    if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
+                        $catId = $sectionArray['section_json']['stype_json']['cat_id'];
+                        $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
+                        $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                            ->whereIn('product_id', function ($query) use ($catId) {
+                                $query->select('product_id')
+                                    ->from('catpros')
+                                    ->where('cat_id', $catId);
+                            })
+                            ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
+                            ->get();
+                        $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
+                        $sectionArray['section_json']['stype_json']['catpros'] = $products;
+                    }
+                    $sectionsWithExtras[] = $sectionArray;
+                }
+                $cartpage->asections = $sectionsWithExtras;
+                return $cartpage;
             }
-            $sectionsWithExtras[] = $sectionArray;
-        }
-        $cartpage->asections = $sectionsWithExtras;
-        if($cartpage != null){
-            return response()->json([
-                'status' => true,
-                'cartpage' => $cartpage,
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'cartpage' => null,
-            ]);
-        }
+        );
+
+        return response()->json([
+            'status' => !is_null($cartpage),
+            'cartpage' => $cartpage,
+        ]);
     }
 
     public function shopPoptions(Request $request,$shopname)
@@ -507,19 +512,41 @@ class ShopController extends Controller
     public function htmlSitemap(Request $request,$shopname)
     {
         $shopId = $request->shop_id;
-        $products = Product::where('shop_id','=',$shopId)
-            ->select('products.title','handle')->orderBy('products.handle','asc')->get();
-        $cats = Cat::where('shop_id','=',$shopId)->select('cats.cat_name','cat_slug')
-            ->orderBy('cats.cat_slug','asc')->get();
-        $brands = Brand::where('shop_id','=',$shopId)->select('brands.brand_name','brand_slug')
-            ->orderBy('brands.brand_slug','asc')->get();
-        $pages = Page::where('shop_id','=',$shopId)->select('pages.page_title','pages.page_slug')->orderBy('page_slug','asc')->get();
+
+        $data = Cache::remember(
+            CacheKeys::htmlSitemap($shopId),
+            now()->addDays(7),
+            function () use ($shopId) {
+                return [
+                    "products" => Product::where('shop_id','=',$shopId)
+                        ->select('products.title','handle')
+                        ->orderBy('products.handle','asc')
+                        ->get(),
+
+                    "cats" => Cat::where('shop_id','=',$shopId)
+                        ->select('cats.cat_name','cat_slug')
+                        ->orderBy('cats.cat_slug','asc')
+                        ->get(),
+
+                    "brands" => Brand::where('shop_id','=',$shopId)
+                        ->select('brands.brand_name','brand_slug')
+                        ->orderBy('brands.brand_slug','asc')
+                        ->get(),
+
+                    "pages" => Page::where('shop_id','=',$shopId)
+                        ->select('pages.page_title','pages.page_slug')
+                        ->orderBy('page_slug','asc')
+                        ->get(),
+                ];
+            }
+        );
+
         return response()->json([
             'status' => true,
-            'cats' => $cats,
-            'brands' => $brands,
-            'products' => $products,
-            'pages' => $pages,
-        ],200);
+            'cats' => $data['cats'],
+            'brands' => $data['brands'],
+            'products' => $data['products'],
+            'pages' => $data['pages'],
+        ]);
     }
 }

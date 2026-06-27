@@ -16,6 +16,9 @@ class PageObserver
             $page->shop_id,
             $page->page_slug
         );
+        ShopCacheService::forgetHtmlSitemap(
+            $page->shop_id
+        );
     }
 
     /**
@@ -26,6 +29,9 @@ class PageObserver
         ShopCacheService::forgetPage(
             $page->shop_id,
             $page->page_slug
+        );
+        ShopCacheService::forgetHtmlSitemap(
+            $page->shop_id
         );
     }
 
@@ -38,6 +44,9 @@ class PageObserver
             $page->shop_id,
             $page->page_slug
         );
+        ShopCacheService::forgetHtmlSitemap(
+            $page->shop_id
+        );
     }
 
     /**
@@ -48,6 +57,9 @@ class PageObserver
         ShopCacheService::forgetPage(
             $page->shop_id,
             $page->page_slug
+        );
+        ShopCacheService::forgetHtmlSitemap(
+            $page->shop_id
         );
     }
 

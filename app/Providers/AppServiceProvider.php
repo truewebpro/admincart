@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Blog;
 use App\Models\Brand;
+use App\Models\Cartpage;
 use App\Models\Cat;
 use App\Models\Menu;
 use App\Models\Page;
@@ -12,6 +13,7 @@ use App\Models\ProductType;
 use App\Models\Setting;
 use App\Observers\BlogObserver;
 use App\Observers\BrandObserver;
+use App\Observers\CartpageObserver;
 use App\Observers\CatObserver;
 use App\Observers\MenuObserver;
 use App\Observers\PageObserver;
@@ -47,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
         Setting::observe(SettingObserver::class);
         Menu::observe(MenuObserver::class);
         ProductType::observe(ProductTypeObserver::class);
+        Cartpage::observe(CartpageObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));
