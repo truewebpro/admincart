@@ -6,6 +6,7 @@ use App\Models\Blog;
 use App\Models\Brand;
 use App\Models\Cartpage;
 use App\Models\Cat;
+use App\Models\Homepage;
 use App\Models\Menu;
 use App\Models\Page;
 use App\Models\Policy;
@@ -16,6 +17,7 @@ use App\Observers\BlogObserver;
 use App\Observers\BrandObserver;
 use App\Observers\CartpageObserver;
 use App\Observers\CatObserver;
+use App\Observers\HomepageObserver;
 use App\Observers\MenuObserver;
 use App\Observers\PageObserver;
 use App\Observers\PolicyObserver;
@@ -53,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
         ProductType::observe(ProductTypeObserver::class);
         Cartpage::observe(CartpageObserver::class);
         Policy::observe(PolicyObserver::class);
+        Homepage::observe(HomepageObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));

@@ -95,4 +95,14 @@ class CacheKeys
     {
         return "shop:$shopId:policy:$slug";
     }
+
+    public static function heroSections(int $shopId): string
+    {
+        return "shop:$shopId:hero_sections";
+    }
+
+    public static function lazySections(int $shopId): string
+    {
+        return "shop:$shopId:lazy_sections";
+    }
 }

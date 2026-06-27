@@ -26,6 +26,9 @@ class ProductObserver
         ShopCacheService::forgetHtmlSitemap(
             $product->shop_id
         );
+        ShopCacheService::forgetLazySections(
+            $product->shop_id
+        );
     }
 
     /**
@@ -53,6 +56,10 @@ class ProductObserver
         }
 
         ShopCacheService::forgetHtmlSitemap(
+            $product->shop_id
+        );
+
+        ShopCacheService::forgetLazySections(
             $product->shop_id
         );
 

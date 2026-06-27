@@ -88,45 +88,68 @@ class ShopController extends Controller
     public function homeHeroSections(Request $request)
     {
         $shopId = $request->shop_id;
-        $homepage = Homepage::with('herosections')->where('shop_id','=',$shopId)->first();
+        $sections = Cache::remember(
+            CacheKeys::heroSections($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                $homepage = Homepage::with('herosections')
+                    ->where('shop_id','=',$shopId)
+                    ->first();
+                return $homepage?->herosections;
+            }
+        );
+
         return response()->json([
             'success' => true,
-            'hsections' => $homepage->herosections ?? null,
+            'hsections' => $sections ?? null,
         ]);
     }
 
     public function homeLazySections(Request $request)
     {
         $shopId = $request->shop_id;
-        $homepage = Homepage::with('lsections')->where('shop_id','=',$shopId)->first();
-        $asections = $homepage->lsections ?? collect();
-        foreach ($asections as &$section) {
-            if ($section->stype_slug !== 'featured_products') {
-                continue;
+        $data = Cache::remember(
+            CacheKeys::lazySections($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                $homepage = Homepage::with('lsections')
+                    ->where('shop_id','=',$shopId)
+                    ->first();
+                if (!$homepage) {
+                    return [];
+                }
+                $asections = $homepage->lsections ?? collect();
+                foreach ($asections as &$section) {
+                    if ($section->stype_slug !== 'featured_products') {
+                        continue;
+                    }
+                    $sectionJson = $section->section_json;
+                    $stypeJson = $sectionJson['stype_json'];
+                    $catId = $stypeJson['cat_id'];
+                    $cat = Cat::where('cat_id', $catId)->first();
+                    $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                        ->where('shop_id','=',$shopId)
+                        ->withCount('reviews')->withAvg('reviews','rating')
+                        ->whereIn('product_id', function ($query) use ($catId) {
+                            $query->select('product_id')
+                                ->from('catpros')
+                                ->where('cat_id', $catId);
+                        })
+                        ->limit($stypeJson['plimit'] ?? 12)
+                        ->get();
+                    $stypeJson['cat_slug'] = $cat->cat_slug ?? null;
+                    $stypeJson['cat_image'] = $cat->cat_image ?? null;
+                    $stypeJson['catpros'] = $products ?? [];
+                    $sectionJson['stype_json'] = $stypeJson;
+                    $section->section_json = $sectionJson;
+                }
+                return $asections;
             }
-            $sectionJson = $section->section_json;
-            $stypeJson = $sectionJson['stype_json'];
-            $catId = $stypeJson['cat_id'];
-            $cat = Cat::where('cat_id', $catId)->first();
-            $products = Product::with(['variants.astock', 'brand', 'ptype'])
-                ->where('shop_id','=',$shopId)
-                ->withCount('reviews')->withAvg('reviews','rating')
-                ->whereIn('product_id', function ($query) use ($catId) {
-                    $query->select('product_id')
-                        ->from('catpros')
-                        ->where('cat_id', $catId);
-                })
-                ->limit($sectionJson['plimit'] ?? 12)
-                ->get();
-            $stypeJson['cat_slug'] = $cat->cat_slug ?? null;
-            $stypeJson['cat_image'] = $cat->cat_image ?? null;
-            $stypeJson['catpros'] = $products ?? [];
-            $sectionJson['stype_json'] = $stypeJson;
-            $section->section_json = $sectionJson;
-        }
+        );
+
         return response()->json([
             'success' => true,
-            'hsections' => $homepage->lsections ?? null,
+            'hsections' => $data,
         ]);
 
     }

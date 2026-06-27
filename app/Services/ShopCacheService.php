@@ -72,4 +72,12 @@ class ShopCacheService
         Cache::forget(CacheKeys::policy($shopId, $slug));
     }
 
+    public static function forgetHeroSections(int $shopId): void {
+        Cache::forget(CacheKeys::heroSections($shopId));
+    }
+
+    public static function forgetLazySections(int $shopId): void {
+        Cache::forget(CacheKeys::lazySections($shopId));
+    }
+
 }
