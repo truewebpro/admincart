@@ -3205,41 +3205,6 @@ class HomeController extends Controller
 
     }
 
-    public function homeBanners()
-    {
-        $shopId = session('shop_id');
-        $homebanners = Homebanner::where('shop_id','=',$shopId)->get();
-        $featuredgrids = Featuredgrid::where('shop_id','=',$shopId)->get();
-        $featuredcats = Featuredcat::Join('cats','cats.cat_id','=','featuredcats.cat_id')
-            ->select('featuredcats.*','cats.cat_slug','cats.cat_name')
-            ->where('featuredcats.shop_id','=',$shopId)
-            ->get();
-        $shopbycats = Shopbycat::Join('cats','cats.cat_id','=','shopbycats.cat_id')
-            ->select('shopbycats.*','cats.cat_slug','cats.cat_name')
-            ->where('shopbycats.shop_id','=',$shopId)
-            ->get();
-        $productgrids = Productgrid::where('shop_id','=',$shopId)->get();
-        foreach ($productgrids as $productgrid) {
-            $catId = $productgrid->cat_id;
-            $products = Product::with(['variants.astock', 'brand', 'ptype'])
-                ->whereIn('product_id', function ($query) use ($catId) {
-                    $query->select('product_id')
-                        ->from('catpros')
-                        ->where('cat_id', $catId);
-                })
-                ->limit($productgrid->limit)
-                ->get();
-            $productgrid['allpros'] = $products;
-        }
-        return response()->json([
-            'homebanners' => $homebanners,
-            'featuredgrids' => $featuredgrids,
-            'featuredcats' => $featuredcats,
-            'shopbycats' => $shopbycats,
-            'productgrids' => $productgrids
-        ],200);
-    }
-
     public function shippingSettings()
     {
         $shopId = session('shop_id');

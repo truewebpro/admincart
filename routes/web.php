@@ -155,7 +155,6 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/poptions',[HomeController::class,'allPoptions']);
         Route::post('/poption/update',[HomeController::class,'updatePoption']);
         Route::get('/shops/theme',[HomeController::class,'themeSettings']);
-        Route::get('/shops/homebanners',[HomeController::class,'homeBanners']);
         Route::get('/settings/shipping',[HomeController::class,'shippingSettings']);
         Route::post('/settings/update/sendcloud',[HomeController::class,'updateSendCloud']);
         Route::post('/settings/shipping/update',[HomeController::class,'updateOrAddAdminShipMethod']);
