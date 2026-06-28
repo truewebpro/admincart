@@ -48,29 +48,46 @@ class BrandController extends Controller
                 'brand' => null,
             ]);
         }
-        $brand_products = Cache::remember(
-            CacheKeys::brandProducts($shopId, $brand_slug),
-            now()->addHours(6),
-            function () use ($brand) {
-                return Product::query()
-                    ->select(
-                        'product_id',
-                        'title',
-                        'handle',
-                        'featured_image',
-                        'product_status',
-                        'product_type_id',
-                        'brand_id',
-                        'tags'
-                    )
-                    ->with('brand','variants.astock')
-                    ->withCount('reviews')
-                    ->withAvg('reviews','rating')
-                    ->where('brand_id', $brand->brand_id)
-                    ->where('product_status', 'Active')
-                    ->paginate(12);
-            }
-        );
+        $brand_products = Product::query()
+            ->select(
+                'product_id',
+                'title',
+                'handle',
+                'featured_image',
+                'product_status',
+                'product_type_id',
+                'brand_id',
+                'tags'
+            )
+            ->with('brand','variants.astock')
+            ->withCount('reviews')
+            ->withAvg('reviews','rating')
+            ->where('brand_id', $brand->brand_id)
+            ->where('product_status', 'Active')
+            ->paginate(12);
+//        $brand_products = Cache::remember(
+//            CacheKeys::brandProducts($shopId, $brand_slug),
+//            now()->addHours(6),
+//            function () use ($brand) {
+//                return Product::query()
+//                    ->select(
+//                        'product_id',
+//                        'title',
+//                        'handle',
+//                        'featured_image',
+//                        'product_status',
+//                        'product_type_id',
+//                        'brand_id',
+//                        'tags'
+//                    )
+//                    ->with('brand','variants.astock')
+//                    ->withCount('reviews')
+//                    ->withAvg('reviews','rating')
+//                    ->where('brand_id', $brand->brand_id)
+//                    ->where('product_status', 'Active')
+//                    ->paginate(12);
+//            }
+//        );
 
         return response()->json([
             'status' => true,
