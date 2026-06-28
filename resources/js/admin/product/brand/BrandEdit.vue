@@ -13,23 +13,6 @@
                 <v-btn :href="domain+'brands/'+brand.brand_slug" target="_blank" variant="tonal" class="text-none me-2"
                        density="compact" title="Preview" color="grey-darken-1">Preview</v-btn>
                 <v-btn variant="outlined" @click="disCard" class="text-none me-2" density="compact" color="grey-darken-4">Discard</v-btn>
-<!--                <v-menu>-->
-<!--                    <template v-slot:activator="{props}">-->
-<!--                        <v-btn v-bind="props" variant="outlined" class="text-none me-2" append-icon="mdi-chevron-down"-->
-<!--                               density="compact">More Actions</v-btn>-->
-<!--                    </template>-->
-<!--                    <v-list nav density="compact">-->
-<!--                        <v-list-item base-color="dark" v-if="pro.archived" @click="restoreProduct">-->
-<!--                            <v-list-item-title><v-icon class="me-2">mdi-archive-cancel-outline</v-icon>Restore Product</v-list-item-title>-->
-<!--                        </v-list-item>-->
-<!--                        <v-list-item base-color="dark" v-else @click="archiveProduct">-->
-<!--                            <v-list-item-title><v-icon class="me-2">mdi-archive-outline</v-icon>Archive Product</v-list-item-title>-->
-<!--                        </v-list-item>-->
-<!--                        <v-list-item base-color="error" @click="perdeleteProduct">-->
-<!--                            <v-list-item-title><v-icon class="me-2">mdi-trash-can-outline</v-icon>Delete Product</v-list-item-title>-->
-<!--                        </v-list-item>-->
-<!--                    </v-list>-->
-<!--                </v-menu>-->
                 <v-btn @click="editBrand" :loading="upLoading" :disabled="upLoading" color="grey-darken-4" density="compact" class="text-none" >Save</v-btn>
             </v-col>
         </v-row>
@@ -38,10 +21,12 @@
                 <v-card class="border-sm">
                     <v-card-text>
                         <v-text-field v-model="brand.brand_name" label="Brand Name" :rules="btitleRule"
-                                      density="compact" class="mb-3" ref="brandNameField"
+                                      density="compact" class="mb-1" ref="brandNameField"
                                       variant="outlined" placeholder="Brand name"
                                       persistent-placeholder></v-text-field>
-                        <v-textarea v-model="brand.brand_desc" label="Brand Description" density="compact" variant="outlined" placeholder="Brand Description" persistent-placeholder></v-textarea>
+                        <h2 class="font-weight-semibold mb-2">Brand Description</h2>
+                        <RichTextEditor v-model="brand.brand_desc"/>
+<!--                        <v-textarea v-model="brand.brand_desc" label="Brand Description" density="compact" variant="outlined" placeholder="Brand Description" persistent-placeholder></v-textarea>-->
                     </v-card-text>
                 </v-card>
                 <v-card class="border-sm mt-4">
@@ -89,12 +74,13 @@
 <script>
 import axios from "axios";
 import {VFileUpload} from "vuetify/labs/components";
+import RichTextEditor from "@/components/RichTextEditor.vue";
 export default {
     name:"BrandEdit",
     props:{
         brand_id:[Number,String]
     },
-    components:{VFileUpload},
+    components:{RichTextEditor, VFileUpload},
     data(){
         return{
             cdn:this.$store.state.cdn,

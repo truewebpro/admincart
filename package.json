@@ -19,6 +19,7 @@
         "vuetify": "^3.11.8"
     },
     "dependencies": {
+        "@hugerte/hugerte-vue": "^2.0.2",
         "@stripe/stripe-js": "^9.1.0",
         "@vueup/vue-quill": "^1.2.0",
         "apexcharts": "^5.3.6",
