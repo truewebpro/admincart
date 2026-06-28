@@ -46,6 +46,6 @@ const editorConfig = {
     ],
 
     toolbar:
-        'blocks | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image media table | code fullscreen | undo redo'
+        'blocks | bold italic underline | alignleft aligncenter alignright | bullist numlist | link table | code fullscreen | undo redo'
 }
 </script>
