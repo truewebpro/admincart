@@ -34,7 +34,7 @@
             :categories="allCategories"
             :banners="allBanners"
             :brands="allBrands"
-            :alink="alinks"
+            :alinks="alinks"
             @save="updateSection"
         />
         <v-dialog v-model="deleteSectionDialog" max-width="400" transition="dialog-bottom-transition">

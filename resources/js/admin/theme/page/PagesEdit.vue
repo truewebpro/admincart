@@ -123,6 +123,7 @@
                 :categories="allCategories"
                 :banners="allBanners"
                 :brands="allBrands"
+                :alinks="alinks"
                 @save="updateSection"
             />
             <v-dialog v-model="deleteSectionDialog" max-width="400" transition="dialog-bottom-transition">
@@ -181,6 +182,7 @@ import SlideShowPreview from "@/components/previews/SlideShowPreview.vue";
 import FeaturedOptionsPreview from "@/components/previews/FeaturedOptionsPreview.vue";
 import PeopleSearchPreview from "@/components/previews/PeopleSearchPreview.vue";
 import VideoWithTextPreview from "@/components/previews/VideoWithTextPreview.vue";
+import FeaturedLinksPreview from "@/components/previews/FeaturedLinksPreview.vue";
 
 export default {
     name:"PagesEdit",
@@ -196,6 +198,7 @@ export default {
         ServicesPromoPreview,
         TextSectionPreview,
         FeaturedCollectionsPreview,
+        FeaturedLinksPreview,
         SlideShowPreview,
         FeaturedOptionsPreview,
         PeopleSearchPreview,
@@ -204,6 +207,14 @@ export default {
     },
     props:{
         page_id:[Number,String]
+    },
+    computed:{
+        alinks(){
+            return this.$store.state.alinks;
+        },
+    },
+    async mounted(){
+        this.$store.dispatch('fetchAlinks');
     },
     data(){
         return{
@@ -334,6 +345,7 @@ export default {
                 services_promo: "ServicesPromoPreview",
                 text_section: "TextSectionPreview",
                 featured_collections: "FeaturedCollectionsPreview",
+                featured_links: "FeaturedLinksPreview",
                 slideshow: "SlideShowPreview",
                 featured_options: "FeaturedOptionsPreview",
                 people_search: "PeopleSearchPreview",
