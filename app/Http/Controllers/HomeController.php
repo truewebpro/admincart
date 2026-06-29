@@ -1150,7 +1150,7 @@ class HomeController extends Controller
     {
         $shopId = session('shop_id');
         $product = Product::withTrashed()->where('product_id','=', $product_id)
-            ->with('brand','ptype','variants.astock','sections','highs','specifics','tiers')
+            ->with('brand','ptype','variants.astock','sections','highs','specifics','tiers','faqs')
             ->where('shop_id','=',$shopId)
             ->first();
         $ptypes = ProductType::select('product_type_id','product_type_name')
@@ -2859,7 +2859,9 @@ class HomeController extends Controller
     public function brandById($brand_id)
     {
         $shopId = session('shop_id');
-        $brand = Brand::find($brand_id);
+        $brand = Brand::with('faqs')
+            ->where('brand_id', $brand_id)
+            ->first();
         if(!$brand){
             return response()->json([
                 'success' => false,

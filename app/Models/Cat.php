@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cat extends Model
 {
@@ -83,6 +84,12 @@ class Cat extends Model
         return $this->hasMany(RelatedCat::class,'cat_parent_id','cat_id')
             ->join('cats','cats.cat_id','=','related_cats.cat_child_id')
             ->select('related_cats.*','cats.cat_slug as rslug','cats.cat_name as rcat_name');
+    }
+
+    public function faqs():HasMany
+    {
+        return $this->hasMany(CatFaq::class, 'cat_id', 'cat_id')
+            ->orderBy('sort_order', 'ASC');
     }
 
 }

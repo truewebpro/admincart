@@ -47,4 +47,10 @@ class Brand extends Model
             ->orderBy('sort_order', 'ASC');
     }
 
+    public function faqs():HasMany
+    {
+        return $this->hasMany(BrandFaq::class, 'brand_id', 'brand_id')
+            ->orderBy('sort_order', 'ASC');
+    }
+
 }

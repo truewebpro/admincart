@@ -43,6 +43,7 @@
             <v-tab value="specifics">Specifics</v-tab>
             <v-tab value="content">Sections</v-tab>
             <v-tab value="tiers">Tier Pricing</v-tab>
+            <v-tab value="faqs">FAQ's</v-tab>
         </v-tabs>
         <v-window v-model="ptab">
             <v-window-item value="general">
@@ -573,6 +574,13 @@
                     @refresh="getProductByID"
                 />
             </v-window-item>
+            <v-window-item value="faqs">
+                <ProductFaqs
+                    :product_id="product_id"
+                    :faqs="faqs"
+                    @refresh-faqs="getProductByID"
+                />
+            </v-window-item>
         </v-window>
     </v-container>
 </template>
@@ -584,10 +592,12 @@ import ProductSections from "@/admin/product/ProductSections.vue";
 import ProductSpecifics from "@/admin/product/ProductSpecifics.vue";
 import ProductTiers from "@/admin/product/ProductTiers.vue";
 import ProductHighlights from "@/admin/product/ProductHighlights.vue";
+import ProductFaqs from "@/admin/product/ProductFaqs.vue";
 
 export default {
     name:"ProductEdit",
     components: {
+        ProductFaqs,
         ProductHighlights,
         ProductTiers,
         ProductSpecifics,
@@ -617,6 +627,7 @@ export default {
             allBrands:[],
             allCategories:[],
             allBanners: [],
+            faqs: [],
             selectedOption: "",
             optionValueInputs:[''],
             variants: {},
@@ -1025,6 +1036,7 @@ export default {
                     this.reviews = respData.reviews;
                     this.reviewers = respData.reviewers;
                     this.specifics = prod.specifics;
+                    this.faqs = prod.faqs;
                     this.tiers = (prod.tiers || [])
                         .map(t => ({
                             min_qty: Number(t.min_qty),

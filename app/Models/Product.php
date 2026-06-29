@@ -106,4 +106,10 @@ class Product extends Model
             ->orderBy('min_qty', 'ASC');
     }
 
+    public function faqs():HasMany
+    {
+        return $this->hasMany(ProductFaq::class, 'product_id', 'product_id')
+            ->orderBy('sort_order', 'ASC');
+    }
+
 }

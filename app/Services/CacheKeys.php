@@ -140,4 +140,9 @@ class CacheKeys
     {
         return "shop:$shopId:homemetas";
     }
+
+    public static function shopReviewSummary(int $shopId): string
+    {
+        return "shop:$shopId:shop_review_summary";
+    }
 }

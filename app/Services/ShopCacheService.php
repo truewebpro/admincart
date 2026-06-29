@@ -105,4 +105,9 @@ class ShopCacheService
         Cache::forget(CacheKeys::paymentMethods($shopId));
     }
 
+    public static function forgetProreviews(int $shopId): void
+    {
+        Cache::forget(CacheKeys::shopReviewSummary($shopId));
+    }
+
 }

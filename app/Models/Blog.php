@@ -56,4 +56,10 @@ class Blog extends Model
         return $this->hasMany(Comment::class, 'blog_id', 'blog_id');
     }
 
+    public function faqs():HasMany
+    {
+        return $this->hasMany(BlogFaq::class, 'blog_id', 'blog_id')
+            ->orderBy('sort_order', 'ASC');
+    }
+
 }

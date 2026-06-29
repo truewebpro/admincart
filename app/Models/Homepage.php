@@ -64,4 +64,10 @@ class Homepage extends Model
             ->orderBy('sort_order', 'ASC')->skip(2)->take(20);
     }
 
+    public function faqs():HasMany
+    {
+        return $this->hasMany(HomepageFaq::class, 'homepage_id', 'homepage_id')
+            ->orderBy('sort_order', 'ASC');
+    }
+
 }

@@ -92,6 +92,25 @@ class ShopController extends Controller
 
     }
 
+    public function shopReviewSummary(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $summary = Cache::remember(
+            CacheKeys::shopReviewSummary($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                return [
+                    'reviews_count' => Proreview::where('shop_id', $shopId)->count(),
+                    'reviews_avg_rating' => round(Proreview::where('shop_id', $shopId)->avg('rating') ?? 0, 1),
+                ];
+            }
+        );
+        return response()->json([
+            'status' => true,
+            'summary' => $summary,
+        ]);
+    }
+
     public function getShopSetting(Request $request)
     {
         $shopId = $request->shop_id;

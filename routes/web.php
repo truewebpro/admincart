@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FaqController;
 use App\Http\Controllers\MailtrapController;
 use App\Http\Controllers\SuperadminController;
 use Illuminate\Support\Facades\Route;
@@ -118,6 +119,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/product/review/add',[HomeController::class,'addAdminProductReview']);
         Route::post('/product/update-unit-pack',[HomeController::class,'updateUnitPack']);
         Route::post('/product/save-tier-pricing',[HomeController::class,'saveTierPricing']);
+        Route::post('/product/add-faq',[FaqController::class,'addProductFaq']);
         Route::get('/categories',[HomeController::class,'allCats']);
         Route::get('/cats/new',[HomeController::class,'addCatView']);
         Route::post('/cat/new',[HomeController::class,'addCatNew']);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 
@@ -37,6 +38,12 @@ class Page extends Model
                 'sections.sort_order','sections.section_status','sections.stype_id','stypes.stype_slug')
             ->where('sections.section_status','=','show')
             ->where('sections.sectionable_type',Page::class)
+            ->orderBy('sort_order', 'ASC');
+    }
+
+    public function faqs():HasMany
+    {
+        return $this->hasMany(PageFaq::class, 'page_id', 'page_id')
             ->orderBy('sort_order', 'ASC');
     }
 

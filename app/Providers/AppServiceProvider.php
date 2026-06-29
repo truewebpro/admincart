@@ -16,7 +16,9 @@ use App\Models\Page;
 use App\Models\Policy;
 use App\Models\Preference;
 use App\Models\Product;
+use App\Models\ProductFaq;
 use App\Models\ProductType;
+use App\Models\Proreview;
 use App\Models\Searchtag;
 use App\Models\Section;
 use App\Models\Setting;
@@ -35,8 +37,10 @@ use App\Observers\MenuObserver;
 use App\Observers\PageObserver;
 use App\Observers\PolicyObserver;
 use App\Observers\PreferenceObserver;
+use App\Observers\ProductFaqObserver;
 use App\Observers\ProductObserver;
 use App\Observers\ProductTypeObserver;
+use App\Observers\ProreviewObserver;
 use App\Observers\SearchtagObserver;
 use App\Observers\SectionObserver;
 use App\Observers\SettingObserver;
@@ -83,6 +87,8 @@ class AppServiceProvider extends ServiceProvider
         ShopPaymentMethod::observe(ShopPaymentMethodObserver::class);
         Preference::observe(PreferenceObserver::class);
         Section::observe(SectionObserver::class);
+        ProductFaq::observe(ProductFaqObserver::class);
+        Proreview::observe(ProreviewObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));

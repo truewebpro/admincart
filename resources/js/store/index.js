@@ -167,6 +167,8 @@ const store = createStore({
         LOGOUT(state){
             state.user = null
             state.shop = null
+            localStorage.removeItem('shop')
+            localStorage.removeItem('shop_id')
         },
     },
     getters:{

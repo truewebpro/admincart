@@ -20,7 +20,7 @@ class ProductController extends Controller
             CacheKeys::product($shopId,$slug),
             now()->addHours(12),
             function () use ($shopId,$slug) {
-                $product = Product::with('variants.astock','brand','ptype','highs','reviews','specifics','tiers')
+                $product = Product::with('variants.astock','brand','ptype','highs','reviews','specifics','tiers','faqs')
                     ->withCount('reviews')
                     ->withSum('reviews','rating')
                     ->withAvg('reviews','rating')
@@ -146,7 +146,7 @@ class ProductController extends Controller
     public function getProduct(Request $request,$shopname,$slug)
     {
         $shopId = $request->shop_id;
-        $sproduct = Product::with('variants.astock','brand','ptype','psections','highs','reviews','specifics','tiers')
+        $sproduct = Product::with('variants.astock','brand','ptype','psections','highs','reviews','specifics','tiers','faqs')
             ->withCount('reviews')->withSum('reviews','rating')
             ->withAvg('reviews','rating')
             ->where('shop_id','=',$shopId)
