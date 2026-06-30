@@ -28,7 +28,7 @@
                                               density="compact" persistent-placeholder counter persistent-counter></v-text-field>
                             </div>
                             <div>
-                                <quill-editor ref="quillRef" v-model="sblog.quillContent" @text-change="onEditorChange"></quill-editor>
+                                <RichTextEditor v-model="sblog.quillContent"/>
                             </div>
                         </v-card-text>
                     </v-card>
@@ -203,13 +203,15 @@ import SlideShowPreview from "@/components/previews/SlideShowPreview.vue";
 import FeaturedOptionsPreview from "@/components/previews/FeaturedOptionsPreview.vue";
 import PeopleSearchPreview from "@/components/previews/PeopleSearchPreview.vue";
 import VideoWithTextPreview from "@/components/previews/VideoWithTextPreview.vue";
+import RichTextEditor from "@/components/RichTextEditor.vue";
 
 export default {
     name:"BlogsEdit",
     props:{
         blog_id:[Number,String]
     },
-    components:{VFileUpload,
+    components:{
+        RichTextEditor, VFileUpload,
         BrowseCollectionPreview,
         CustomTextPreview,
         FaqsPreview,
