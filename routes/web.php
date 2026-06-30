@@ -120,6 +120,8 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/product/update-unit-pack',[HomeController::class,'updateUnitPack']);
         Route::post('/product/save-tier-pricing',[HomeController::class,'saveTierPricing']);
         Route::post('/product/add-faq',[FaqController::class,'addProductFaq']);
+        Route::post('/product/edit-faq',[FaqController::class,'editProductFaq']);
+        Route::post('/product/delete-faq',[FaqController::class,'deleteProductFaq']);
         Route::get('/categories',[HomeController::class,'allCats']);
         Route::get('/cats/new',[HomeController::class,'addCatView']);
         Route::post('/cat/new',[HomeController::class,'addCatNew']);

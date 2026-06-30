@@ -22,6 +22,8 @@ class ProductFaq extends Model
         'status' => 'boolean',
     ];
 
+    public $hidden = ['created_at', 'updated_at'];
+
     public function product():BelongsTo
     {
         return $this->belongsTo(Product::class, 'product_id', 'product_id');

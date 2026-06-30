@@ -8,7 +8,7 @@ export default {
     name: "SuperAdminDashboard",
     data(){
         return{
-
+            users:[],
         }
     },
     created() {
@@ -18,7 +18,7 @@ export default {
         getDashboard(){
             axios.get('/superadmin/dashboard')
                 .then((resp)=>{
-                    console.log('resp',resp.data);
+                    this.users = resp.data.users;
                 })
         }
     }
