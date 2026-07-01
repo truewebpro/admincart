@@ -173,6 +173,9 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/blogs/add/new',[HomeController::class,'addBlog']);
         Route::post('/blogs/update',[HomeController::class,'updateBlog']);
         Route::post('/blog/section/add/new',[HomeController::class,'addNewBlogSection']);
+        Route::post('/blog/add-faq',[FaqController::class,'addBlogFaq']);
+        Route::post('/blog/edit-faq',[FaqController::class,'editBlogFaq']);
+        Route::post('/blog/delete-faq',[FaqController::class,'deleteBlogFaq']);
         Route::get('/pages/list',[HomeController::class,'getAdminPagesList']);
         Route::get('/page/edit/{page_id}',[HomeController::class,'getAdminPageById']);
         Route::post('/page/add/new',[HomeController::class,'addPage']);

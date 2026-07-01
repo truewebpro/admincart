@@ -48,7 +48,7 @@ class BlogController extends Controller
             CacheKeys::blog($shopId,$blog_slug),
             now()->addHours(12),
             function () use ($shopId,$blog_slug) {
-                $blog = Blog::with([
+                $blog = Blog::with(['faqs',
                     'comments' => function ($q) use ($shopId) {
                         $q->where('shop_id', $shopId)
                             ->approved()

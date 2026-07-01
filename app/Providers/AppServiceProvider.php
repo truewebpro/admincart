@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Announcement;
 use App\Models\Blog;
+use App\Models\BlogFaq;
 use App\Models\Brand;
 use App\Models\Business;
 use App\Models\BusinessShop;
@@ -25,6 +26,7 @@ use App\Models\Setting;
 use App\Models\ShipMethod;
 use App\Models\ShopPaymentMethod;
 use App\Observers\AnnouncementObserver;
+use App\Observers\BlogFaqObserver;
 use App\Observers\BlogObserver;
 use App\Observers\BrandObserver;
 use App\Observers\BusinessObserver;
@@ -88,6 +90,7 @@ class AppServiceProvider extends ServiceProvider
         Preference::observe(PreferenceObserver::class);
         Section::observe(SectionObserver::class);
         ProductFaq::observe(ProductFaqObserver::class);
+        BlogFaq::observe(BlogFaqObserver::class);
         Proreview::observe(ProreviewObserver::class);
 
         View::composer('*', function ($view) {

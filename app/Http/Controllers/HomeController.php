@@ -3468,7 +3468,7 @@ class HomeController extends Controller
     public function getBlogById($blog_id)
     {
         $shopId = session('shop_id');
-        $blog = Blog::with('sections')->where('blog_id','=',$blog_id)
+        $blog = Blog::with('sections','faqs')->where('blog_id','=',$blog_id)
             ->where('shop_id','=',$shopId)
             ->first();
         $ctypes = ['review_slider','blog_slider'];
