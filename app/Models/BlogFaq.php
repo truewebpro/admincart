@@ -23,6 +23,8 @@ class BlogFaq extends Model
         'status' => 'boolean',
     ];
 
+    public $hidden = ['created_at', 'updated_at'];
+
     public function blog(): BelongsTo
     {
         return $this->belongsTo(Blog::class, 'blog_id','blog_id');

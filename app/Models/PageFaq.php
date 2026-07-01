@@ -22,6 +22,8 @@ class PageFaq extends Model
         'status' => 'boolean',
     ];
 
+    public $hidden = ['created_at', 'updated_at'];
+
     public function page():BelongsTo
     {
         return $this->belongsTo(Page::class, 'page_id', 'page_id');

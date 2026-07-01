@@ -502,7 +502,7 @@ class ShopController extends Controller
             CacheKeys::page($shopId,$page_slug),
             now()->addHours(12),
             function () use ($shopId, $page_slug) {
-                $page = Page::where('shop_id','=',$shopId)
+                $page = Page::with('faqs')->where('shop_id','=',$shopId)
                     ->where('page_slug','=',$page_slug)
                     ->first();
                 if (!$page) {

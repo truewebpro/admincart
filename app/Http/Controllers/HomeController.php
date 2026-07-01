@@ -3690,7 +3690,7 @@ class HomeController extends Controller
     public function getAdminPageById($page_id)
     {
         $shopId = session('shop_id');
-        $page = Page::with('sections')->where('shop_id', $shopId)
+        $page = Page::with('sections','faqs')->where('shop_id', $shopId)
             ->where('page_id',$page_id)
             ->first();
         if($page){

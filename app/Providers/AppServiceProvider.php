@@ -14,6 +14,7 @@ use App\Models\Footer;
 use App\Models\Homepage;
 use App\Models\Menu;
 use App\Models\Page;
+use App\Models\PageFaq;
 use App\Models\Policy;
 use App\Models\Preference;
 use App\Models\Product;
@@ -36,6 +37,7 @@ use App\Observers\CatObserver;
 use App\Observers\FooterObserver;
 use App\Observers\HomepageObserver;
 use App\Observers\MenuObserver;
+use App\Observers\PageFaqObserver;
 use App\Observers\PageObserver;
 use App\Observers\PolicyObserver;
 use App\Observers\PreferenceObserver;
@@ -91,6 +93,7 @@ class AppServiceProvider extends ServiceProvider
         Section::observe(SectionObserver::class);
         ProductFaq::observe(ProductFaqObserver::class);
         BlogFaq::observe(BlogFaqObserver::class);
+        PageFaq::observe(PageFaqObserver::class);
         Proreview::observe(ProreviewObserver::class);
 
         View::composer('*', function ($view) {

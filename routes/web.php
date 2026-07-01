@@ -182,6 +182,9 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/page/update',[HomeController::class,'updateAdminPage']);
         Route::post('/page/delete',[HomeController::class,'deleteAdminPage']);
         Route::post('/page/section/add/new',[HomeController::class,'addNewPageSection']);
+        Route::post('/page/add-faq',[FaqController::class,'addPageFaq']);
+        Route::post('/page/edit-faq',[FaqController::class,'editPageFaq']);
+        Route::post('/page/delete-faq',[FaqController::class,'deletePageFaq']);
         Route::get('/policies/list',[HomeController::class,'getPolicyList']);
         Route::get('/policies/edit/{policy_id}',[HomeController::class,'getPolicyById']);
         Route::post('/policies/update',[HomeController::class,'updatePolicy']);
