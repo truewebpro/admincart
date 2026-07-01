@@ -22,7 +22,7 @@
                                           density="compact" persistent-placeholder counter persistent-counter></v-text-field>
                         </div>
                         <div>
-                            <quill-editor ref="quillRef" v-model="quillContent" @text-change="onEditorChange" placeholder="Policy Content"></quill-editor>
+                            <RichTextEditor v-model="quillContent"/>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -72,25 +72,16 @@
                         ></v-file-upload>
                     </v-card-text>
                 </v-card>
-                <v-card elevation="0" class="border-sm mt-3">
-                    <v-card-title>Template</v-card-title>
-                    <v-card-text>
-                        <div class="mb-3">
-                            <v-select v-model="policy_template" :items="policy_templates" label="Template" variant="outlined" density="compact"
-                                      persistent-placeholder placeholder="Default"
-                                      no-data-text="Select Template"></v-select>
-                        </div>
-                    </v-card-text>
-                </v-card>
             </v-col>
         </v-row>
     </v-container>
 </template>
 <script>
 import {VFileUpload} from "vuetify/labs/components";
+import RichTextEditor from "@/components/RichTextEditor.vue";
 export default {
     name:"policiesNew",
-    components:{VFileUpload},
+    components:{RichTextEditor, VFileUpload},
     data(){
         return{
             domain:this.$store.state.shop.maindomain || this.$store.state.shop.subdomain,
@@ -117,11 +108,6 @@ export default {
                 meta_title:this.meta_title,
                 meta_desc:this.meta_desc,
             }
-            console.log('npolicy',npolicy);
-        },
-        onEditorChange(delta, oldDelta, source) {
-            const quill = this.$refs.quillRef.getQuill();
-            this.quillContent = quill.root.innerHTML;
         },
     }
 }

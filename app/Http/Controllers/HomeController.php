@@ -2096,7 +2096,7 @@ class HomeController extends Controller
     public function getCat($cat_id)
     {
         $shopId = session('shop_id');
-        $cat = Cat::with(['rules','catpros', 'products','sections','rcats'])
+        $cat = Cat::with(['rules','catpros', 'products','sections','rcats','faqs'])
             ->Where('cat_id','=',$cat_id)
             ->where('shop_id','=',$shopId)
             ->first();

@@ -25,7 +25,7 @@
                                                   density="compact" persistent-placeholder counter persistent-counter></v-text-field>
                                 </div>
                                 <div>
-                                    <quill-editor ref="quillRef" v-model="quillContent" @text-change="onEditorChange" placeholder="Page Content"></quill-editor>
+                                    <RichTextEditor v-model="quillContent"/>
                                 </div>
                             </v-card-text>
                         </v-card>
@@ -33,7 +33,7 @@
                             <v-card-title>Search engine listing</v-card-title>
                             <v-card-subtitle>Add a title and description to see how this Page post might appear in a search engine listing</v-card-subtitle>
                             <v-card-text>
-                                <div class="font-weight-medium text-h6">{{shopName}}</div>
+                                <div class="font-weight-medium text-h6">{{this.$store.getters.currentShopName}}</div>
                                 <div class="text-body-2 text-grey-darken-4 mb-2">{{domain}}</div>
                                 <div class="font-weight-medium text-h5 text-blue-darken-2">Page title</div>
                                 <div class="text-body-1">Text of Page</div>
@@ -74,8 +74,10 @@
 </template>
 <script>
 import axios from "axios";
+import RichTextEditor from "@/components/RichTextEditor.vue";
 export default {
     name:"pagesNew",
+    components: {RichTextEditor},
     data(){
         return{
             cdn:this.$store.state.cdn,
@@ -118,10 +120,6 @@ export default {
                     window.Toast.success(resp.data.message);
                     this.$router.push({name:'PagesList'})
                 })
-        },
-        onEditorChange(delta, oldDelta, source) {
-            const quill = this.$refs.quillRef.getQuill();
-            this.quillContent = quill.root.innerHTML;
         },
     }
 }

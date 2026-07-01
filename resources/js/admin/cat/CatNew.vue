@@ -22,7 +22,7 @@
                             <v-text-field v-model="cat.cat_name" variant="outlined" density="compact" label="Title"
                                           placeholder="Category Name / Title" :rules="ctitleRule"
                                           persistent-placeholder class="mb-3"></v-text-field>
-                            <quill-editor ref="quillRef" v-model="cat.cat_desc" @text-change="onEditorChange"></quill-editor>
+                            <RichTextEditor v-model="cat.cat_desc"/>
                         </v-card-text>
                     </v-card>
                     <v-card class="mt-4 border-sm">
@@ -227,10 +227,11 @@
 import axios from "axios";
 import {VFileUpload} from "vuetify/labs/components";
 import {QuillEditor} from "@vueup/vue-quill";
+import RichTextEditor from "@/components/RichTextEditor.vue";
 
 export default {
     name:"CatView",
-    components:{QuillEditor, VFileUpload},
+    components:{RichTextEditor, QuillEditor, VFileUpload},
     computed:{
         plainTextDesc() {
             return this.cat.cat_desc
@@ -525,10 +526,6 @@ export default {
                 .finally(()=>{
                     this.cisLoading = false;
                 })
-        },
-        onEditorChange(delta, oldDelta, source){
-            const quill = this.$refs.quillRef.getQuill();
-            this.cat.cat_desc = quill.root.innerHTML;
         },
         resetForm(){
             this.$refs.adcForm.reset();

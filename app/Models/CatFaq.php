@@ -22,6 +22,8 @@ class CatFaq extends Model
         'status' => 'boolean',
     ];
 
+    public $hidden = ['created_at','updated_at'];
+
     public function cat():BelongsTo
     {
         return $this->belongsTo(Cat::class, 'cat_id', 'cat_id');

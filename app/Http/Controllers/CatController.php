@@ -78,7 +78,7 @@ class CatController extends Controller
             CacheKeys::cat($shopId,$slug),
             now()->addHours(12),
             function() use ($shopId,$slug){
-                return Cat::with('rcats')
+                return Cat::with('rcats','faqs')
                     ->where('shop_id','=',$shopId)
                     ->where('cat_slug','=',$slug)
                     ->first();
@@ -178,7 +178,7 @@ class CatController extends Controller
     public function getCategory(Request $request,$shopname,$slug)
     {
         $shopId = $request->shop_id;
-        $cat = Cat::with('rcats','csections')
+        $cat = Cat::with('rcats','csections','faqs')
             ->where('shop_id','=',$shopId)
             ->where('cat_slug','=',$slug)
             ->first();

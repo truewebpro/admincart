@@ -132,6 +132,9 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/cat/mupdate/{cat_id}',[HomeController::class,'updateManualCatbyId']);
         Route::post('/cat/supdate/{cat_id}',[HomeController::class,'updateSmartCatbyId']);
         Route::get('/cat/delete/{cat_id}',[HomeController::class,'deleteCategorybyId']);
+        Route::post('/cat/add-faq',[FaqController::class,'addCatFaq']);
+        Route::post('/cat/edit-faq',[FaqController::class,'editCatFaq']);
+        Route::post('/cat/delete-faq',[FaqController::class,'deleteCatFaq']);
         Route::get('/inventory',[HomeController::class,'allInventory']);
         Route::post('/inventory/update',[HomeController::class,'updateInventory']);
         Route::get('/customers',[HomeController::class,'allCustomers']);

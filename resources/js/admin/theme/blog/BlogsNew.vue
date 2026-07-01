@@ -27,7 +27,7 @@
                                               density="compact" persistent-placeholder counter persistent-counter></v-text-field>
                             </div>
                             <div>
-                                <quill-editor ref="quillRef" v-model="quillContent" @text-change="onEditorChange"></quill-editor>
+                                <RichTextEditor v-model="quillContent"/>
                             </div>
                         </v-card-text>
                     </v-card>
@@ -45,7 +45,7 @@
                         <v-card-title>Search engine listing</v-card-title>
                         <v-card-subtitle>Add a title and description to see how this blog post might appear in a search engine listing</v-card-subtitle>
                         <v-card-text>
-                            <div class="font-weight-medium text-h6">{{shopName}}</div>
+                            <div class="font-weight-medium text-h6">{{this.$store.getters.currentShopName}}</div>
                             <div class="text-body-2 text-grey-darken-4 mb-2">{{domain}}</div>
                             <div class="font-weight-medium text-h5 text-blue-darken-2">{{meta_title || blog_title}}</div>
                             <div class="text-body-1">{{meta_desc || blog_excerpt}}</div>
@@ -110,10 +110,11 @@
 <script>
 import {VFileUpload} from "vuetify/labs/components";
 import axios from "axios";
+import RichTextEditor from "@/components/RichTextEditor.vue";
 
 export default {
     name:"BlogsNew",
-    components:{VFileUpload},
+    components:{RichTextEditor, VFileUpload},
     data(){
         return{
             bavalid:false,
@@ -164,7 +165,6 @@ export default {
                user_id:this.user_id.id,
                shop_id:this.$store.state.shop.shop_id,
             }
-            console.log('nblog',nblog);
             axios.post('/sadmin/blogs/add/new',nblog,uheaders)
                 .then((resp)=>{
                     window.Toast.success('Blog Added Successfully')
@@ -176,13 +176,8 @@ export default {
                 })
                 .finally(()=>{
                     this.baLoading = false;
-
                 })
 
-        },
-        onEditorChange(delta, oldDelta, source) {
-            const quill = this.$refs.quillRef.getQuill();
-            this.quillContent = quill.root.innerHTML;
         },
     }
 }

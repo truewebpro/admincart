@@ -30,7 +30,7 @@
                                               density="compact" persistent-placeholder counter persistent-counter></v-text-field>
                             </div>
                             <div>
-                                <quill-editor ref="quillRef" v-model="spolicy.quillContent" @text-change="onEditorChange" placeholder="Policy Content"></quill-editor>
+                                <RichTextEditor v-model="spolicy.quillContent"/>
                             </div>
                         </v-card-text>
                     </v-card>
@@ -45,16 +45,6 @@
                             </v-radio-group>
                         </v-card-text>
                     </v-card>
-<!--                    <v-card elevation="0" class="border-sm mt-3">-->
-<!--                        <v-card-title>Template</v-card-title>-->
-<!--                        <v-card-text>-->
-<!--                            <div class="mb-3">-->
-<!--                                <v-select v-model="policy_template" :items="policy_templates" label="Template" variant="outlined" density="compact"-->
-<!--                                          persistent-placeholder placeholder="Default"-->
-<!--                                          no-data-text="Select Template"></v-select>-->
-<!--                            </div>-->
-<!--                        </v-card-text>-->
-<!--                    </v-card>-->
                 </v-col>
             </v-row>
         </v-form>
@@ -63,12 +53,13 @@
 <script>
 import {VFileUpload} from "vuetify/labs/components";
 import axios from "axios";
+import RichTextEditor from "@/components/RichTextEditor.vue";
 export default {
     name:"PoliciesEdit",
     props:{
         policy_id:[Number,String]
     },
-    components:{VFileUpload},
+    components:{RichTextEditor, VFileUpload},
     data(){
         return{
             cdn:this.$store.state.cdn,
@@ -98,12 +89,6 @@ export default {
                 .then((resp)=>{
                     this.spolicy = resp.data.policy;
                     this.spolicy.quillContent = resp.data.policy.policy_description;
-                    const quill = this.$refs.quillRef.getQuill()
-                    if (quill.getLength() <= 1) {
-                        quill.clipboard.dangerouslyPasteHTML(this.spolicy.quillContent);
-                        const html = quill.root.innerHTML;
-                        this.spolicy.quillContent = html;
-                    }
                 })
         },
         updatePolicy(){
@@ -126,11 +111,7 @@ export default {
                 .finally(()=>{
                     this.pcuLoading = false;
                 })
-        },
-        onEditorChange(delta, oldDelta, source) {
-            const quill = this.$refs.quillRef.getQuill();
-            this.spolicy.quillContent = quill.root.innerHTML;
-        },
+        }
     }
 }
 

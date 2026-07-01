@@ -17,417 +17,344 @@
                 <v-btn @click="delDialog = true" variant="outlined" color="red" density="compact" class="text-none">Delete</v-btn>
             </v-col>
         </v-row>
-        <v-row>
-            <v-col cols="12" md="9">
-                <v-card>
-                    <v-card-text>
-                        <v-text-field v-model="cat.cat_name" variant="outlined" density="compact" label="Title"></v-text-field>
-                        <h2 class="text-h6">Main Description</h2>
-                        <quill-editor ref="quillRef" v-model="quillContent"  @text-change="onEditorChange">
-                        </quill-editor>
-                        <h2 class="text-h6 mt-3">Short Description</h2>
-                        <quill-editor ref="shortRef" v-model="cat.short_desc" @text-change="onEditorChange"></quill-editor>
-                    </v-card-text>
-                </v-card>
-                <v-card v-if="cat.cat_type !== 'manual'" class="mt-4 border">
-                    <v-card-title>Conditions</v-card-title>
-                    <v-card-text>
-                        <div class="d-flex align-center">
-                            <span class="text-body-1">Products must match:</span>
-                            <v-radio-group inline hide-details v-model="cat.cat_rule">
-                                <v-radio label="and" value="and"></v-radio>
-                                <v-radio label="or" value="or"></v-radio>
-                            </v-radio-group>
-                        </div>
-                        <div v-for="(rule,index) in cat.rules" :key="index">
-                            <v-row class="align-start">
-                                <v-col cols="12" md="4">
-                                    <v-autocomplete
-                                        v-model="rule.column"
-                                        :items="rcolumns"
-                                        item-title="name"
-                                        label="Select Column"
-                                        variant="outlined"
-                                        density="compact"
-                                        @update:modelValue="getRelations(rule)"
-                                    ></v-autocomplete>
-                                </v-col>
-                                <v-col cols="12" md="4">
-                                    <v-autocomplete
-                                        v-model="rule.relation"
-                                        :items="getRelationsFor(rule.column)"
-                                        item-title="name"
-                                        item-value="value"
-                                        label="Relation"
-                                        variant="outlined"
-                                        density="compact"
-                                    ></v-autocomplete>
-                                </v-col>
-                                <v-col cols="12" md="3">
-                                    <v-autocomplete
-                                        v-if="getComponentType(rule.column) === 'autocomplete'"
-                                        v-model.number="rule.condition"
-                                        :items="getItemsFor(rule.column)"
-                                        :item-title="getItemTitle(rule.column)"
-                                        :item-value="getItemValue(rule.column)"
-                                        :label="getLabel(rule.column)"
-                                        :return-object="false"
-                                        variant="outlined"
-                                        density="compact"
-                                        clearable
-                                    />
-
-                                    <!-- Text field (Title) -->
-                                    <v-text-field
-                                        v-else-if="getComponentType(rule.column) === 'text'"
-                                        v-model="rule.condition"
-                                        :label="getLabel(rule.column)"
-                                        variant="outlined"
-                                        density="compact"
-                                        clearable
-                                    />
-
-                                    <!-- Number input (Price, Stock) -->
-                                    <v-text-field
-                                        v-else-if="getComponentType(rule.column) === 'number'"
-                                        v-model.number="rule.condition"
-                                        type="number"
-                                        :label="getLabel(rule.column)"
-                                        variant="outlined"
-                                        density="compact"
-                                        clearable
-                                    />
-                                </v-col>
-                                <v-col cols="12" md="1">
-                                    <v-btn v-if="cat.rules.length > 1" icon="mdi-delete" color="red" variant="outlined"
-                                           size="small" @click="removeRule(index)"></v-btn>
-                                </v-col>
-                            </v-row>
-                        </div>
-<!--                        <v-btn @click="fetchFilteredProductIds" variant="tonal" color="primary" density="compact">-->
-<!--                            Reapply Rules-->
-<!--                        </v-btn>-->
-                        <v-btn @click="addNewRule" :disabled="!isLastRuleComplete"  variant="outlined" density="compact" class="text-none" prepend-icon="mdi-plus">
-                            Add another condition
-                        </v-btn>
-                    </v-card-text>
-                </v-card>
-                <v-card class="mt-4 border">
-                    <v-card-title>Products</v-card-title>
-                    <v-card-text v-if="cat.cat_type === 'manual'">
-                        <v-row>
-                            <v-col cols="12" md="5">
-                                <v-text-field variant="outlined" density="compact" placeholder="Search Products"
-                                              prepend-inner-icon="mdi-magnify"></v-text-field>
-                            </v-col>
-                            <v-col cols="12" md="2">
-                                <v-btn density="default" variant="outlined" block @click="searchDialog = true">Browse</v-btn>
-                            </v-col>
-                            <v-col cols="12" md="5">
-                                <v-select v-model="cat.sort_order" variant="outlined" density="compact" :items="sortby"
-                                          item-title="name"></v-select>
-                            </v-col>
-                        </v-row>
-                    </v-card-text>
-                    <v-data-table v-if="cat.cat_type === 'manual'" :items="mpros" :headers="prosHeaders" hide-default-footer>
-                        <template v-slot:item.sno="{item,index}">
-                            <span class="font-weight-bold">{{index+1}}</span>
-                        </template>
-                        <template v-slot:item.featured_image="{item}">
-                            <v-img v-if="item.featured_image != null" :src="cdn+item.featured_image"></v-img>
-                            <v-img v-else :src="cdn+'noimage.png'" max-width="60" class="my-1"></v-img>
-                        </template>
-                        <template v-slot:item.product_status="{item}">
-                            <v-chip size="small" variant="tonal" class="font-weight-medium bg-light-green-accent-1 text-black"
-                                    color="black" v-if="item.product_status === 'Active'">{{item.product_status}}</v-chip>
-                        </template>
-                        <template v-slot:item.remove="{item}">
-                            <v-btn icon="mdi-close" variant="text" size="small" color="red"
-                                   @click="removeManualProduct(item.product_id)"></v-btn>
-                        </template>
-                    </v-data-table>
-                    <v-card-text v-if="cat.cat_type === 'smart'">
-                        <v-select v-model="cat.sort_order" variant="outlined" density="compact" :items="sortby" item-title="name"></v-select>
-                    </v-card-text>
-                    <v-data-table v-if="cat.cat_type === 'smart'" :items="spros" :headers="prosHeaders">
-                        <template v-slot:item.sno="{item,index}">
-                            <span class="font-weight-bold">{{index+1}}</span>
-                        </template>
-                        <template v-slot:item.featured_image="{item}">
-                            <v-img v-if="item.featured_image != null" :src="cdn+item.featured_image"></v-img>
-                            <v-img v-else :src="cdn+'noimage.png'" max-width="60" class="my-1"></v-img>
-                        </template>
-                        <template v-slot:item.product_status="{item}">
-                            <v-chip size="small" variant="tonal" class="font-weight-medium bg-light-green-accent-1 text-black"
-                                    color="black" v-if="item.product_status === 'Active'">{{item.product_status}}</v-chip>
-                        </template>
-                    </v-data-table>
-                </v-card>
-                <v-card class="mt-4 border">
-                    <v-card-title>Search engine listing</v-card-title>
-                    <v-card-subtitle>Add a title and description to see how this category might appear in a search engine listing</v-card-subtitle>
-                    <v-card-text>
-                        <div class="mb-4">
-                            <v-text-field v-model="cat.meta_title" variant="outlined" density="compact" label="Page Title"
-                                          counter="60" persistent-counter></v-text-field>
-                        </div>
-                        <div class="mb-4">
-                            <v-textarea v-model="cat.meta_desc" variant="outlined" density="compact" label="Meta Description"
-                                        counter="160" persistent-counter></v-textarea>
-                        </div>
-                        <div>
-                            <v-text-field v-model="cat.cat_slug" variant="outlined" density="compact" persistent-placeholder
-                                          persistent-hint :prefix="domain+'collections/'"></v-text-field>
-                        </div>
-                    </v-card-text>
-                </v-card>
-                <v-card class="mt-4 border">
-                    <v-card-title class="d-flex justify-space-between align-center">
-                        Related Cats
-                        <v-btn @click="addrcatDialog = true" color="success" density="compact"
-                               variant="flat" class="text-none">Add Child Category</v-btn>
-                    </v-card-title>
-                    <v-data-table :items="rcats" :headers="rcatsHeader" :hide-default-footer="rcats.length < 9">
-                        <template v-slot:item.related_image="{item}">
-                            <v-img v-if="item.related_image" :src="cdn+item.related_image" width="150" min-height="75" height="75"
-                                   cover class="my-1"></v-img>
-                            <v-img v-else :src="cdn+'noimage.png'" width="150" min-height="75" height="75" cover class="my-1"></v-img>
-                        </template>
-                        <template v-slot:item.actions="{item}">
-                            <v-btn @click="editItem(item)" color="info" density="compact">Edit</v-btn>
-                            <v-btn @click="deleteRelatedCat(item)" color="red" density="compact" class="ms-1">Delete</v-btn>
-                        </template>
-                    </v-data-table>
-                    <v-card-text></v-card-text>
-                    <v-dialog v-model="addrcatDialog" max-width="450">
+        <v-tabs v-model="ctab" density="compact" color="primary" selectedClass="bg-grey-lighten-3"
+                bgColor="white" sliderColor="red"
+                class="my-2">
+            <v-tab value="general">Collection</v-tab>
+            <v-tab value="content">Sections</v-tab>
+            <v-tab value="faqs">FAQ's</v-tab>
+        </v-tabs>
+        <v-window v-model="ctab">
+            <v-window-item value="general">
+                <v-row>
+                    <v-col cols="12" md="9">
                         <v-card>
-                            <v-form v-model="addrcatValid" @submit.prevent="addRelatedCat">
-                                <v-card-text>
-                                    <v-text-field v-model="defaultRcat.related_cat_title"
-                                                  :rules="ctitleRule"
-                                                  density="comfortable"
-                                                  label="Title" variant="underlined"/>
-                                    <v-autocomplete v-model="defaultRcat.cat_child_id"
-                                                    :rules="selectChildCatRule"
-                                                    label="Select Category"
-                                                    density="comfortable" :items="pcats" return-object
-                                                    item-title="cat_name" variant="underlined"></v-autocomplete>
-                                    <v-file-upload v-model="defaultRcat.related_image" density="compact" browse-text="Add Image"
-                                                   icon="mdi-image" class="mt-3"
-                                                   title="Image 300x150" subtitle="300x150" clearable show-size
-                                    ></v-file-upload>
-                                    <div class="d-flex ga-3">
-                                        <v-spacer/>
-                                        <v-btn :disabled="!addrcatValid" type="submit" color="success" density="comfortable">Add</v-btn>
-                                        <v-btn @click="addrcatDialog = false" density="comfortable" variant="outlined">Cancel</v-btn>
-                                    </div>
-                                </v-card-text>
-                            </v-form>
+                            <v-card-text>
+                                <v-text-field v-model="cat.cat_name" variant="outlined" density="compact" label="Title"></v-text-field>
+                                <h2 class="text-h6">Main Description</h2>
+                                <RichTextEditor v-model="quillContent"/>
+                                <h2 class="text-h6 mt-3">Short Description</h2>
+                                <RichTextEditor v-model="cat.short_desc"/>
+                            </v-card-text>
                         </v-card>
-                    </v-dialog>
-                    <v-dialog v-model="editrcatDialog" max-width="450">
+                        <v-card v-if="cat.cat_type !== 'manual'" class="mt-4 border">
+                            <v-card-title>Conditions</v-card-title>
+                            <v-card-text>
+                                <div class="d-flex align-center">
+                                    <span class="text-body-1">Products must match:</span>
+                                    <v-radio-group inline hide-details v-model="cat.cat_rule">
+                                        <v-radio label="and" value="and"></v-radio>
+                                        <v-radio label="or" value="or"></v-radio>
+                                    </v-radio-group>
+                                </div>
+                                <div v-for="(rule,index) in cat.rules" :key="index">
+                                    <v-row class="align-start">
+                                        <v-col cols="12" md="4">
+                                            <v-autocomplete
+                                                v-model="rule.column"
+                                                :items="rcolumns"
+                                                item-title="name"
+                                                label="Select Column"
+                                                variant="outlined"
+                                                density="compact"
+                                                @update:modelValue="getRelations(rule)"
+                                            ></v-autocomplete>
+                                        </v-col>
+                                        <v-col cols="12" md="4">
+                                            <v-autocomplete
+                                                v-model="rule.relation"
+                                                :items="getRelationsFor(rule.column)"
+                                                item-title="name"
+                                                item-value="value"
+                                                label="Relation"
+                                                variant="outlined"
+                                                density="compact"
+                                            ></v-autocomplete>
+                                        </v-col>
+                                        <v-col cols="12" md="3">
+                                            <v-autocomplete
+                                                v-if="getComponentType(rule.column) === 'autocomplete'"
+                                                v-model.number="rule.condition"
+                                                :items="getItemsFor(rule.column)"
+                                                :item-title="getItemTitle(rule.column)"
+                                                :item-value="getItemValue(rule.column)"
+                                                :label="getLabel(rule.column)"
+                                                :return-object="false"
+                                                variant="outlined"
+                                                density="compact"
+                                                clearable
+                                            />
+
+                                            <!-- Text field (Title) -->
+                                            <v-text-field
+                                                v-else-if="getComponentType(rule.column) === 'text'"
+                                                v-model="rule.condition"
+                                                :label="getLabel(rule.column)"
+                                                variant="outlined"
+                                                density="compact"
+                                                clearable
+                                            />
+
+                                            <!-- Number input (Price, Stock) -->
+                                            <v-text-field
+                                                v-else-if="getComponentType(rule.column) === 'number'"
+                                                v-model.number="rule.condition"
+                                                type="number"
+                                                :label="getLabel(rule.column)"
+                                                variant="outlined"
+                                                density="compact"
+                                                clearable
+                                            />
+                                        </v-col>
+                                        <v-col cols="12" md="1">
+                                            <v-btn v-if="cat.rules.length > 1" icon="mdi-delete" color="red" variant="outlined"
+                                                   size="small" @click="removeRule(index)"></v-btn>
+                                        </v-col>
+                                    </v-row>
+                                </div>
+                                <!--                        <v-btn @click="fetchFilteredProductIds" variant="tonal" color="primary" density="compact">-->
+                                <!--                            Reapply Rules-->
+                                <!--                        </v-btn>-->
+                                <v-btn @click="addNewRule" :disabled="!isLastRuleComplete"  variant="outlined" density="compact" class="text-none" prepend-icon="mdi-plus">
+                                    Add another condition
+                                </v-btn>
+                            </v-card-text>
+                        </v-card>
+                        <v-card class="mt-4 border">
+                            <v-card-title>Products</v-card-title>
+                            <v-card-text v-if="cat.cat_type === 'manual'">
+                                <v-row>
+                                    <v-col cols="12" md="5">
+                                        <v-text-field variant="outlined" density="compact" placeholder="Search Products"
+                                                      prepend-inner-icon="mdi-magnify"></v-text-field>
+                                    </v-col>
+                                    <v-col cols="12" md="2">
+                                        <v-btn density="default" variant="outlined" block @click="searchDialog = true">Browse</v-btn>
+                                    </v-col>
+                                    <v-col cols="12" md="5">
+                                        <v-select v-model="cat.sort_order" variant="outlined" density="compact" :items="sortby"
+                                                  item-title="name"></v-select>
+                                    </v-col>
+                                </v-row>
+                            </v-card-text>
+                            <v-data-table v-if="cat.cat_type === 'manual'" :items="mpros" :headers="prosHeaders" hide-default-footer>
+                                <template v-slot:item.sno="{item,index}">
+                                    <span class="font-weight-bold">{{index+1}}</span>
+                                </template>
+                                <template v-slot:item.featured_image="{item}">
+                                    <v-img v-if="item.featured_image != null" :src="cdn+item.featured_image"></v-img>
+                                    <v-img v-else :src="cdn+'noimage.png'" max-width="60" class="my-1"></v-img>
+                                </template>
+                                <template v-slot:item.product_status="{item}">
+                                    <v-chip size="small" variant="tonal" class="font-weight-medium bg-light-green-accent-1 text-black"
+                                            color="black" v-if="item.product_status === 'Active'">{{item.product_status}}</v-chip>
+                                </template>
+                                <template v-slot:item.remove="{item}">
+                                    <v-btn icon="mdi-close" variant="text" size="small" color="red"
+                                           @click="removeManualProduct(item.product_id)"></v-btn>
+                                </template>
+                            </v-data-table>
+                            <v-card-text v-if="cat.cat_type === 'smart'">
+                                <v-select v-model="cat.sort_order" variant="outlined" density="compact" :items="sortby" item-title="name"></v-select>
+                            </v-card-text>
+                            <v-data-table v-if="cat.cat_type === 'smart'" :items="spros" :headers="prosHeaders">
+                                <template v-slot:item.sno="{item,index}">
+                                    <span class="font-weight-bold">{{index+1}}</span>
+                                </template>
+                                <template v-slot:item.featured_image="{item}">
+                                    <v-img v-if="item.featured_image != null" :src="cdn+item.featured_image"></v-img>
+                                    <v-img v-else :src="cdn+'noimage.png'" max-width="60" class="my-1"></v-img>
+                                </template>
+                                <template v-slot:item.product_status="{item}">
+                                    <v-chip size="small" variant="tonal" class="font-weight-medium bg-light-green-accent-1 text-black"
+                                            color="black" v-if="item.product_status === 'Active'">{{item.product_status}}</v-chip>
+                                </template>
+                            </v-data-table>
+                        </v-card>
+                        <v-card class="mt-4 border">
+                            <v-card-title>Search engine listing</v-card-title>
+                            <v-card-subtitle>Add a title and description to see how this category might appear in a search engine listing</v-card-subtitle>
+                            <v-card-text>
+                                <div class="mb-4">
+                                    <v-text-field v-model="cat.meta_title" variant="outlined" density="compact" label="Page Title"
+                                                  counter="60" persistent-counter></v-text-field>
+                                </div>
+                                <div class="mb-4">
+                                    <v-textarea v-model="cat.meta_desc" variant="outlined" density="compact" label="Meta Description"
+                                                counter="160" persistent-counter></v-textarea>
+                                </div>
+                                <div>
+                                    <v-text-field v-model="cat.cat_slug" variant="outlined" density="compact" persistent-placeholder
+                                                  persistent-hint :prefix="domain+'collections/'"></v-text-field>
+                                </div>
+                            </v-card-text>
+                        </v-card>
+                        <v-card class="mt-4 border">
+                            <v-card-title class="d-flex justify-space-between align-center">
+                                Related Cats
+                                <v-btn @click="addrcatDialog = true" color="success" density="compact"
+                                       variant="flat" class="text-none">Add Child Category</v-btn>
+                            </v-card-title>
+                            <v-data-table :items="rcats" :headers="rcatsHeader" :hide-default-footer="rcats.length < 9">
+                                <template v-slot:item.related_image="{item}">
+                                    <v-img v-if="item.related_image" :src="cdn+item.related_image" width="150" min-height="75" height="75"
+                                           cover class="my-1"></v-img>
+                                    <v-img v-else :src="cdn+'noimage.png'" width="150" min-height="75" height="75" cover class="my-1"></v-img>
+                                </template>
+                                <template v-slot:item.actions="{item}">
+                                    <v-btn @click="editItem(item)" color="info" density="compact">Edit</v-btn>
+                                    <v-btn @click="deleteRelatedCat(item)" color="red" density="compact" class="ms-1">Delete</v-btn>
+                                </template>
+                            </v-data-table>
+                            <v-card-text></v-card-text>
+                            <v-dialog v-model="addrcatDialog" max-width="450">
+                                <v-card>
+                                    <v-form v-model="addrcatValid" @submit.prevent="addRelatedCat">
+                                        <v-card-text>
+                                            <v-text-field v-model="defaultRcat.related_cat_title"
+                                                          :rules="ctitleRule"
+                                                          density="comfortable"
+                                                          label="Title" variant="underlined"/>
+                                            <v-autocomplete v-model="defaultRcat.cat_child_id"
+                                                            :rules="selectChildCatRule"
+                                                            label="Select Category"
+                                                            density="comfortable" :items="pcats" return-object
+                                                            item-title="cat_name" variant="underlined"></v-autocomplete>
+                                            <v-file-upload v-model="defaultRcat.related_image" density="compact" browse-text="Add Image"
+                                                           icon="mdi-image" class="mt-3"
+                                                           title="Image 300x150" subtitle="300x150" clearable show-size
+                                            ></v-file-upload>
+                                            <div class="d-flex ga-3">
+                                                <v-spacer/>
+                                                <v-btn :disabled="!addrcatValid" type="submit" color="success" density="comfortable">Add</v-btn>
+                                                <v-btn @click="addrcatDialog = false" density="comfortable" variant="outlined">Cancel</v-btn>
+                                            </div>
+                                        </v-card-text>
+                                    </v-form>
+                                </v-card>
+                            </v-dialog>
+                            <v-dialog v-model="editrcatDialog" max-width="450">
+                                <v-card>
+                                    <v-form v-model="editrcatValid" @submit.prevent="updateRelatedCat">
+                                        <v-card-text>
+                                            <v-text-field v-model="editedRcat.related_cat_title"
+                                                          :rules="ctitleRule"
+                                                          density="comfortable"
+                                                          label="Title" variant="underlined"/>
+                                            <v-autocomplete v-model="editedRcat.cat_child_id"
+                                                            :rules="selectChildCatRule"
+                                                            label="Select Category" item-value="cat_id"
+                                                            density="comfortable" :items="pcats"
+                                                            item-title="cat_name" variant="underlined"></v-autocomplete>
+                                            <v-file-upload v-model="newrImage" density="compact" browse-text="Add Image"
+                                                           icon="mdi-image" class="mt-3"
+                                                           title="Image 300x150" subtitle="300x150" clearable show-size
+                                            ></v-file-upload>
+                                            <div class="d-flex ga-3">
+                                                <v-spacer/>
+                                                <v-btn :disabled="!editrcatValid" type="submit" color="success" density="comfortable">Update</v-btn>
+                                                <v-btn @click="editrcatDialog = false" density="comfortable" variant="outlined">Cancel</v-btn>
+                                            </div>
+                                        </v-card-text>
+                                    </v-form>
+                                </v-card>
+                            </v-dialog>
+                        </v-card>
+                    </v-col>
+                    <v-col cols="12" md="3">
                         <v-card>
-                            <v-form v-model="editrcatValid" @submit.prevent="updateRelatedCat">
-                                <v-card-text>
-                                    <v-text-field v-model="editedRcat.related_cat_title"
-                                                  :rules="ctitleRule"
-                                                  density="comfortable"
-                                                  label="Title" variant="underlined"/>
-                                    <v-autocomplete v-model="editedRcat.cat_child_id"
-                                                    :rules="selectChildCatRule"
-                                                    label="Select Category" item-value="cat_id"
-                                                    density="comfortable" :items="pcats"
-                                                    item-title="cat_name" variant="underlined"></v-autocomplete>
-                                    <v-file-upload v-model="newrImage" density="compact" browse-text="Add Image"
-                                                   icon="mdi-image" class="mt-3"
-                                                   title="Image 300x150" subtitle="300x150" clearable show-size
-                                    ></v-file-upload>
-                                    <div class="d-flex ga-3">
-                                        <v-spacer/>
-                                        <v-btn :disabled="!editrcatValid" type="submit" color="success" density="comfortable">Update</v-btn>
-                                        <v-btn @click="editrcatDialog = false" density="comfortable" variant="outlined">Cancel</v-btn>
-                                    </div>
-                                </v-card-text>
-                            </v-form>
+                            <v-card-title>Publishing</v-card-title>
+                            <v-card-subtitle>Sales Channel</v-card-subtitle>
+                            <v-card-text>
+                                <v-checkbox-btn v-model="cat.cat_status" value="Active" label="Online" hide-details></v-checkbox-btn>
+                                <v-checkbox-btn label="Other" hide-details></v-checkbox-btn>
+                            </v-card-text>
                         </v-card>
-                    </v-dialog>
-                </v-card>
-            </v-col>
-            <v-col cols="12" md="3">
-                <v-card>
-                    <v-card-title>Publishing</v-card-title>
-                    <v-card-subtitle>Sales Channel</v-card-subtitle>
-                    <v-card-text>
-                        <v-checkbox-btn v-model="cat.cat_status" value="Active" label="Online" hide-details></v-checkbox-btn>
-                        <v-checkbox-btn label="Other" hide-details></v-checkbox-btn>
-                    </v-card-text>
-                </v-card>
-                <v-card class="mt-4 border">
-                    <v-card-title>Image</v-card-title>
-                    <v-card-text>
-                        <v-img v-if="cat.cat_image != null" :src="cdn+cat.cat_image" max-height="200"></v-img>
-                        <v-img v-else :src="cdn+'noimage.png'" max-height="200"></v-img>
-                        <v-file-upload v-model="newImage" density="compact" browse-text="Add Image"
-                            icon="mdi-upload" class="mt-3"
-                            title="Upload Image" clearable show-size
-                        ></v-file-upload>
-                    </v-card-text>
-                </v-card>
-            </v-col>
-        </v-row>
-        <v-dialog max-width="600" v-model="searchDialog" persistent>
-            <v-card>
-                <v-text-field v-model="psearch" density="compact" variant="underlined" hide-details
-                              prepend-inner-icon="mdi-magnify" clearable class="mx-2 mb-1"></v-text-field>
-                <v-data-table :items="availablePros" :search="psearch" :headers="prosHeaders" show-select
-                              density="compact" v-model="selectedmPros" return-object>
-                    <template v-slot:item.sno="{item,index}">
-                        <span class="font-weight-bold">{{index+1}}</span>
-                    </template>
-                    <template v-slot:item.featured_image="{item}">
-                        <v-img v-if="item.featured_image != null" :src="cdn+item.featured_image" max-width="60" class="my-1"></v-img>
-                        <v-img v-else :src="cdn+'noimage.png'" max-width="60" class="my-1"></v-img>
-                    </template>
-                    <template v-slot:item.product_status="{item}">
-                        <v-chip size="small" variant="tonal" class="font-weight-medium bg-light-green-accent-1 text-black"
-                                color="black" v-if="item.product_status === 'Active'">{{item.product_status}}</v-chip>
-                    </template>
-                </v-data-table>
-                <v-card-actions>
-                    <v-btn @click="addMpros" :disabled="selectedmPros.length < 1" variant="elevated" color="success" density="compact"
-                           class="font-weight-bold">Add Selected</v-btn>
-                    <v-spacer/>
-                    <v-btn variant="elevated" @click="closesSdialog" color="red" density="compact" class="font-weight-bold">Cancel</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
-        <v-dialog max-width="350" v-model="delDialog">
-            <v-card :text="'Collection '+cat.cat_name"
-                    title="Are you sure to delete?">
-                <template v-slot:actions>
-                    <v-btn variant="elevated" color="success" size="small" @click="deleteCat">Yes</v-btn>
-                    <v-btn variant="elevated" color="red" size="small" @click="delDialog = false">No</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
-        <v-divider class="my-4"/>
-        <div class="prosections mt-4">
-            <div class="homepage d-flex flex-column ga-4">
-                <div v-for="(section,sindex) in sections" :key="sindex" :class="section.section_status+ ' ' +'homesections section_'+section.section_json.stype_slug">
-                    <component
-                        :is="getPreviewComponent(section.section_json.stype_slug)"
-                        :section="section"
-                        :cdn="cdn"
-                    />
-                    <div class="d-flex justify-center ga-2 text-center ebuttons">
-                        <v-btn color="green" density="compact" @click="openEditor(section)">Edit</v-btn>
-                        <v-btn @click="hideOrShowSection(section)" density="compact" class="text-none" icon>
-                            <v-icon v-if="section.section_status === 'show'" size="small">mdi-eye-outline</v-icon>
-                            <v-icon v-if="section.section_status === 'hide'" size="small">mdi-eye-off-outline</v-icon>
-                        </v-btn>
-                        <v-btn @click="moveUp(section)" density="compact" class="text-none" icon
-                               v-if="sindex">
-                            <v-icon size="small">mdi-arrow-up-bold</v-icon>
-                        </v-btn>
-                        <v-btn @click="moveDown(section)" density="compact" class="text-none" icon
-                               v-if="sindex !== sections.length-1">
-                            <v-icon size="small">mdi-arrow-down-bold</v-icon>
-                        </v-btn>
-                        <v-btn @click="openDeleteDialog(section)" density="compact" color="red" class="text-none" icon>
-                            <v-icon size="small">mdi-delete-outline</v-icon>
-                        </v-btn>
-                    </div>
-                </div>
-            </div>
-            <SectionEditDialog
-                v-model="dialogVisible"
-                :editingSection="selectedSection"
-                :products="allProducts"
-                :categories="pcats"
-                :banners="allBanners"
-                :brands="pbrands"
-                :alink="alinks"
-                @save="updateSection"
-            />
-            <v-dialog v-model="deleteSectionDialog" max-width="400" transition="dialog-bottom-transition">
-                <v-card>
-                    <v-card-text class="text-center">
-                        Are you sure to delete <br/>
-                        <span class="font-weight-bold mt-3">{{selectedSection.section_json.stype_name}}</span>
-                    </v-card-text>
-                    <v-card-actions>
-                        <v-spacer/>
-                        <v-btn color="success" @click="confirmDelete">Ok</v-btn>
-                        <v-btn color="error" @click="cancelDeleteDialog">Cancel</v-btn>
-                        <v-spacer/>
-                    </v-card-actions>
-                </v-card>
-            </v-dialog>
-            <div class="d-flex justify-center my-3">
-                <v-btn @click="addNewDialog = true" color="primary" prepend-icon="mdi-plus">Add New Section</v-btn>
-            </div>
-            <v-dialog max-width="400" v-model="addNewDialog">
-                <v-card>
-                    <v-card-title>Select Section</v-card-title>
-                    <v-card-text>
-                        <v-form @submit.prevent="addSection">
-                            <v-autocomplete v-model="selectToAdd" return-object :items="stypes" item-title="stype_name"
-                                            density="compact" variant="underlined"
-                            ></v-autocomplete>
-                            <div class="d-flex">
-                                <v-spacer/>
-                                <v-btn color="green" density="compact" type="submit">Confirm Add</v-btn>
-                                <v-spacer/>
-                                <v-btn color="red" density="compact" @click="addNewDialog = false">cancel</v-btn>
-                            </div>
-                        </v-form>
-                    </v-card-text>
-                </v-card>
-            </v-dialog>
-        </div>
+                        <v-card class="mt-4 border">
+                            <v-card-title>Image</v-card-title>
+                            <v-card-text>
+                                <v-img v-if="cat.cat_image != null" :src="cdn+cat.cat_image" max-height="200"></v-img>
+                                <v-img v-else :src="cdn+'noimage.png'" max-height="200"></v-img>
+                                <v-file-upload v-model="newImage" density="compact" browse-text="Add Image"
+                                               icon="mdi-upload" class="mt-3"
+                                               title="Upload Image" clearable show-size
+                                ></v-file-upload>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                </v-row>
+                <v-dialog max-width="600" v-model="searchDialog" persistent>
+                    <v-card>
+                        <v-text-field v-model="psearch" density="compact" variant="underlined" hide-details
+                                      prepend-inner-icon="mdi-magnify" clearable class="mx-2 mb-1"></v-text-field>
+                        <v-data-table :items="availablePros" :search="psearch" :headers="prosHeaders" show-select
+                                      density="compact" v-model="selectedmPros" return-object>
+                            <template v-slot:item.sno="{item,index}">
+                                <span class="font-weight-bold">{{index+1}}</span>
+                            </template>
+                            <template v-slot:item.featured_image="{item}">
+                                <v-img v-if="item.featured_image != null" :src="cdn+item.featured_image" max-width="60" class="my-1"></v-img>
+                                <v-img v-else :src="cdn+'noimage.png'" max-width="60" class="my-1"></v-img>
+                            </template>
+                            <template v-slot:item.product_status="{item}">
+                                <v-chip size="small" variant="tonal" class="font-weight-medium bg-light-green-accent-1 text-black"
+                                        color="black" v-if="item.product_status === 'Active'">{{item.product_status}}</v-chip>
+                            </template>
+                        </v-data-table>
+                        <v-card-actions>
+                            <v-btn @click="addMpros" :disabled="selectedmPros.length < 1" variant="elevated" color="success" density="compact"
+                                   class="font-weight-bold">Add Selected</v-btn>
+                            <v-spacer/>
+                            <v-btn variant="elevated" @click="closesSdialog" color="red" density="compact" class="font-weight-bold">Cancel</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+                <v-dialog max-width="350" v-model="delDialog">
+                    <v-card :text="'Collection '+cat.cat_name"
+                            title="Are you sure to delete?">
+                        <template v-slot:actions>
+                            <v-btn variant="elevated" color="success" size="small" @click="deleteCat">Yes</v-btn>
+                            <v-btn variant="elevated" color="red" size="small" @click="delDialog = false">No</v-btn>
+                        </template>
+                    </v-card>
+                </v-dialog>
+            </v-window-item>
+            <v-window-item value="content">
+                <CatSections
+                    :sections="sections"
+                    :stypes="stypes"
+                    :cat_id="cat_id"
+                    :allProducts="allProducts"
+                    :allCategories="pcats"
+                    :allBanners="allBanners"
+                    :allBrands="pbrands"
+                    :alinks="alinks"
+                    :cdn="cdn"
+                    @refresh="getCategory"
+                />
+            </v-window-item>
+            <v-window-item value="faqs">
+                <CatFaqs
+                    :cat_id="cat_id"
+                    :faqs="faqs"
+                    @refresh-faqs="getCategory"
+                />
+            </v-window-item>
+        </v-window>
     </v-container>
 </template>
 <script>
 import axios from "axios";
 import {VFileUpload} from "vuetify/labs/components";
-import {QuillEditor} from "@vueup/vue-quill";
-import HeroBannerPreview from "@/components/previews/HeroBannerPreview.vue";
-import PopularRangePreview from "@/components/previews/PopularRangePreview.vue";
-import SectionEditDialog from "@/components/sections/editors/SectionEditDialog.vue";
-import BrowseCollectionPreview from "@/components/previews/BrowseCollectionPreview.vue";
-import CustomTextPreview from "@/components/previews/CustomTextPreview.vue";
-import FaqsPreview from "@/components/previews/FaqsPreview.vue";
-import FeaturedProductsPreview from "@/components/previews/FeaturedProductsPreview.vue";
-import ImageWithTextPreview from "@/components/previews/ImageWithTextPreview.vue";
-import PopularBrandsPreview from "@/components/previews/PopularBrandsPreview.vue";
-import ServicesPromoPreview from "@/components/previews/ServicesPromoPreview.vue";
-import TextSectionPreview from "@/components/previews/TextSectionPreview.vue";
-import FeaturedCollectionsPreview from "@/components/previews/FeaturedCollectionsPreview.vue";
-import SlideShowPreview from "@/components/previews/SlideShowPreview.vue";
-import FeaturedOptionsPreview from "@/components/previews/FeaturedOptionsPreview.vue";
-import PeopleSearchPreview from "@/components/previews/PeopleSearchPreview.vue";
-import VideoWithTextPreview from "@/components/previews/VideoWithTextPreview.vue";
-import FeaturedLinksPreview from "@/components/previews/FeaturedLinksPreview.vue";
+import RichTextEditor from "@/components/RichTextEditor.vue";
+import CatSections from "@/admin/cat/CatSections.vue";
+import CatFaqs from "@/admin/cat/CatFaqs.vue";
 export default {
     name:"CatView",
-    components:{QuillEditor, VFileUpload,
-        BrowseCollectionPreview,
-        CustomTextPreview,
-        FaqsPreview,
-        FeaturedProductsPreview,
-        ImageWithTextPreview,
-        HeroBannerPreview,
-        PopularBrandsPreview,
-        PopularRangePreview,
-        ServicesPromoPreview,
-        TextSectionPreview,
-        FeaturedCollectionsPreview,
-        FeaturedLinksPreview,
-        SlideShowPreview,
-        FeaturedOptionsPreview,
-        PeopleSearchPreview,
-        VideoWithTextPreview,
-        SectionEditDialog
+    components:{
+        CatFaqs,
+        CatSections,
+        RichTextEditor, VFileUpload,
     },
     props:{
        cat_id:[Number,String]
@@ -485,21 +412,16 @@ export default {
     },
     data(){
         return{
-            addNewDialog:false,
-            selectToAdd:null,
+            ctab:'general',
             stypes:[],
             sections:[],
             pbrands:[],
             ptypes:[],
             ptags:[],
             pcats:[],
-            delLoading:false,
-            dialogVisible:false,
-            selectedSection: null,
-            editingSection: null,
-            deleteSectionDialog:false,
             allProducts: [],
             allBanners: [],
+            faqs: [],
             dataLoading:false,
             domain:"https://"+(this.$store.state.shop.maindomain || this.$store.state.shop.subdomain)+"/",
             cdn:this.$store.state.cdn,
@@ -658,18 +580,8 @@ export default {
                     const allData = resp.data;
                     const catData = allData.cat;
                     this.quillContent = catData.cat_desc;
-                    const quill = this.$refs.quillRef.getQuill()
-                    if (quill.getLength() <= 1) {
-                        quill.clipboard.dangerouslyPasteHTML(this.quillContent);
-                        const html = quill.root.innerHTML;
-                        this.quillContent = html;
-                    }
+
                     this.cat.short_desc = catData.short_desc;
-                    const squill = this.$refs.shortRef.getQuill();
-                    if(squill.getLength() <= 1){
-                        squill.clipboard.dangerouslyPasteHTML(this.cat.short_desc);
-                        this.cat.short_desc = squill.root.innerHTML;
-                    }
                     this.cat = {
                         ...this.cat,
                         cat_name: catData.cat_name,
@@ -698,6 +610,7 @@ export default {
                     this.sections = catData.sections;
                     this.stypes = allData.stypes;
                     this.rcats = catData.rcats;
+                    this.faqs = catData.faqs;
                     this.pbrands = allData.brands || [];
                     this.ptypes = allData.ptypes || [];
                     this.ptags = allData.tags || [];
@@ -890,12 +803,6 @@ export default {
             this.selectedmPros = [];
             this.searchDialog = false;
         },
-        onEditorChange(delta, oldDelta, source) {
-            const quill = this.$refs.quillRef.getQuill();
-            const squill = this.$refs.shortRef.getQuill();
-            this.quillContent = quill.root.innerHTML;
-            this.cat.short_desc = squill.root.innerHTML;
-        },
         removeManualProduct(pid) {
             this.cat.productIds = this.cat.productIds.filter(id => id !== pid);
             this.cat.epros = this.cat.epros.filter(p => p.product_id !== pid);
@@ -949,142 +856,6 @@ export default {
                     this.$router.push({name:'cats'})
                 })
         },
-        addSection(){
-            if (!this.selectToAdd) return;
-            const sdata = {
-                cat_id:this.cat_id,
-                stype_id:this.selectToAdd.stype_id,
-                section_json:this.selectToAdd,
-            }
-            axios.post('/sadmin/cat/section/add/new',sdata)
-                .then((resp)=>{
-                    this.getCategory();
-                    window.Toast.success('section added successfully')
-                    this.addNewDialog = false;
-                })
-        },
-        async updateSection(updated) {
-            try {
-                await axios.post(`/sadmin/homepage/section/update/${updated.section_id}`, {
-                    section_json: updated.section_json,
-                    sort_order: updated.sort_order,
-                    section_status: updated.section_status
-                })
-                await this.getCategory();
-                window.Toast.success('Section Updated Successfully');
-            } catch (e) {
-                window.Toast.error("Failed to save section", e);
-            }
-        },
-        getPreviewComponent(slug) {
-            const map = {
-                blog_slider: "BlogSliderPreview",
-                browse_collection: "BrowseCollectionPreview",
-                custom_text: "CustomTextPreview",
-                faqs: "FaqsPreview",
-                featured_products: "FeaturedProductsPreview",
-                hero_banner: "HeroBannerPreview",
-                image_with_text: "ImageWithTextPreview",
-                popular_brands: "PopularBrandsPreview",
-                popular_range: "PopularRangePreview",
-                review_slider: "ReviewSliderPreview",
-                services_promo: "ServicesPromoPreview",
-                text_section: "TextSectionPreview",
-                featured_collections: "FeaturedCollectionsPreview",
-                featured_links: "FeaturedLinksPreview",
-                slide_show: "SlideShowPreview",
-                featured_options: "FeaturedOptionsPreview",
-                people_search: "PeopleSearchPreview",
-                video_with_text: "VideoWithTextPreview",
-            }
-            return map[slug] || "div"
-        },
-        openEditor(section) {
-            this.selectedSection = JSON.parse(JSON.stringify(section));
-            this.dialogVisible = true;
-        },
-        openDeleteDialog(section){
-            this.selectedSection = JSON.parse(JSON.stringify(section));
-            this.deleteSectionDialog = true;
-        },
-        cancelDeleteDialog(){
-            this.deleteSectionDialog = false;
-        },
-        confirmDelete(){
-            const section_id = this.selectedSection.section_id;
-            axios.post(`/sadmin/homepage/section/delete/${section_id}`)
-                .then((resp)=>{
-                    window.Toast.success(resp.data.message);
-                    this.deleteSectionDialog = false;
-                    this.getCategory();
-                })
-                .catch((err)=>{
-                    window.Toast.error(err.message)
-                })
-                .finally(()=>{
-                    this.delLoading = false;
-                })
-
-        },
-        hideOrShowSection(section){
-            this.selectedSection = JSON.parse(JSON.stringify(section));
-            const section_id = this.selectedSection.section_id;
-            axios.post(`/sadmin/homepage/section/hideorshow/${section_id}`)
-                .then((resp)=>{
-                    window.Toast.success(resp.data.message);
-                    this.getCategory();
-                })
-                .catch((err)=>{
-                    window.Toast.error(err.message)
-                })
-                .finally(()=>{
-                    this.delLoading = false;
-                })
-        },
-        moveUp(section){
-            this.selectedSection = JSON.parse(JSON.stringify(section));
-            const section_id = this.selectedSection.section_id;
-            axios.post(`/sadmin/homepage/section/moveup/${section_id}`)
-                .then((resp)=>{
-                    window.Toast.success(resp.data.message);
-                    this.getCategory();
-                })
-                .catch((err)=>{
-                    window.Toast.error(err.message)
-                })
-                .finally(()=>{
-                    this.delLoading = false;
-                })
-        },
-        moveDown(section){
-            this.selectedSection = JSON.parse(JSON.stringify(section));
-            const section_id = this.selectedSection.section_id;
-            axios.post(`/sadmin/homepage/section/movedown/${section_id}`)
-                .then((resp)=>{
-                    window.Toast.success(resp.data.message);
-                    this.getCategory();
-                })
-                .catch((err)=>{
-                    window.Toast.error(err.message)
-                })
-                .finally(()=>{
-                    this.delLoading = false;
-                })
-        },
     }
 }
-
 </script>
-
-<style scoped>
-.homesections {
-    .ebuttons {
-        opacity:0
-    }
-    &:hover .ebuttons {opacity: 1}
-}
-.hide.homesections > .v-card {opacity: 0.4}
-.ebuttons {
-    margin: 8px auto;
-}
-</style>

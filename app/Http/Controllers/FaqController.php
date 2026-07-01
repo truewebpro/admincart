@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Blog;
 use App\Models\BlogFaq;
+use App\Models\Cat;
+use App\Models\CatFaq;
 use App\Models\Page;
 use App\Models\PageFaq;
 use App\Models\Product;
@@ -256,6 +258,87 @@ class FaqController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Page Faq deleted successfully',
+        ]);
+    }
+
+    public function addCatFaq(Request $request)
+    {
+        $shopId = session('shop_id');
+        $valiData = $request->validate([
+            'question' => 'required|string|max:255',
+            'answer' => 'required',
+            'cat_id' => 'required|exists:cats,cat_id',
+        ]);
+        $cat = Cat::where('cat_id', $valiData['cat_id'])
+            ->where('shop_id', $shopId)
+            ->first();
+        if (!$cat) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cat not found'
+            ], 404);
+        }
+
+        $sortOrder = CatFaq::where('cat_id', $cat->cat_id)->max('sort_order');
+
+        $faq = CatFaq::create([
+            'question' => $valiData['question'],
+            'answer' => $valiData['answer'],
+            'cat_id' => $valiData['cat_id'],
+            'shop_id' => $shopId,
+            'status' => true,
+            'sort_order' => ($sortOrder ?? 0) + 1,
+        ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Cat Faq added successfully',
+            'faq' => $faq,
+        ]);
+    }
+
+    public function editCatFaq(Request $request)
+    {
+        $shopId = session('shop_id');
+        $valiData = $request->validate([
+            'cat_id' => 'required|exists:cats,cat_id',
+            'id' => 'required|exists:cat_faqs,id',
+            'question' => 'required|string|max:255',
+            'answer' => 'required|string',
+        ]);
+
+        $faq = CatFaq::where('id', $valiData['id'])
+            ->where('cat_id', $valiData['cat_id'])
+            ->where('shop_id', $shopId)
+            ->first();
+        if(!$faq){return response()->json(['success' => false, 'message' => 'Cat Faq not found']);}
+
+        $faq->update([
+            'question' => $valiData['question'],
+            'answer' => $valiData['answer'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cat Faq edited successfully',
+        ]);
+    }
+
+    public function deleteCatFaq(Request $request)
+    {
+        $shopId = session('shop_id');
+        $valiData = $request->validate([
+            'id' => 'required|exists:cat_faqs,id',
+            'cat_id' => 'required|exists:cats,cat_id',
+        ]);
+        $faq = CatFaq::where('id', $valiData['id'])
+            ->where('cat_id', $valiData['cat_id'])
+            ->where('shop_id', $shopId)
+            ->first();
+        if(!$faq){return response()->json(['success' => false, 'message' => 'Cat Faq not found']);}
+        $faq->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Cat Faq deleted successfully',
         ]);
     }
 }
