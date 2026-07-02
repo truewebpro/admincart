@@ -24,6 +24,7 @@ use App\Models\Product;
 use App\Models\ProductFaq;
 use App\Models\ProductType;
 use App\Models\Proreview;
+use App\Models\RelatedCat;
 use App\Models\Searchtag;
 use App\Models\Section;
 use App\Models\Setting;
@@ -51,6 +52,7 @@ use App\Observers\ProductFaqObserver;
 use App\Observers\ProductObserver;
 use App\Observers\ProductTypeObserver;
 use App\Observers\ProreviewObserver;
+use App\Observers\RelatedCatObserver;
 use App\Observers\SearchtagObserver;
 use App\Observers\SectionObserver;
 use App\Observers\SettingObserver;
@@ -104,6 +106,7 @@ class AppServiceProvider extends ServiceProvider
         CatFaq::observe(CatFaqObserver::class);
         BrandFaq::observe(BrandFaqObserver::class);
         HomepageFaq::observe(HomepageFaqObserver::class);
+        RelatedCat::observe(RelatedCatObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));
