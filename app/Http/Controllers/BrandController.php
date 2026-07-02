@@ -107,23 +107,49 @@ class BrandController extends Controller
                     ->where('shop_id','=',$shopId)
                     ->where('brand_slug','=',$brand_slug)
                     ->first();
-                if(!$brand){
-                    return response()->json([
-                        'status' => false,
-                        'sections' => null,
-                        'brand_slug' => $brand_slug,
-                    ]);
+                if (!$brand) {
+                    return null;
                 }
                 $sectionsWithExtras = [];
-                return response()->json([
-                    'status' => true,
+                foreach ($brand->bsections as $section){
+                    $sectionArray = $section->toArray();
+                    if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
+                        $catId = $sectionArray['section_json']['stype_json']['cat_id'];
+                        $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
+                        $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                            ->where('shop_id','=',$shopId)
+                            ->whereIn('product_id', function ($query) use ($catId) {
+                                $query->select('product_id')
+                                    ->from('catpros')
+                                    ->where('cat_id', $catId);
+                            })
+                            ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
+                            ->get();
+                        $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
+                        $sectionArray['section_json']['stype_json']['catpros'] = $products;
+                    }
+                    $sectionsWithExtras[] = $sectionArray;
+                }
+                return [
                     'sections' => $sectionsWithExtras,
                     'brand_slug' => $brand_slug,
-                ]);
+                ];
             }
         );
 
-        return response()->json($data);
+        if (!$data) {
+            return response()->json([
+                'status' => false,
+                'sections' => null,
+                'brand_slug' => $brand_slug,
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'sections' => $data['sections'],
+            'brand_slug' => $data['brand_slug'],
+        ]);
     }
 
     public function prosByBrand(Request $request,$shopname,$brand_slug)

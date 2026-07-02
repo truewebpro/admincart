@@ -382,6 +382,11 @@ class HomeController extends Controller
         $section->sort_order     = $validated['sort_order'] ?? $section->sort_order;
         $section->section_status = $validated['section_status'] ?? $section->section_status;
         $section->save();
+
+        // Clear related cache
+        app(\App\Observers\SectionObserver::class)
+            ->updated($section);
+
         return response()->json([
             'success' => true,
             'message' => "Updated Successfully",
@@ -436,6 +441,9 @@ class HomeController extends Controller
         if($existingStatus->section_status == "show"){
             $section->section_status = "hide";
             $section->save();
+            // Clear related cache
+            app(\App\Observers\SectionObserver::class)
+                ->updated($section);
             return response()->json([
                 'success' => true,
                 'message' => 'Section hide successfully',
@@ -444,6 +452,9 @@ class HomeController extends Controller
         } elseif ($existingStatus->section_status == "hide"){
             $section->section_status = "show";
             $section->save();
+            // Clear related cache
+            app(\App\Observers\SectionObserver::class)
+                ->updated($section);
             return response()->json([
                 'success' => true,
                 'message' => 'Section shown successfully',
