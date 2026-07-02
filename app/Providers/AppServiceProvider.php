@@ -14,6 +14,7 @@ use App\Models\Cat;
 use App\Models\CatFaq;
 use App\Models\Footer;
 use App\Models\Homepage;
+use App\Models\HomepageFaq;
 use App\Models\Menu;
 use App\Models\Page;
 use App\Models\PageFaq;
@@ -39,6 +40,7 @@ use App\Observers\CartpageObserver;
 use App\Observers\CatFaqObserver;
 use App\Observers\CatObserver;
 use App\Observers\FooterObserver;
+use App\Observers\HomepageFaqObserver;
 use App\Observers\HomepageObserver;
 use App\Observers\MenuObserver;
 use App\Observers\PageFaqObserver;
@@ -101,6 +103,7 @@ class AppServiceProvider extends ServiceProvider
         Proreview::observe(ProreviewObserver::class);
         CatFaq::observe(CatFaqObserver::class);
         BrandFaq::observe(BrandFaqObserver::class);
+        HomepageFaq::observe(HomepageFaqObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));

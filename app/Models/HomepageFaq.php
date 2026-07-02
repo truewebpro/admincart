@@ -23,6 +23,8 @@ class HomepageFaq extends Model
         'status' => 'boolean',
     ];
 
+    public $hidden = ['created_at','updated_at'];
+
     public function homepage():BelongsTo
     {
         return $this->belongsTo(Homepage::class, 'homepage_id','homepage_id');

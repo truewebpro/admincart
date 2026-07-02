@@ -8,6 +8,8 @@ use App\Models\Brand;
 use App\Models\BrandFaq;
 use App\Models\Cat;
 use App\Models\CatFaq;
+use App\Models\Homepage;
+use App\Models\HomepageFaq;
 use App\Models\Page;
 use App\Models\PageFaq;
 use App\Models\Product;
@@ -422,6 +424,87 @@ class FaqController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Brand Faq deleted successfully',
+        ]);
+    }
+
+    public function addHomepageFaq(Request $request)
+    {
+        $shopId = session('shop_id');
+        $valiData = $request->validate([
+            'question' => 'required|string|max:255',
+            'answer' => 'required',
+            'homepage_id' => 'required|exists:homepages,homepage_id',
+        ]);
+        $homepage = Homepage::where('homepage_id', $valiData['homepage_id'])
+            ->where('shop_id', $shopId)
+            ->first();
+        if (!$homepage) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Homepage not found'
+            ], 404);
+        }
+
+        $sortOrder = HomepageFaq::where('homepage_id', $homepage->homepage_id)->max('sort_order');
+
+        $faq = HomepageFaq::create([
+            'question' => $valiData['question'],
+            'answer' => $valiData['answer'],
+            'homepage_id' => $valiData['homepage_id'],
+            'shop_id' => $shopId,
+            'status' => true,
+            'sort_order' => ($sortOrder ?? 0) + 1,
+        ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Homepage Faq added successfully',
+            'faq' => $faq,
+        ]);
+    }
+
+    public function editHomepageFaq(Request $request)
+    {
+        $shopId = session('shop_id');
+        $valiData = $request->validate([
+            'homepage_id' => 'required|exists:homepages,homepage_id',
+            'id' => 'required|exists:homepage_faqs,id',
+            'question' => 'required|string|max:255',
+            'answer' => 'required|string',
+        ]);
+
+        $faq = HomepageFaq::where('id', $valiData['id'])
+            ->where('homepage_id', $valiData['homepage_id'])
+            ->where('shop_id', $shopId)
+            ->first();
+        if(!$faq){return response()->json(['success' => false, 'message' => 'Homepage Faq not found']);}
+
+        $faq->update([
+            'question' => $valiData['question'],
+            'answer' => $valiData['answer'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Homepage Faq edited successfully',
+        ]);
+    }
+
+    public function deleteHomepageFaq(Request $request)
+    {
+        $shopId = session('shop_id');
+        $valiData = $request->validate([
+            'id' => 'required|exists:homepage_faqs,id',
+            'homepage_id' => 'required|exists:homepages,homepage_id',
+        ]);
+        $faq = HomepageFaq::where('id', $valiData['id'])
+            ->where('homepage_id', $valiData['homepage_id'])
+            ->where('shop_id', $shopId)
+            ->first();
+        if(!$faq){return response()->json(['success' => false, 'message' => 'Homepage Faq not found']);}
+        $faq->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Homepage Faq deleted successfully',
         ]);
     }
 }

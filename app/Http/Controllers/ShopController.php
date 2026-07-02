@@ -135,16 +135,18 @@ class ShopController extends Controller
             CacheKeys::heroSections($shopId),
             now()->addHours(12),
             function () use ($shopId) {
-                $homepage = Homepage::with('herosections')
+                $homepage = Homepage::with('herosections','faqs')
                     ->where('shop_id','=',$shopId)
                     ->first();
-                return $homepage?->herosections;
+//                return $homepage?->herosections;
+                return $homepage;
             }
         );
 
         return response()->json([
             'success' => true,
-            'hsections' => $sections ?? null,
+            'hsections' => $sections['herosections'] ?? [],
+            'faqs' => $sections['faqs'] ?? [],
         ]);
     }
 

@@ -92,6 +92,9 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/homepage/section/moveup/{section_id}',[HomeController::class,'moveSectionUp']);
         Route::post('/homepage/section/movedown/{section_id}',[HomeController::class,'moveSectionDown']);
         Route::post('/homepage/section/hideorshow/{section_id}',[HomeController::class,'hideOrShowSection']);
+        Route::post('/homepage/add-faq',[FaqController::class,'addHomepageFaq']);
+        Route::post('/homepage/edit-faq',[FaqController::class,'editHomepageFaq']);
+        Route::post('/homepage/delete-faq',[FaqController::class,'deleteHomepageFaq']);
         Route::get('/shop',[HomeController::class,'getShopDetail']);
         Route::get('/users',[HomeController::class,'allUsers']);
         Route::get('/carts',[HomeController::class,'allCarts']);

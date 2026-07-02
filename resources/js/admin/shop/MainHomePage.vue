@@ -1,77 +1,94 @@
 <template>
     <div class="page homepage">
-        <div class="homepage d-flex flex-column ga-4">
-            <div v-for="(section,sindex) in sections" :key="sindex" :class="section.section_status+ ' ' +'homesections section_'+section.section_json.stype_slug">
-                <component
-                    :is="getPreviewComponent(section.section_json.stype_slug)"
-                    :section="section"
-                    :cdn="cdn"
-                />
-                <div class="d-flex justify-center ga-2 text-center ebuttons">
-                    <v-btn color="green" density="compact" @click="openEditor(section)">Edit</v-btn>
-                    <v-btn @click="hideOrShowSection(section)" density="compact" class="text-none" icon>
-                        <v-icon v-if="section.section_status === 'show'" size="small">mdi-eye-outline</v-icon>
-                        <v-icon v-if="section.section_status === 'hide'" size="small">mdi-eye-off-outline</v-icon>
-                    </v-btn>
-                    <v-btn @click="moveUp(section)" density="compact" class="text-none" icon
-                           v-if="sindex">
-                        <v-icon size="small">mdi-arrow-up-bold</v-icon>
-                    </v-btn>
-                    <v-btn @click="moveDown(section)" density="compact" class="text-none" icon
-                           v-if="sindex !== sections.length-1">
-                        <v-icon size="small">mdi-arrow-down-bold</v-icon>
-                    </v-btn>
-                    <v-btn @click="openDeleteDialog(section)" density="compact" color="red" class="text-none" icon>
-                        <v-icon size="small">mdi-delete-outline</v-icon>
-                    </v-btn>
-                </div>
-            </div>
-        </div>
-        <SectionEditDialog
-            v-model="dialogVisible"
-            :editingSection="selectedSection"
-            :products="allProducts"
-            :categories="allCategories"
-            :banners="allBanners"
-            :brands="allBrands"
-            :alinks="alinks"
-            @save="updateSection"
-        />
-        <v-dialog v-model="deleteSectionDialog" max-width="400" transition="dialog-bottom-transition">
-            <v-card>
-                <v-card-text class="text-center">
-                    Are you sure to delete <br/>
-                    <span class="font-weight-bold mt-3">{{selectedSection.section_json.stype_name}}</span>
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer/>
-                    <v-btn color="success" @click="confirmDelete">Ok</v-btn>
-                    <v-btn color="error" @click="cancelDeleteDialog">Cancel</v-btn>
-                    <v-spacer/>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
-        <div class="d-flex justify-center my-3">
-            <v-btn @click="addNewDialog = true" color="primary" prepend-icon="mdi-plus">Add New Section</v-btn>
-        </div>
-        <v-dialog max-width="400" v-model="addNewDialog">
-            <v-card>
-                <v-card-title>Select Section</v-card-title>
-                <v-card-text>
-                    <v-form @submit.prevent="addSection">
-                        <v-autocomplete v-model="selectToAdd" return-object :items="stypes" item-title="stype_name"
-                                        density="compact" variant="underlined"
-                        ></v-autocomplete>
-                        <div class="d-flex">
-                            <v-spacer/>
-                            <v-btn color="green" density="compact" type="submit">Confirm Add</v-btn>
-                            <v-spacer/>
-                            <v-btn color="red" density="compact" @click="addNewDialog = false">cancel</v-btn>
+        <v-tabs v-model="htab" density="compact" color="primary" selectedClass="bg-grey-lighten-3"
+                bgColor="white" sliderColor="red"
+                class="my-2">
+            <v-tab value="general">Sections</v-tab>
+            <v-tab value="faqs">FAQ's</v-tab>
+        </v-tabs>
+        <v-window v-model="htab">
+            <v-window-item value="general">
+                <div class="homepage d-flex flex-column ga-4">
+                    <div v-for="(section,sindex) in sections" :key="sindex" :class="section.section_status+ ' ' +'homesections section_'+section.section_json.stype_slug">
+                        <component
+                            :is="getPreviewComponent(section.section_json.stype_slug)"
+                            :section="section"
+                            :cdn="cdn"
+                        />
+                        <div class="d-flex justify-center ga-2 text-center ebuttons">
+                            <v-btn color="green" density="compact" @click="openEditor(section)">Edit</v-btn>
+                            <v-btn @click="hideOrShowSection(section)" density="compact" class="text-none" icon>
+                                <v-icon v-if="section.section_status === 'show'" size="small">mdi-eye-outline</v-icon>
+                                <v-icon v-if="section.section_status === 'hide'" size="small">mdi-eye-off-outline</v-icon>
+                            </v-btn>
+                            <v-btn @click="moveUp(section)" density="compact" class="text-none" icon
+                                   v-if="sindex">
+                                <v-icon size="small">mdi-arrow-up-bold</v-icon>
+                            </v-btn>
+                            <v-btn @click="moveDown(section)" density="compact" class="text-none" icon
+                                   v-if="sindex !== sections.length-1">
+                                <v-icon size="small">mdi-arrow-down-bold</v-icon>
+                            </v-btn>
+                            <v-btn @click="openDeleteDialog(section)" density="compact" color="red" class="text-none" icon>
+                                <v-icon size="small">mdi-delete-outline</v-icon>
+                            </v-btn>
                         </div>
-                    </v-form>
-                </v-card-text>
-            </v-card>
-        </v-dialog>
+                    </div>
+                </div>
+                <SectionEditDialog
+                    v-model="dialogVisible"
+                    :editingSection="selectedSection"
+                    :products="allProducts"
+                    :categories="allCategories"
+                    :banners="allBanners"
+                    :brands="allBrands"
+                    :alinks="alinks"
+                    @save="updateSection"
+                />
+                <v-dialog v-model="deleteSectionDialog" max-width="400" transition="dialog-bottom-transition">
+                    <v-card>
+                        <v-card-text class="text-center">
+                            Are you sure to delete <br/>
+                            <span class="font-weight-bold mt-3">{{selectedSection.section_json.stype_name}}</span>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-spacer/>
+                            <v-btn color="success" @click="confirmDelete">Ok</v-btn>
+                            <v-btn color="error" @click="cancelDeleteDialog">Cancel</v-btn>
+                            <v-spacer/>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+                <div class="d-flex justify-center my-3">
+                    <v-btn @click="addNewDialog = true" color="primary" prepend-icon="mdi-plus">Add New Section</v-btn>
+                </div>
+                <v-dialog max-width="400" v-model="addNewDialog">
+                    <v-card>
+                        <v-card-title>Select Section</v-card-title>
+                        <v-card-text>
+                            <v-form @submit.prevent="addSection">
+                                <v-autocomplete v-model="selectToAdd" return-object :items="stypes" item-title="stype_name"
+                                                density="compact" variant="underlined"
+                                ></v-autocomplete>
+                                <div class="d-flex">
+                                    <v-spacer/>
+                                    <v-btn color="green" density="compact" type="submit">Confirm Add</v-btn>
+                                    <v-spacer/>
+                                    <v-btn color="red" density="compact" @click="addNewDialog = false">cancel</v-btn>
+                                </div>
+                            </v-form>
+                        </v-card-text>
+                    </v-card>
+                </v-dialog>
+            </v-window-item>
+            <v-window-item value="faqs">
+                <HomepageFaqs
+                    :homepage_id="hlayout.homepage_id"
+                    :faqs="faqs"
+                    @refresh-faqs="fetchHomepage"
+                />
+            </v-window-item>
+        </v-window>
     </div>
 </template>
 <script>
@@ -95,9 +112,11 @@ import SlideShowPreview from "@/components/previews/SlideShowPreview.vue";
 import FeaturedOptionsPreview from "@/components/previews/FeaturedOptionsPreview.vue";
 import PeopleSearchPreview from "@/components/previews/PeopleSearchPreview.vue";
 import VideoWithTextPreview from "@/components/previews/VideoWithTextPreview.vue";
+import HomepageFaqs from "@/admin/shop/HomepageFaqs.vue";
 export default {
     name:"MainHomePage",
     components: {
+        HomepageFaqs,
         BlogSliderPreview,
         BrowseCollectionPreview,
         CustomTextPreview,
@@ -128,9 +147,11 @@ export default {
     },
     data(){
         return{
+            htab:'general',
             addNewDialog:false,
             selectToAdd:null,
             stypes:[],
+            faqs:[],
             sections:[],
             delLoading:false,
             dialogVisible:false,
@@ -158,6 +179,7 @@ export default {
                 const res = await axios.get("/sadmin/homepage/default")
                 this.hlayout = res.data.homepage;
                 this.sections = res.data.homepage.sections || [];
+                this.faqs = res.data.homepage.faqs || [];
                 this.stypes = res.data.stypes;
                 this.allProducts = res.data.products || [];
                 this.allCategories = res.data.categories || [];

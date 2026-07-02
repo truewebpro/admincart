@@ -320,7 +320,7 @@ class HomeController extends Controller
     public function getHomePage()
     {
         $shopId = session('shop_id');
-        $homepage = Homepage::with('sections')->firstOrCreate(
+        $homepage = Homepage::with('sections','faqs')->firstOrCreate(
             ['shop_id' => $shopId],
             [
                 'title' => "Homepage",
