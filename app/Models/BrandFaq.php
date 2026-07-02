@@ -23,6 +23,8 @@ class BrandFaq extends Model
         'status' => 'boolean',
     ];
 
+    public $hidden = ['created_at','updated_at'];
+
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class, 'brand_id','brand_id');

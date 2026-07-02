@@ -2859,7 +2859,7 @@ class HomeController extends Controller
     public function brandById($brand_id)
     {
         $shopId = session('shop_id');
-        $brand = Brand::with('faqs')
+        $brand = Brand::with('sections','faqs')
             ->where('brand_id', $brand_id)
             ->first();
         if(!$brand){
@@ -2869,11 +2869,47 @@ class HomeController extends Controller
             ]);
         }
         $brands = Brand::where('shop_id', $shopId)->select('brand_id','brand_name')->get();
+        $ctypes = ['review_slider','blog_slider'];
+        $stypes = Stype::whereNotIn('stype_slug',$ctypes)->get();
+        $cats = Cat::query()
+            ->where('shop_id','=',$shopId)
+            ->get();
+        $pros = Product::where('shop_id','=',$shopId)
+            ->select('products.product_id','products.featured_image','products.title','products.product_status')
+            ->get();
         return response()->json([
             'status' => 200,
             'brand' => $brand,
             'brands' => $brands,
+            'stypes' => $stypes,
+            'cats' => $cats,
+            'pros' => $pros,
             'message' => "Brand Detail",
+        ]);
+    }
+
+    public function addNewBrandSection(Request $request)
+    {
+        $validatedData = $request->validate([
+            'stype_id' => 'required|exists:stypes,stype_id',
+            'brand_id' => 'required|exists:brands,brand_id',
+        ]);
+        $section = Section::create([
+            'stype_id' => $validatedData['stype_id'],
+            'sectionable_type' => Brand::class,
+            'sectionable_id' => $validatedData['brand_id'],
+            'section_json' => $request->section_json,
+            'sort_order' => Section::where('sectionable_type', Brand::class)
+                    ->where('sectionable_id', $request->brand_id)
+                    ->max('sort_order') + 1,
+            'section_status' => 'show',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Section added successfully',
+            'section' => $section->load('stype')
+
         ]);
     }
 

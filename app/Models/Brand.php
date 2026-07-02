@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Brand extends Model
 {
@@ -30,7 +31,7 @@ class Brand extends Model
         return $this->hasMany(Product::class, 'brand_id', 'brand_id');
     }
 
-    public function sections()
+    public function sections():MorphMany
     {
         return $this->morphMany(Section::class, 'sectionable', 'sectionable_type', 'sectionable_id','brand_id')
             ->orderBy('sort_order', 'ASC');

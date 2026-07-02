@@ -38,7 +38,7 @@ class BrandController extends Controller
         $brand = Cache::remember(
             CacheKeys::brand($shopId, $brand_slug),
             now()->addHours(12),
-            fn() => Brand::where('shop_id', $shopId)
+            fn() => Brand::with('faqs')->where('shop_id', $shopId)
                 ->where('brand_slug', $brand_slug)
                 ->first()
         );

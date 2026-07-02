@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Blog;
 use App\Models\BlogFaq;
+use App\Models\Brand;
+use App\Models\BrandFaq;
 use App\Models\Cat;
 use App\Models\CatFaq;
 use App\Models\Page;
@@ -339,6 +341,87 @@ class FaqController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cat Faq deleted successfully',
+        ]);
+    }
+
+    public function addBrandFaq(Request $request)
+    {
+        $shopId = session('shop_id');
+        $valiData = $request->validate([
+            'question' => 'required|string|max:255',
+            'answer' => 'required',
+            'brand_id' => 'required|exists:brands,brand_id',
+        ]);
+        $brand = Brand::where('brand_id', $valiData['brand_id'])
+            ->where('shop_id', $shopId)
+            ->first();
+        if (!$brand) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Brand not found'
+            ], 404);
+        }
+
+        $sortOrder = BrandFaq::where('brand_id', $brand->brand_id)->max('sort_order');
+
+        $faq = BrandFaq::create([
+            'question' => $valiData['question'],
+            'answer' => $valiData['answer'],
+            'brand_id' => $valiData['brand_id'],
+            'shop_id' => $shopId,
+            'status' => true,
+            'sort_order' => ($sortOrder ?? 0) + 1,
+        ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Brand Faq added successfully',
+            'faq' => $faq,
+        ]);
+    }
+
+    public function editBrandFaq(Request $request)
+    {
+        $shopId = session('shop_id');
+        $valiData = $request->validate([
+            'brand_id' => 'required|exists:brands,brand_id',
+            'id' => 'required|exists:brand_faqs,id',
+            'question' => 'required|string|max:255',
+            'answer' => 'required|string',
+        ]);
+
+        $faq = BrandFaq::where('id', $valiData['id'])
+            ->where('brand_id', $valiData['brand_id'])
+            ->where('shop_id', $shopId)
+            ->first();
+        if(!$faq){return response()->json(['success' => false, 'message' => 'Brand Faq not found']);}
+
+        $faq->update([
+            'question' => $valiData['question'],
+            'answer' => $valiData['answer'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Brand Faq edited successfully',
+        ]);
+    }
+
+    public function deleteBrandFaq(Request $request)
+    {
+        $shopId = session('shop_id');
+        $valiData = $request->validate([
+            'id' => 'required|exists:brand_faqs,id',
+            'brand_id' => 'required|exists:brands,brand_id',
+        ]);
+        $faq = BrandFaq::where('id', $valiData['id'])
+            ->where('brand_id', $valiData['brand_id'])
+            ->where('shop_id', $shopId)
+            ->first();
+        if(!$faq){return response()->json(['success' => false, 'message' => 'Brand Faq not found']);}
+        $faq->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Brand Faq deleted successfully',
         ]);
     }
 }

@@ -16,73 +16,115 @@
                 <v-btn @click="editBrand" :loading="upLoading" :disabled="upLoading" color="grey-darken-4" density="compact" class="text-none" >Save</v-btn>
             </v-col>
         </v-row>
-        <v-row>
-            <v-col cols="12" md="9">
-                <v-card class="border-sm">
-                    <v-card-text>
-                        <v-text-field v-model="brand.brand_name" label="Brand Name" :rules="btitleRule"
-                                      density="compact" class="mb-1" ref="brandNameField"
-                                      variant="outlined" placeholder="Brand name"
-                                      persistent-placeholder></v-text-field>
-                        <h2 class="font-weight-semibold mb-2">Brand Description</h2>
-                        <RichTextEditor v-model="brand.brand_desc"/>
-<!--                        <v-textarea v-model="brand.brand_desc" label="Brand Description" density="compact" variant="outlined" placeholder="Brand Description" persistent-placeholder></v-textarea>-->
-                    </v-card-text>
-                </v-card>
-                <v-card class="border-sm mt-4">
-                    <v-card-title>Search engine listing</v-card-title>
-                    <v-card-text>
-                        <div class="font-weight-medium text-h6">{{this.$store.state.shop.shop_name}}</div>
-                        <div class="text-body-2 text-grey-darken-4 mb-2">{{ domain }}>{{brand.brand_slug}}</div>
-                    </v-card-text>
-                    <v-divider></v-divider>
-                    <v-card-text>
-                        <v-text-field v-model="brand.meta_title" variant="outlined" density="compact" label="Brand Name"
-                                      counter="70" :placeholder="brand.brand_name" persistent-counter
-                                      persistent-placeholder class="mb-3"></v-text-field>
-                        <v-textarea v-model="brand.meta_desc" variant="outlined" density="compact" label="Meta Description"
-                                    counter="160" :placeholder="brand.brand_desc"
-                                    persistent-counter persistent-placeholder class="mb-3"></v-textarea>
-                        <v-text-field v-model="brand.brand_slug" variant="outlined" density="compact" persistent-placeholder
-                                      persistent-hint :prefix="domain+'brands/'"></v-text-field>
-                    </v-card-text>
-                </v-card>
-            </v-col>
-            <v-col cols="12" md="3">
-                <v-card class="border-sm">
-                    <v-card-title>Brand Status</v-card-title>
-                    <v-card-text>
-                        <v-select v-model="brand.brand_status" variant="outlined" density="compact" label="Status"
-                                  :items="['Active','Inactive']" persistent-placeholder></v-select>
-                    </v-card-text>
-                </v-card>
-                <v-card class="border-sm mt-4">
-                    <v-card-title>Brand Image</v-card-title>
-                    <v-card-text>
-                        <v-img v-if="brand.brand_image != null" :src="cdn+brand.brand_image" max-height="200"></v-img>
-                        <v-img v-else :src="cdn+'noimage.png'" max-height="200"></v-img>
-                        <v-file-upload v-model="newImage" density="compact" browse-text="Add Image"
-                                       icon="mdi-upload" class="mt-3"
-                                       title="Upload Image" clearable show-size
-                        ></v-file-upload>
-                    </v-card-text>
-                </v-card>
-            </v-col>
-        </v-row>
+        <v-tabs v-model="btab" density="compact" color="primary" selectedClass="bg-grey-lighten-3"
+                bgColor="white" sliderColor="red"
+                class="my-2">
+            <v-tab value="general">Brand</v-tab>
+            <v-tab value="content">Sections</v-tab>
+            <v-tab value="faqs">FAQ's</v-tab>
+        </v-tabs>
+        <v-window v-model="btab">
+            <v-window-item value="general">
+                <v-row>
+                    <v-col cols="12" md="9">
+                        <v-card class="border-sm">
+                            <v-card-text>
+                                <v-text-field v-model="brand.brand_name" label="Brand Name" :rules="btitleRule"
+                                              density="compact" class="mb-1" ref="brandNameField"
+                                              variant="outlined" placeholder="Brand name"
+                                              persistent-placeholder></v-text-field>
+                                <h2 class="font-weight-semibold mb-2">Brand Description</h2>
+                                <RichTextEditor v-model="brand.brand_desc"/>
+                                <!--                        <v-textarea v-model="brand.brand_desc" label="Brand Description" density="compact" variant="outlined" placeholder="Brand Description" persistent-placeholder></v-textarea>-->
+                            </v-card-text>
+                        </v-card>
+                        <v-card class="border-sm mt-4">
+                            <v-card-title>Search engine listing</v-card-title>
+                            <v-card-text>
+                                <div class="font-weight-medium text-h6">{{this.$store.state.shop.shop_name}}</div>
+                                <div class="text-body-2 text-grey-darken-4 mb-2">{{ domain }}>{{brand.brand_slug}}</div>
+                            </v-card-text>
+                            <v-divider></v-divider>
+                            <v-card-text>
+                                <v-text-field v-model="brand.meta_title" variant="outlined" density="compact" label="Brand Name"
+                                              counter="70" :placeholder="brand.brand_name" persistent-counter
+                                              persistent-placeholder class="mb-3"></v-text-field>
+                                <v-textarea v-model="brand.meta_desc" variant="outlined" density="compact" label="Meta Description"
+                                            counter="160" :placeholder="brand.brand_desc"
+                                            persistent-counter persistent-placeholder class="mb-3"></v-textarea>
+                                <v-text-field v-model="brand.brand_slug" variant="outlined" density="compact" persistent-placeholder
+                                              persistent-hint :prefix="domain+'brands/'"></v-text-field>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                        <v-card class="border-sm">
+                            <v-card-title>Brand Status</v-card-title>
+                            <v-card-text>
+                                <v-select v-model="brand.brand_status" variant="outlined" density="compact" label="Status"
+                                          :items="['Active','Inactive']" persistent-placeholder></v-select>
+                            </v-card-text>
+                        </v-card>
+                        <v-card class="border-sm mt-4">
+                            <v-card-title>Brand Image</v-card-title>
+                            <v-card-text>
+                                <v-img v-if="brand.brand_image != null" :src="cdn+brand.brand_image" max-height="200"></v-img>
+                                <v-img v-else :src="cdn+'noimage.png'" max-height="200"></v-img>
+                                <v-file-upload v-model="newImage" density="compact" browse-text="Add Image"
+                                               icon="mdi-upload" class="mt-3"
+                                               title="Upload Image" clearable show-size
+                                ></v-file-upload>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </v-window-item>
+            <v-window-item value="content">
+                <BrandSections
+                    :sections="sections"
+                    :stypes="stypes"
+                    :brand_id="brand_id"
+                    :allProducts="pros"
+                    :allCategories="cats"
+                    :allBanners="allBanners"
+                    :allBrands="brands"
+                    :alinks="alinks"
+                    :cdn="cdn"
+                    @refresh="getBrandById"
+                />
+            </v-window-item>
+            <v-window-item value="faqs">
+                <BrandFaqs
+                    :brand_id="brand_id"
+                    :faqs="faqs"
+                    @refresh-faqs="getBrandById"
+                />
+            </v-window-item>
+        </v-window>
+
     </v-container>
 </template>
 <script>
 import axios from "axios";
 import {VFileUpload} from "vuetify/labs/components";
 import RichTextEditor from "@/components/RichTextEditor.vue";
+import BrandFaqs from "@/admin/product/brand/BrandFaqs.vue";
+import BrandSections from "@/admin/product/brand/BrandSections.vue";
 export default {
     name:"BrandEdit",
     props:{
         brand_id:[Number,String]
     },
-    components:{RichTextEditor, VFileUpload},
+    components:{BrandSections, BrandFaqs, RichTextEditor, VFileUpload},
     data(){
         return{
+            btab:'general',
+            stypes:[],
+            sections:[],
+            cats:[],
+            pros:[],
+            allBanners:[],
+            faqs:[],
             cdn:this.$store.state.cdn,
             domain:"https://"+(this.$store.state.shop.maindomain || this.$store.state.shop.subdomain)+'/',
             upLoading:false,
@@ -113,8 +155,14 @@ export default {
             });
         }
     },
+    computed: {
+        alinks() {
+            return this.$store.state.alinks;
+        },
+    },
     mounted() {
         this.getBrandById()
+        this.$store.dispatch('fetchAlinks');
     },
     methods:{
        async getBrandById(){
@@ -122,8 +170,14 @@ export default {
             await axios.get('/sadmin/brand/'+this.brand_id)
                 .then((resp)=>{
                     const allData = resp.data;
+                    const branData = allData.brand;
                     this.brand = allData.brand;
+                    this.sections = branData.sections || [];
+                    this.faqs = branData.faqs || [];
                     this.brands = allData.brands;
+                    this.stypes = allData.stypes;
+                    this.cats = allData.cats;
+                    this.pros = allData.pros;
                     this.dataLoaded = true;
                 })
         },

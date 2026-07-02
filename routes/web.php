@@ -151,6 +151,10 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/brand/{brand_id}',[HomeController::class,'brandById']);
         Route::post('/brand/update',[HomeController::class,'updateBrand']);
         Route::post('/brand/delete',[HomeController::class,'deleteBrand']);
+        Route::post('/brand/section/add/new',[HomeController::class,'addNewBrandSection']);
+        Route::post('/brand/add-faq',[FaqController::class,'addBrandFaq']);
+        Route::post('/brand/edit-faq',[FaqController::class,'editBrandFaq']);
+        Route::post('/brand/delete-faq',[FaqController::class,'deleteBrandFaq']);
         Route::get('/features',[HomeController::class,'featuresList']);
         Route::post('/feature/update',[HomeController::class,'updateFeature']);
         Route::post('/feature/delete',[HomeController::class,'deleteFeature']);

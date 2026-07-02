@@ -6,6 +6,7 @@ use App\Models\Announcement;
 use App\Models\Blog;
 use App\Models\BlogFaq;
 use App\Models\Brand;
+use App\Models\BrandFaq;
 use App\Models\Business;
 use App\Models\BusinessShop;
 use App\Models\Cartpage;
@@ -30,6 +31,7 @@ use App\Models\ShopPaymentMethod;
 use App\Observers\AnnouncementObserver;
 use App\Observers\BlogFaqObserver;
 use App\Observers\BlogObserver;
+use App\Observers\BrandFaqObserver;
 use App\Observers\BrandObserver;
 use App\Observers\BusinessObserver;
 use App\Observers\BusinessShopObserver;
@@ -98,6 +100,8 @@ class AppServiceProvider extends ServiceProvider
         PageFaq::observe(PageFaqObserver::class);
         Proreview::observe(ProreviewObserver::class);
         CatFaq::observe(CatFaqObserver::class);
+        BrandFaq::observe(BrandFaqObserver::class);
+
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));
         });
