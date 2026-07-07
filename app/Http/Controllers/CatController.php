@@ -95,15 +95,28 @@ class CatController extends Controller
 
         $catId = $cat->cat_id;
         $alpros = Product::query()
-            ->select('product_id','title','handle','featured_image','product_status','product_type_id',
-                'brand_id','tags')->with(['variants.astock', 'brand', 'ptype'])
-            ->where('shop_id','=',$shopId)
-            ->withCount('reviews')->withAvg('reviews','rating')
-            ->whereIn('product_id', function ($query) use ($catId) {
-                $query->select('product_id')
-                    ->from('catpros')
-                    ->where('cat_id', $catId);
-            })
+            ->select(
+                'products.product_id',
+                'products.title',
+                'products.handle',
+                'products.featured_image',
+                'products.product_status',
+                'products.product_type_id',
+                'products.brand_id',
+                'products.tags')
+            ->join('catpros', 'products.product_id', '=', 'catpros.product_id')
+                ->where('catpros.cat_id', $catId)
+                ->where('products.shop_id', $shopId)
+            ->with(['variants.astock', 'brand', 'ptype'])
+//            ->where('shop_id','=',$shopId)
+            ->withCount('reviews')
+            ->withAvg('reviews','rating')
+//            ->whereIn('product_id', function ($query) use ($catId) {
+//                $query->select('product_id')
+//                    ->from('catpros')
+//                    ->where('cat_id', $catId);
+//            })
+            ->orderBy('catpros.position','asc')
             ->paginate(24);
 
         $cat['catpros'] = $alpros;
