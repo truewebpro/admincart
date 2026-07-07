@@ -32,7 +32,8 @@ class Cat extends Model
 
     public function catpros()
     {
-        return $this->hasMany(Catpro::class,'cat_id','cat_id');
+        return $this->hasMany(Catpro::class,'cat_id','cat_id')
+            ->orderBy('position','asc');
     }
 
     public function catps()
@@ -51,7 +52,11 @@ class Cat extends Model
             'product_id',
             'cat_id',
             'product_id',
-        );
+        )->select(
+            'products.*',
+            'catpros.position as position'
+        )
+            ->orderBy('catpros.position');
 
     }
 

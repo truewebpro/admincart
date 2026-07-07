@@ -169,6 +169,27 @@
                                     <v-chip size="small" variant="tonal" class="font-weight-medium bg-light-green-accent-1 text-black"
                                             color="black" v-if="item.product_status === 'Active'">{{item.product_status}}</v-chip>
                                 </template>
+                                <template v-slot:item.position="{ item }">
+                                    <div class="d-flex align-center ga-2">
+                                        <v-number-input
+                                            variant="outlined"
+                                            controlVariant="hidden"
+                                            v-model="item.newPosition"
+                                            type="number"
+                                            density="compact"
+                                            hide-details
+                                            style="max-width:60px;min-width: 60px"
+                                        />
+                                        <v-btn
+                                            v-if="item.newPosition != item.position"
+                                            size="x-small"
+                                            color="primary"
+                                            @click="updatePosition(item)"
+                                        >
+                                            Save
+                                        </v-btn>
+                                    </div>
+                                </template>
                             </v-data-table>
                         </v-card>
                         <v-card class="mt-4 border">
@@ -389,10 +410,18 @@ export default {
             return this.pros.filter(p => !existing.includes(p.product_id));
         },
         spros() {
-            return (this.cat.productIds ?? []).map(pid =>
-                this.cat.epros?.find(p => p.product_id === pid)
-            ).filter(Boolean);
+            return this.cat.epros || [];
         },
+        // spros() {
+        //     return (this.cat.productIds ?? []).map(pid =>
+        //         this.cat.epros?.find(p => p.product_id === pid)
+        //     ).filter(Boolean);
+        // },
+        // spros() {
+        //     return (this.cat.epros || [])
+        //         .filter(p => (this.cat.productIds || []).includes(p.product_id))
+        //         .sort((a, b) => (a.position || 0) - (b.position || 0));
+        // },
         isLastRuleComplete() {
             const last = this.cat.rules[this.cat.rules.length - 1];
             return last && last.column && last.relation && last.condition !== null;
@@ -453,6 +482,7 @@ export default {
                 rules:[],
                 epros:[],
                 productIds:[],
+                catpros:[]
             },
             newImage:null,
             pros:[],
@@ -461,6 +491,7 @@ export default {
                 {title:"Image",value:'featured_image',width:80},
                 {title:"Tile",value:'title'},
                 {title:"Status",value:'product_status',width: 120},
+                {title:"Position",value:'position',width: 120},
                 {title:"",value:'remove',width: 72},
             ],
             rcolumns: [
@@ -605,8 +636,13 @@ export default {
                     };
                     this.$nextTick(() => {
                         this.pros = allData.pros;
-                        this.cat.epros = catData.epros || [];
+                        this.cat.epros = (catData.epros || []).map(p => ({
+                            ...p,
+                            newPosition: p.position
+                        }));
+                        this.cat.catpros = catData.catpros || [];
                     });
+
                     this.sections = catData.sections;
                     this.stypes = allData.stypes;
                     this.rcats = catData.rcats;
@@ -856,6 +892,21 @@ export default {
                     this.$router.push({name:'cats'})
                 })
         },
+        async updatePosition(item) {
+            try {
+                await axios.post('/sadmin/catpro/update-position', {
+                    cat_id: this.cat_id,
+                    product_id: item.product_id,
+                    position: item.newPosition
+                });
+                item.position = item.newPosition;
+                this.getCategory();
+
+                this.$toast.success('Position updated');
+            } catch (e) {
+                this.$toast.error('Unable to update position');
+            }
+        }
     }
 }
 </script>

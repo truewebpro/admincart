@@ -2150,6 +2150,26 @@ class HomeController extends Controller
         ],200);
     }
 
+    public function updateCatProPosition(Request $request)
+    {
+        $shopId = session('shop_id');
+        $request->validate([
+            'cat_id' => 'required|integer',
+            'product_id' => 'required|integer',
+            'position' => 'required|integer|min:0'
+        ]);
+        Catpro::where('cat_id', $request->cat_id)
+            ->where('shop_id', $shopId)
+            ->where('product_id', $request->product_id)
+            ->update([
+                'position' => $request->position
+            ]);
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
     public function addRelatedCat(Request $request)
     {
         $shopId = session('shop_id');
@@ -2240,6 +2260,9 @@ class HomeController extends Controller
                 'meta_desc' => $validated['meta_desc'] ?? null,
                 'cat_image' => $validated['cat_image'] ?? $cat->cat_image,
             ]);
+            $existingPositions = Catpro::where('cat_id', $cat->cat_id)
+                ->pluck('position', 'product_id')
+                ->toArray();
             Catpro::where('cat_id', $cat->cat_id)->delete();
             if(!empty($validated['product_ids'])) {
                 $insertData = [];
@@ -2247,7 +2270,7 @@ class HomeController extends Controller
                     $insertData[] = [
                         'cat_id' => $cat->cat_id,
                         'product_id' => $pid,
-                        'position' => 99,
+                        'position' => $existingPositions[$pid] ?? 99,
                         'shop_id' => session('shop_id'),
                         'created_at' => now(),
                         'updated_at' => now(),
@@ -2324,6 +2347,10 @@ class HomeController extends Controller
                 'meta_desc' => $validated['meta_desc'] ?? null,
                 'cat_image' => $validated['cat_image'] ?? $cat->cat_image,
             ]);
+            $existingPositions = Catpro::where('cat_id', $cat->cat_id)
+                ->pluck('position', 'product_id')
+                ->toArray();
+
             Catpro::where('cat_id', $cat->cat_id)->delete();
             if(!empty($validated['product_ids'])) {
                 $insertData = [];
@@ -2331,7 +2358,7 @@ class HomeController extends Controller
                     $insertData[] = [
                         'cat_id' => $cat->cat_id,
                         'product_id' => $pid,
-                        'position' => 99,
+                        'position' => $existingPositions[$pid] ?? 99,
                         'shop_id' => session('shop_id'),
                         'created_at' => now(),
                         'updated_at' => now(),
