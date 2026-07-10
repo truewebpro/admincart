@@ -47,6 +47,7 @@
                 </v-row>
             </v-card-text>
             <v-card-actions>
+                <v-switch v-model="promo.status" color="green" :label="`Status: ${promo.status.toString()}`"></v-switch>
                 <v-spacer />
                 <v-btn color="primary" variant="outlined" @click="updatePromo">
                     Save Settings

@@ -156,6 +156,7 @@ class ShopController extends Controller
         $shopId = $request->shop_id;
         $promos = HomePromo::with('items')
             ->where('shop_id','=',$shopId)
+            ->where('status','=',true)
             ->get();
         return response()->json([
             'success' => true,
