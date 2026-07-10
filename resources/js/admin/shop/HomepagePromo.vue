@@ -19,7 +19,7 @@
                     <v-col cols="12" md="3">
                         <v-select variant="underlined"
                             label="Style"
-                            :items="['style1','style1a','style2','style3']"
+                            :items="['style1','style1a','style1b','style2','style3']"
                             v-model="promo.style"
                         />
                     </v-col>
