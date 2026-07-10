@@ -19,7 +19,7 @@
                     <v-col cols="12" md="3">
                         <v-select variant="underlined"
                             label="Style"
-                            :items="['style1','style2','style3']"
+                            :items="['style1','style1a','style2','style3']"
                             v-model="promo.style"
                         />
                     </v-col>
@@ -45,9 +45,7 @@
                         />
                     </v-col>
                 </v-row>
-
             </v-card-text>
-
             <v-card-actions>
                 <v-spacer />
                 <v-btn color="primary" variant="outlined" @click="updatePromo">
@@ -84,6 +82,22 @@
                         <div class="text-body-2">
                             {{ item.subtext }}
                         </div>
+                    </v-card-text>
+                    <v-card-text v-if="promo.style === 'style1a'" class="d-flex ga-3 align-center justify-center">
+                        <i v-if="item.media_type==='icon'" class="iconify"
+                           :data-icon="item.media_value" style="font-size: 32px"
+                        />
+                        <div v-else-if="item.media_type==='svg'" v-html="item.media_value"/>
+                        <v-img v-else :src="item.media_value" height="32" contain/>
+                        <div>
+                            <div class="text-body-1 font-weight-semibold">
+                                {{ item.title }}
+                            </div>
+                            <div class="text-body-2">
+                                {{ item.subtext }}
+                            </div>
+                        </div>
+
                     </v-card-text>
                     <v-card-text v-else-if="promo.style === 'style2'" class="text-center">
                         <i v-if="item.media_type==='icon'" class="iconify"
