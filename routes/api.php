@@ -42,6 +42,7 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/shop/review/summary', [ShopController::class, 'shopReviewSummary']);
     Route::get('/shop/setting', [ShopController::class, 'getShopSetting']);
     Route::get('/herosections', [ShopController::class, 'homeHeroSections']);
+    Route::get('/home-promos', [ShopController::class, 'homePromos']);
     Route::get('/lazysections', [ShopController::class, 'homeLazySections']);
     Route::get('/homesections', [ShopController::class, 'homeSections']);
     Route::get('/brands', [BrandController::class, 'allBrands']);

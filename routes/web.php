@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FaqController;
+use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\MailtrapController;
 use App\Http\Controllers\SuperadminController;
 use Illuminate\Support\Facades\Route;
@@ -95,6 +96,11 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/homepage/add-faq',[FaqController::class,'addHomepageFaq']);
         Route::post('/homepage/edit-faq',[FaqController::class,'editHomepageFaq']);
         Route::post('/homepage/delete-faq',[FaqController::class,'deleteHomepageFaq']);
+        Route::get('/homepage/promo',[HomepageController::class,'getHomePagePromo']);
+        Route::post('/homepage/update-promo',[HomepageController::class,'updatePromo']);
+        Route::post('/homepage/add-promo-item',[HomepageController::class,'addPromoItem']);
+        Route::post('/homepage/update-promo-item',[HomepageController::class,'updatePromoItem']);
+        Route::post('/homepage/delete-promo-item',[HomepageController::class,'deletePromoItem']);
         Route::get('/shop',[HomeController::class,'getShopDetail']);
         Route::get('/users',[HomeController::class,'allUsers']);
         Route::get('/carts',[HomeController::class,'allCarts']);

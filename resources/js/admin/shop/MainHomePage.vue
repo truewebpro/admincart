@@ -5,6 +5,8 @@
                 class="my-2">
             <v-tab value="general">Sections</v-tab>
             <v-tab value="faqs">FAQ's</v-tab>
+            <v-tab value="promos">Top Features</v-tab>
+            <v-tab value="bpromos">Bottom Promos</v-tab>
         </v-tabs>
         <v-window v-model="htab">
             <v-window-item value="general">
@@ -88,6 +90,18 @@
                     @refresh-faqs="fetchHomepage"
                 />
             </v-window-item>
+            <v-window-item value="promos">
+                <HomepagePromo
+                    :homepage_id="hlayout.homepage_id"
+                    position="top"
+                />
+            </v-window-item>
+            <v-window-item value="bpromos">
+                <HomepagePromo
+                    :homepage_id="hlayout.homepage_id"
+                    position="bottom"
+                />
+            </v-window-item>
         </v-window>
     </div>
 </template>
@@ -113,9 +127,11 @@ import FeaturedOptionsPreview from "@/components/previews/FeaturedOptionsPreview
 import PeopleSearchPreview from "@/components/previews/PeopleSearchPreview.vue";
 import VideoWithTextPreview from "@/components/previews/VideoWithTextPreview.vue";
 import HomepageFaqs from "@/admin/shop/HomepageFaqs.vue";
+import HomepagePromo from "@/admin/shop/HomepagePromo.vue";
 export default {
     name:"MainHomePage",
     components: {
+        HomepagePromo,
         HomepageFaqs,
         BlogSliderPreview,
         BrowseCollectionPreview,

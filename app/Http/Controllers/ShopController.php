@@ -12,6 +12,7 @@ use App\Models\Catpro;
 use App\Models\Customer;
 use App\Models\Footer;
 use App\Models\Homepage;
+use App\Models\HomePromo;
 use App\Models\Menu;
 use App\Models\Page;
 use App\Models\Policy;
@@ -147,6 +148,18 @@ class ShopController extends Controller
             'success' => true,
             'hsections' => $sections['herosections'] ?? [],
             'faqs' => $sections['faqs'] ?? [],
+        ]);
+    }
+
+    public function homePromos(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $promos = HomePromo::with('items')
+            ->where('shop_id','=',$shopId)
+            ->get();
+        return response()->json([
+            'success' => true,
+            'promos' => $promos,
         ]);
     }
 

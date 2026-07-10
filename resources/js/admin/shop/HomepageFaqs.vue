@@ -148,7 +148,7 @@ export default {
                 'question':this.editedItem.question,
                 'answer':this.editedItem.answer,
             }
-            axios.post(`/sadmin/cat/edit-faq`,edata)
+            axios.post(`/sadmin/homepage/edit-faq`,edata)
                 .then((resp)=>{
                     this.$emit('refresh-faqs');
                     this.editFaqDialog = false;
@@ -169,7 +169,7 @@ export default {
                 'homepage_id': this.homepage_id,
                 'id':this.editedItem.id,
             }
-            axios.post(`/sadmin/cat/delete-faq`,ddata)
+            axios.post(`/sadmin/homepage/delete-faq`,ddata)
                 .then((resp)=>{
                     this.$emit('refresh-faqs');
                     this.deleteFaqDialog = false;
