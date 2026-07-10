@@ -8,8 +8,8 @@ class ShopCacheService
 {
     public static function forgetProduct(int $shopId, string $slug): void
     {
-        Cache::forget("shop:{$shopId}:product:{$slug}");
-        Cache::forget("shop:{$shopId}:product-sections:{$slug}");
+        Cache::forget(CacheKeys::product($shopId, $slug));
+        Cache::forget(CacheKeys::productSections($shopId, $slug));
     }
 
     public static function forgetProductFilters(int $shopId): void

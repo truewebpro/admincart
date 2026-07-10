@@ -4,7 +4,7 @@ namespace App\Services;
 
 class CacheKeys
 {
-    public static function product($shopId, $slug): string
+    public static function product(int $shopId, string $slug): string
     {
         return "shop:$shopId:product:$slug";
     }
