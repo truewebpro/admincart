@@ -182,8 +182,6 @@ export default {
             domain:this.$store.state.shop.maindomain,
             editDialog: false,
             hlayout:[],
-
-
         }
     },
     created() {

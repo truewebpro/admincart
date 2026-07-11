@@ -8,6 +8,12 @@
             <v-tab link :to="{name:'ShopAnnouncement'}">Announcement</v-tab>
             <v-tab link :to="{name:'MainCartPage'}">Cart Page</v-tab>
             <v-tab link :to="{name:'ShopSubscribe'}">Subscribe</v-tab>
+            <v-tab link :to="{name:'ShopProducts'}">Products</v-tab>
+            <v-tab link :to="{name:'ShopCats'}">Collections</v-tab>
+            <v-tab link :to="{name:'ShopBrands'}">Brands</v-tab>
+            <v-tab link :to="{name:'ShopPages'}">Pages</v-tab>
+            <v-tab link :to="{name:'ShopBlogs'}">Blogs</v-tab>
+            <v-tab link :to="{name:'ShopPolicies'}">Policies</v-tab>
 <!--            <v-tab link :to="{name:'ShopBanner'}">Banner</v-tab>-->
 <!--            <v-tab link :to="{name:'FeaturedGrid'}">Featured Grid</v-tab>-->
 <!--            <v-tab link :to="{name:'FeaturedCats'}">Featured Cats</v-tab>-->

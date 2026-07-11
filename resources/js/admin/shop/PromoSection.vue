@@ -50,7 +50,7 @@
                 <v-switch v-model="promo.status" color="green" :label="`Status: ${promo.status}`"></v-switch>
                 <v-spacer />
                 <v-btn color="primary" variant="outlined" @click="updatePromo">
-                    Save Settings
+                    Save Promo
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -84,7 +84,7 @@
                             {{ item.subtext }}
                         </div>
                     </v-card-text>
-                    <v-card-text v-else-if="promo.style === 'style1a'" class="d-flex ga-3 align-center justify-center">
+                    <v-card-text v-if="promo.style === 'style1a'" class="d-flex ga-3 align-center justify-center">
                         <i v-if="item.media_type==='icon'" class="iconify"
                            :data-icon="item.media_value" style="font-size: 32px"
                         />
@@ -100,7 +100,7 @@
                         </div>
 
                     </v-card-text>
-                    <v-card-text v-else-if="promo.style === 'style1b'" class="d-flex ga-3 align-center justify-center">
+                    <v-card-text v-if="promo.style === 'style1b'" class="d-flex ga-3 align-center justify-center">
                         <i v-if="item.media_type==='icon'" class="iconify"
                            :data-icon="item.media_value" style="font-size: 32px"
                         />
@@ -146,17 +146,17 @@
                     </v-card-text>
                 </v-card>
                 <v-card-actions>
-                    <v-btn variant="elevated" color="info" size="small" @click="editPromo(item)">
+                    <v-btn variant="elevated" color="info" size="small" @click="editPromoItem(item)">
                         Edit
                     </v-btn>
                     <v-spacer />
-                    <v-btn variant="outlined" size="small" color="error" @click="delPromo(item)">
+                    <v-btn variant="outlined" size="small" color="error" @click="delPromoItem(item)">
                         Delete
                     </v-btn>
                 </v-card-actions>
             </v-col>
         </v-row>
-        <v-dialog v-model="addPromoDialog" maxWidth="600" zIndex="1021">
+        <v-dialog v-model="addPromoItemDialog" maxWidth="600" zIndex="1021">
             <v-card>
                 <v-card-title>Add New Promo Item</v-card-title>
                 <v-card-text>
@@ -171,12 +171,12 @@
                                   v-model="defaultItem.media_value" label="Icon"></v-text-field>
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn @click="addPromo" :loading="addLoading" color="green" variant="elevated" density="comfortable">Save</v-btn>
-                    <v-btn @click="addPromoDialog = false" color="red" variant="outlined" density="comfortable">Cancel</v-btn>
+                    <v-btn @click="addPromoItem" :loading="addLoading" color="green" variant="elevated" density="comfortable">Save</v-btn>
+                    <v-btn @click="addPromoItemDialog = false" color="red" variant="outlined" density="comfortable">Cancel</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <v-dialog v-model="editPromoDialog" maxWidth="600" zIndex="1021">
+        <v-dialog v-model="editPromoItemDialog" maxWidth="600" zIndex="1021">
             <v-card>
                 <v-card-title>Edit Promo Item</v-card-title>
                 <v-card-text>
@@ -192,11 +192,11 @@
                 </v-card-text>
                 <v-card-actions>
                     <v-btn @click="updatePromoItem" :loading="editLoading" color="green" variant="elevated" density="comfortable">Save</v-btn>
-                    <v-btn @click="editPromoDialog = false" color="red" variant="outlined" density="comfortable">Cancel</v-btn>
+                    <v-btn @click="editPromoItemDialog = false" color="red" variant="outlined" density="comfortable">Cancel</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <v-dialog v-model="deletePromoDialog" maxWidth="300" zIndex="1021">
+        <v-dialog v-model="deletePromoItemDialog" maxWidth="300" zIndex="1021">
             <v-card>
                 <v-card-title>Delete Promo Item</v-card-title>
                 <v-card-text class="text-center">
@@ -204,8 +204,8 @@
                     <span class="font-weight-medium">{{editedItem.title}}</span>
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn @click="deletePromo" :loading="deleteLoading" color="green" variant="elevated" density="comfortable">Delete</v-btn>
-                    <v-btn @click="deletePromoDialog = false" color="red" variant="outlined" density="comfortable">Cancel</v-btn>
+                    <v-btn @click="deletePromoItem" :loading="deleteLoading" color="green" variant="elevated" density="comfortable">Delete</v-btn>
+                    <v-btn @click="deletePromoItemDialog = false" color="red" variant="outlined" density="comfortable">Cancel</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -213,12 +213,15 @@
 </template>
 <script>
 export default {
-    name: "HomepagePromo",
+    name: "PromoSection",
     props: {
-        homepage_id: [String, Number],
+        page_type: {
+            type:String,
+            required:true
+        },
         position: {
             type: String,
-            default: "top"
+            default: "bottom"
         }
     },
     data(){
@@ -236,9 +239,9 @@ export default {
 
             loading:false,
 
-            addPromoDialog:false,
-            editPromoDialog:false,
-            deletePromoDialog:false,
+            addPromoItemDialog:false,
+            editPromoItemDialog:false,
+            deletePromoItemDialog:false,
 
             addLoading:false,
             editLoading:false,
@@ -254,36 +257,31 @@ export default {
 
             defaultItem: {
                 media_type: "icon",
-                media_value: "mdi:account",
-                title: "Free Delivery",
+                media_value: "mdi:truck-fast",
+                title: "Free UK Delivery",
                 subtext: "Orders over £50"
             },
 
             editedItem:{},
         }
     },
-    computed: {
-        isCompactStyle() {
-            return ['style1', 'style1a', 'style1b'].includes(this.promo.style);
-        }
-    },
     mounted() {
-        this.getHomePagePromo();
+        this.getPagePromo();
     },
     // watch: {
-    //     homepage_id: {
+    //     page_type: {
     //         immediate: true,
     //         handler() {
-    //             this.getHomePagePromo();
+    //             this.getPagePromo();
     //         }
     //     }
     // },
     methods:{
-        getHomePagePromo(){
+        getPagePromo(){
             this.loading = true;
-            axios.get(`/sadmin/homepage/promo`,{
+            axios.get(`/sadmin/promo`,{
                 params: {
-                    homepage_id: this.homepage_id,
+                    page_type: this.page_type,
                     position: this.position
                 }
             })
@@ -293,52 +291,6 @@ export default {
                 })
                 .finally(() => {
                     this.loading = false;
-                });
-        },
-        showAddDialog() {
-            this.defaultItem = {
-                media_type: "icon",
-                media_value: "mdi:account",
-                title: "Free Delivery",
-                subtext: "Orders over £50",
-            };
-            this.addPromoDialog = true;
-        },
-        async addPromo() {
-            this.addLoading = true;
-            const adata = {
-                home_promo_id: this.promo.id,
-                ...this.defaultItem,
-            }
-            await axios.post(`/sadmin/homepage/add-promo-item`,adata)
-                .then((resp)=>{
-                    this.getHomePagePromo();
-                    this.addPromoDialog = false;
-                    window.Toast.success(resp.data.message);
-                })
-                .finally(()=>{
-                    this.addLoading = false;
-                })
-
-        },
-        editPromo(item){
-            this.editedItem = {...item};
-            this.editPromoDialog = true;
-        },
-        delPromo(item){
-            this.editedItem = {...item};
-            this.deletePromoDialog = true;
-        },
-        updatePromoItem() {
-            this.editLoading = true;
-            axios.post('/sadmin/homepage/update-promo-item', this.editedItem)
-                .then((resp) => {
-                    window.Toast.success(resp.data.message);
-                    this.editPromoDialog = false;
-                    this.getHomePagePromo();
-                })
-                .finally(() => {
-                    this.editLoading = false;
                 });
         },
         updatePromo(){
@@ -353,7 +305,7 @@ export default {
                 subtext_color: this.promo.subtext_color,
                 status: this.promo.status
             }
-            axios.post(`/sadmin/homepage/update-promo`,edata)
+            axios.post(`/sadmin/update-promo`,edata)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
                 })
@@ -361,16 +313,62 @@ export default {
                     this.editLoading = false;
                 })
         },
-        deletePromo(){
+        showAddDialog() {
+            this.defaultItem = {
+                media_type: "icon",
+                media_value: "mdi:account",
+                title: "Free Delivery",
+                subtext: "Orders over £50",
+            };
+            this.addPromoItemDialog = true;
+        },
+        async addPromoItem() {
+            this.addLoading = true;
+            const adata = {
+                promo_id: this.promo.id,
+                ...this.defaultItem,
+            }
+            await axios.post(`/sadmin/add-promo-item`,adata)
+                .then((resp)=>{
+                    this.getPagePromo();
+                    this.addPromoItemDialog = false;
+                    window.Toast.success(resp.data.message);
+                })
+                .finally(()=>{
+                    this.addLoading = false;
+                })
+
+        },
+        editPromoItem(item){
+            this.editedItem = {...item};
+            this.editPromoItemDialog = true;
+        },
+        delPromoItem(item){
+            this.editedItem = {...item};
+            this.deletePromoItemDialog = true;
+        },
+        updatePromoItem() {
+            this.editLoading = true;
+            axios.post('/sadmin/update-promo-item', this.editedItem)
+                .then((resp) => {
+                    window.Toast.success(resp.data.message);
+                    this.editPromoItemDialog = false;
+                    this.getPagePromo();
+                })
+                .finally(() => {
+                    this.editLoading = false;
+                });
+        },
+        deletePromoItem(){
             this.deleteLoading = true;
             const ddata = {
                 id: this.editedItem.id
             }
-            axios.post(`/sadmin/homepage/delete-promo-item`,ddata)
+            axios.post(`/sadmin/delete-promo-item`,ddata)
                 .then((resp)=>{
                     window.Toast.success(resp.data.message);
-                    this.deletePromoDialog = false;
-                    this.getHomePagePromo();
+                    this.deletePromoItemDialog = false;
+                    this.getPagePromo();
                 })
                 .finally(()=>{
                     this.deleteLoading = false;

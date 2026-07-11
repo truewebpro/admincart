@@ -6,7 +6,9 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\PageSettingController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PromoController;
 use App\Http\Controllers\SendcloudWebhookController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\SumupController;
@@ -60,6 +62,8 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/productsections/{slug}', [ProductController::class, 'getProductLazyData']);
     Route::get('/products/all', [ProductController::class, 'searhProducts']);
     Route::get('/all-products', [ProductController::class, 'getAllProducts']);
+    Route::get('/promo-by-type', [PromoController::class, 'getPromoByType']);
+    Route::get('/page-settings', [PageSettingController::class, 'getPageSettingBySlug']);
     Route::get('/poptions',[ShopController::class,'shopPoptions']);
     Route::get('/sitemap',[ShopController::class,'siteMap']);
     Route::get('/html/sitemap',[ShopController::class,'htmlSitemap']);

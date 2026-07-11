@@ -29,6 +29,12 @@ import ShopFooter from "@/admin/shop/ShopFooter.vue";
 import ShopSearch from "@/admin/shop/ShopSearch.vue";
 import ShopAnnouncement from "@/admin/shop/ShopAnnouncement.vue";
 import ShopSubscribe from "@/admin/shop/ShopSubscribe.vue";
+import ShopBlogs from "@/admin/shop/ShopBlogs.vue";
+import ShopBrands from "@/admin/shop/ShopBrands.vue";
+import ShopCats from "@/admin/shop/ShopCats.vue";
+import ShopPages from "@/admin/shop/ShopPages.vue";
+import ShopPolicies from "@/admin/shop/ShopPolicies.vue";
+import ShopProducts from "@/admin/shop/ShopProducts.vue";
 import PagesList from "@/admin/theme/page/PagesList.vue";
 import PagesNew from "@/admin/theme/page/PagesNew.vue";
 import PagesEdit from "@/admin/theme/page/PagesEdit.vue";
@@ -103,6 +109,12 @@ const routes = [
             {path: 'search',name: 'ShopSearch',component: ShopSearch},
             {path: 'announcement',name: 'ShopAnnouncement',component: ShopAnnouncement},
             {path: 'subscribe',name: 'ShopSubscribe',component: ShopSubscribe},
+            {path: 'products-page',name: 'ShopProducts',component: ShopProducts},
+            {path: 'cats-page',name: 'ShopCats',component: ShopCats},
+            {path: 'brands-page',name: 'ShopBrands',component: ShopBrands},
+            {path: 'blogs-page',name: 'ShopBlogs',component: ShopBlogs},
+            {path: 'pages-page',name: 'ShopPages',component: ShopPages},
+            {path: 'policies-page',name: 'ShopPolicies',component: ShopPolicies},
         ]},
     {path: '/theme/store',name:'ThemeView',component: ThemeView},
     {path: '/theme/preferences',name:'Preferences',component: Preferences},

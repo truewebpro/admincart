@@ -3,6 +3,8 @@
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\MailtrapController;
+use App\Http\Controllers\PageSettingController;
+use App\Http\Controllers\PromoController;
 use App\Http\Controllers\SuperadminController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -97,10 +99,17 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/homepage/edit-faq',[FaqController::class,'editHomepageFaq']);
         Route::post('/homepage/delete-faq',[FaqController::class,'deleteHomepageFaq']);
         Route::get('/homepage/promo',[HomepageController::class,'getHomePagePromo']);
+        Route::get('/promo',[PromoController::class,'getPromo']);
+        Route::post('/update-promo',[PromoController::class,'updatePromo']);
+        Route::post('/add-promo-item',[PromoController::class,'addPromoItem']);
+        Route::post('/update-promo-item',[PromoController::class,'updatePromoItem']);
+        Route::post('/delete-promo-item',[PromoController::class,'deletePromoItem']);
         Route::post('/homepage/update-promo',[HomepageController::class,'updatePromo']);
         Route::post('/homepage/add-promo-item',[HomepageController::class,'addPromoItem']);
         Route::post('/homepage/update-promo-item',[HomepageController::class,'updatePromoItem']);
         Route::post('/homepage/delete-promo-item',[HomepageController::class,'deletePromoItem']);
+        Route::get('/page-setting',[PageSettingController::class,'getPageSetting']);
+        Route::post('/page-setting/update',[PageSettingController::class,'updatePageSetting']);
         Route::get('/shop',[HomeController::class,'getShopDetail']);
         Route::get('/users',[HomeController::class,'allUsers']);
         Route::get('/carts',[HomeController::class,'allCarts']);
