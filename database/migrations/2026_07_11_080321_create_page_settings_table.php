@@ -31,7 +31,7 @@ return new class extends Migration
             // SEO
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
-            $table->string('meta_keywords')->nullable();
+            $table->text('meta_keywords')->nullable();
 
             $table->string('og_image')->nullable();
 
