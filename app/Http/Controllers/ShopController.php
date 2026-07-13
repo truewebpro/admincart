@@ -21,6 +21,8 @@ use App\Models\Preference;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\Proreview;
+use App\Models\Searchbrand;
+use App\Models\Searchcat;
 use App\Models\Searchtag;
 use App\Models\Section;
 use App\Models\Setting;
@@ -594,9 +596,30 @@ class ShopController extends Controller
                     ->get();
             }
         );
+        $searchbrands = Cache::remember(
+            CacheKeys::searchBrands($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                return Searchbrand::where('shop_id','=',$shopId)
+                    ->where('status','=','active')
+                    ->get();
+            }
+        );
+        $searchcats = Cache::remember(
+            CacheKeys::searchCats($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                return Searchcat::where('shop_id','=',$shopId)
+                    ->where('status','=','active')
+                    ->get();
+            }
+        );
+
         return response()->json([
             'status' => $searchtags->isNotEmpty(),
             'searchtags' => $searchtags,
+            'searchbrands' => $searchbrands,
+            'searchcats' => $searchcats,
         ]);
     }
 

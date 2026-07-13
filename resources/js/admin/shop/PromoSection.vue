@@ -19,7 +19,7 @@
                     <v-col cols="12" md="3">
                         <v-select variant="underlined"
                             label="Style"
-                            :items="['style1','style1a','style1b','style2','style3']"
+                            :items="['style1','slide_two_line_shadow','slide_two_line_transparent','promo_banner','order_list','grid_promos_rectangular','grid_promos_square','grid_promos_circular']"
                             v-model="promo.style"
                         />
                     </v-col>
@@ -70,7 +70,7 @@
         </v-row>
         <v-row dense>
             <v-col v-for="item in promo.items" :key="item.id" cols="12" md="3">
-                <v-card density="compact" :variant="promo?.style === 'style1b' ? 'text' : 'elevated'">
+                <v-card density="compact" :variant="promo?.style === 'slide_two_line_transparent' ? 'text' : 'elevated'">
                     <v-card-text v-if="promo.style === 'style1'" class="d-flex ga-1 align-center pa-1 justify-center">
                         <i v-if="item.media_type==='icon'" class="iconify"
                             :data-icon="item.media_value" style="font-size: 20px"
@@ -84,7 +84,7 @@
                             {{ item.subtext }}
                         </div>
                     </v-card-text>
-                    <v-card-text v-if="promo.style === 'style1a'" class="d-flex ga-3 align-center justify-center">
+                    <v-card-text v-if="promo.style === 'slide_two_line_shadow'" class="d-flex ga-3 align-center justify-center">
                         <i v-if="item.media_type==='icon'" class="iconify"
                            :data-icon="item.media_value" style="font-size: 32px"
                         />
@@ -100,7 +100,7 @@
                         </div>
 
                     </v-card-text>
-                    <v-card-text v-if="promo.style === 'style1b'" class="d-flex ga-3 align-center justify-center">
+                    <v-card-text v-if="promo.style === 'slide_two_line_transparent'" class="d-flex ga-3 align-center justify-center">
                         <i v-if="item.media_type==='icon'" class="iconify"
                            :data-icon="item.media_value" style="font-size: 32px"
                         />
@@ -116,7 +116,7 @@
                         </div>
 
                     </v-card-text>
-                    <v-card-text v-else-if="promo.style === 'style2'" class="text-center">
+                    <v-card-text v-else-if="promo.style === 'grid_promos_rectangular'" class="text-center">
                         <i v-if="item.media_type==='icon'" class="iconify"
                            :data-icon="item.media_value" style="font-size: 36px"
                         />
@@ -130,7 +130,7 @@
                             {{ item.subtext }}
                         </div>
                     </v-card-text>
-                    <v-card-text v-else-if="promo.style === 'style3'" class="text-center">
+                    <v-card-text v-else-if="promo.style === 'grid_promos_square'" class="text-center">
                     <i v-if="item.media_type==='icon'" class="iconify"
                        :data-icon="item.media_value" style="font-size: 36px"
                     />
@@ -143,6 +143,20 @@
                     <div class="text-body-2">
                         {{ item.subtext }}
                     </div>
+                    </v-card-text>
+                    <v-card-text v-else-if="promo.style === 'grid_promos_circular'" class="text-center">
+                        <i v-if="item.media_type==='icon'" class="iconify"
+                           :data-icon="item.media_value" style="font-size: 36px"
+                        />
+                        <div v-else-if="item.media_type==='svg'" v-html="item.media_value"/>
+                        <v-img v-else :src="item.media_value" height="60" contain/>
+
+                        <div class="text-h6 mt-1">
+                            {{ item.title }}
+                        </div>
+                        <div class="text-body-2">
+                            {{ item.subtext }}
+                        </div>
                     </v-card-text>
                 </v-card>
                 <v-card-actions>

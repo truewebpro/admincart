@@ -46,6 +46,8 @@ use App\Models\ProductType;
 use App\Models\Proreview;
 use App\Models\RelatedCat;
 use App\Models\Reviewer;
+use App\Models\Searchbrand;
+use App\Models\Searchcat;
 use App\Models\Searchtag;
 use App\Models\Section;
 use App\Models\Sendcloud;
@@ -4300,6 +4302,48 @@ class HomeController extends Controller
         ]);
     }
 
+    public function getShopSearchBrands()
+    {
+        $shopId = session('shop_id');
+        $searchbrands = Searchbrand::where('shop_id', $shopId)->get();
+        $abrands = Brand::where('shop_id', $shopId)->get(['brand_name','brand_slug'])
+            ->map(function ($item) {
+                return [
+                    'ltype'=> 'brands',
+                    'name'=> $item->brand_name,
+                    'link'=> 'brands/'.$item->brand_slug,
+                ];
+            })->toArray();
+        $allbrands = [['ltype' => 'brands', 'name' => 'All Brands', 'link' => 'brands']];
+        $brands = array_merge($allbrands, $abrands);
+        return response()->json([
+            'success' => true,
+            'searchbrands' => $searchbrands,
+            'brands' => $brands
+        ]);
+    }
+
+    public function getShopSearchCats()
+    {
+        $shopId = session('shop_id');
+        $searchcats = Searchcat::where('shop_id', $shopId)->get();
+        $acats = Cat::where('shop_id', $shopId)->get(['cat_name','cat_slug'])
+            ->map(function ($item) {
+                return [
+                    'ltype'=> 'collections',
+                    'name'=> $item->cat_name,
+                    'link'=> 'collections/'.$item->cat_slug,
+                ];
+            })->toArray();
+        $allcollections = [['ltype' => 'collections', 'name' => 'All Collections', 'link' => 'collections']];
+        $cats = array_merge($allcollections, $acats);
+        return response()->json([
+            'success' => true,
+            'searchcats' => $searchcats,
+            'cats'=> $cats
+        ]);
+    }
+
     public function updateSearchTag(Request $request)
     {
         $shopId = session('shop_id');
@@ -4328,6 +4372,64 @@ class HomeController extends Controller
             }
         }
 
+    }
+
+    public function updateSearchBrand(Request $request)
+    {
+        $shopId = session('shop_id');
+        if($request->mname === 'delete'){
+            $searchbrand = Searchbrand::findOrFail($request->sbrand_id);
+            $searchbrand->delete();
+            return response()->json(['success' => true,'message' => 'Brand deleted successfully']);
+        } else {
+            $searchbrand = Searchbrand::updateOrCreate(
+                [
+                    'shop_id' => $shopId,
+                    'sbrand_id' => $request->sbrand_id,
+                ],
+                [
+                    'title' => $request->title,
+                    'link' => $request->link,
+                    'status' => $request->status ?? 'active',
+                    'shop_id' => $shopId,
+                ],
+            );
+            if($searchbrand){
+                return response()->json([
+                    'success' => true,
+                    'searchbrand' => $searchbrand,
+                ]);
+            }
+        }
+    }
+
+    public function updateSearchCat(Request $request)
+    {
+        $shopId = session('shop_id');
+        if($request->mname === 'delete'){
+            $searchcat = Searchcat::findOrFail($request->sbrand_id);
+            $searchcat->delete();
+            return response()->json(['success' => true,'message' => 'Cat deleted successfully']);
+        } else {
+            $searchcat = Searchcat::updateOrCreate(
+                [
+                    'shop_id' => $shopId,
+                    'scat_id' => $request->scat_id,
+                ],
+                [
+                    'title' => $request->title,
+                    'link' => $request->link,
+                    'status' => $request->status ?? 'active',
+                    'shop_id' => $shopId,
+                ],
+            );
+            if($searchcat){
+                return response()->json([
+                    'success' => true,
+                    'searchcat' => $searchcat,
+                ]);
+            }
+        }
     }
 
     public function getShopFooter()

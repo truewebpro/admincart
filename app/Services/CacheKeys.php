@@ -121,6 +121,16 @@ class CacheKeys
         return "shop:$shopId:search_tags";
     }
 
+    public static function searchBrands(int $shopId): string
+    {
+        return "shop:$shopId:search_brands";
+    }
+
+    public static function searchCats(int $shopId): string
+    {
+        return "shop:$shopId:search_cats";
+    }
+
     public static function shippingMethods(int $shopId): string
     {
         return "shop:$shopId:shipping_methods";

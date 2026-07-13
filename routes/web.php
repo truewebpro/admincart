@@ -226,6 +226,10 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/announcement/update',[HomeController::class,'updateAnnouncement']);
         Route::get('/searchtags',[HomeController::class,'getShopSearchTags']);
         Route::post('/searchtag/update',[HomeController::class,'updateSearchTag']);
+        Route::get('/searchbrands',[HomeController::class,'getShopSearchBrands']);
+        Route::post('/searchbrand/update',[HomeController::class,'updateSearchBrand']);
+        Route::get('/searchcats',[HomeController::class,'getShopSearchCats']);
+        Route::post('/searchcat/update',[HomeController::class,'updateSearchCat']);
         Route::get('/footer',[HomeController::class,'getShopFooter']);
         Route::post('/footer/update',[HomeController::class,'updateFooter']);
         Route::get('/subscribe/section',[HomeController::class,'getShopSubscribeSection']);
