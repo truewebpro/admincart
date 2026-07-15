@@ -43,7 +43,9 @@ class Variant extends Model
 
     public function stock()
     {
-        return $this->hasMany(Stock::class, 'variant_id', 'variant_id');
+        return $this->hasMany(Stock::class, 'variant_id', 'variant_id')
+            ->join('locations', 'locations.location_id', '=', 'stocks.location_id')
+            ->select('stocks.*', 'locations.location_name');
     }
 
     public function astock()

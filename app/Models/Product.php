@@ -112,4 +112,11 @@ class Product extends Model
             ->orderBy('sort_order', 'ASC');
     }
 
+    public function pvariants():HasMany
+    {
+        return $this->hasMany(Variant::class, 'product_id', 'product_id')
+            ->join('stocks', 'stocks.variant_id', '=', 'variants.variant_id')
+            ->select('variants.*','stocks.quantity as astock')->orderBy('variants.option_values', 'ASC');
+    }
+
 }
