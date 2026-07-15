@@ -125,4 +125,13 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
 Route::prefix('migrate')->group(function () {
     Route::get('/shops', [MigrateController::class, 'migrateShops']);
     Route::get('/users', [MigrateController::class, 'migrateUsers']);
+    Route::get('/brands', [MigrateController::class, 'migrateBrands']);
+    Route::get('/tags', [MigrateController::class, 'migrateTags']);
+    Route::get('/product-types', [MigrateController::class, 'migrateProductTypes']);
+    Route::get('/poptions', [MigrateController::class, 'migratePoptions']);
+    Route::get('/blogs', [MigrateController::class, 'migrateBlogs']);
+    Route::get('/pages', [MigrateController::class, 'migratePages']);
+    Route::get('/policies', [MigrateController::class, 'migratePolicies']);
+    Route::get('/cats', [MigrateController::class, 'migrateCats']);
+    Route::get('/products', [MigrateController::class, 'migrateProducts']);
 });

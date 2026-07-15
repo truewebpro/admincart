@@ -46,7 +46,7 @@
                             </v-card-text>
                             <v-divider></v-divider>
                             <v-card-text>
-                                <v-text-field v-model="brand.meta_title" variant="outlined" density="compact" label="Brand Name"
+                                <v-text-field v-model="brand.meta_title" variant="outlined" density="compact" label="Meta Title"
                                               counter="70" :placeholder="brand.brand_name" persistent-counter
                                               persistent-placeholder class="mb-3"></v-text-field>
                                 <v-textarea v-model="brand.meta_desc" variant="outlined" density="compact" label="Meta Description"
