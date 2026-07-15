@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -67,5 +68,12 @@ class User extends Authenticatable implements JWTSubject
         )
             ->withPivot('role', 'shop_user_status')
             ->withTimestamps();
+    }
+
+    public function shopUsers():HasMany
+    {
+        return $this->hasMany(ShopUser::class)
+            ->join('shops', 'shops.shop_id', '=', 'shop_users.shop_id')
+            ->select('shops.shop_slug as shop_slug','shop_users.user_id',  'shop_users.role');
     }
 }

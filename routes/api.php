@@ -6,6 +6,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\MigrateController;
 use App\Http\Controllers\PageSettingController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromoController;
@@ -119,4 +120,9 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
         });
     });
 
+});
+
+Route::prefix('migrate')->group(function () {
+    Route::get('/shops', [MigrateController::class, 'migrateShops']);
+    Route::get('/users', [MigrateController::class, 'migrateUsers']);
 });
