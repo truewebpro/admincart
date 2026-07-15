@@ -82,7 +82,8 @@ class MigrateController extends Controller
     public function migrateBlogs(Request $request)
     {
         $blogs = Blog::join('shops','shops.shop_id','=','blogs.shop_id')
-            ->select('blogs.*','shops.shop_slug')
+            ->join('users','users.id','=','blogs.user_id')
+            ->select('blogs.*','shops.shop_slug','users.email as author_email')
             ->get();
         return response()->json($blogs);
     }
