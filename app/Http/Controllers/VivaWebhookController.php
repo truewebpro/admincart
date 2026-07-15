@@ -300,6 +300,11 @@ class VivaWebhookController extends Controller
                 $apiKey = 'up9kGaHV14VchY7agO0z3Lk93Fo2xU';
             }
 
+            if($request->shopname === "noviqdistribution"){
+                $merchantId = '36b7b4a4-748b-4f54-b07d-112dc867387e';
+                $apiKey = 'yh9t71s6UEHrw34v49CK9yv719xg3Q';
+            }
+
             $vportmerchantId = 'c104ea18-8667-42b8-86d3-cdfe6e56760b';
             $vportapiKey = 'hxX009b2H2cf1B2G9mB165Ao87aR9C';
             $tokenUrl = 'https://www.vivapayments.com';
@@ -357,6 +362,11 @@ class VivaWebhookController extends Controller
             if($request->shopname === "vapestonewholesale"){
                 $merchantId = 'f058087e-8de7-44b9-9b48-312969b64532';
                 $apiKey = 'up9kGaHV14VchY7agO0z3Lk93Fo2xU';
+            }
+
+            if($request->shopname === "noviqdistribution"){
+                $merchantId = '36b7b4a4-748b-4f54-b07d-112dc867387e';
+                $apiKey = 'yh9t71s6UEHrw34v49CK9yv719xg3Q';
             }
 
             $tokenUrl = 'https://www.vivapayments.com/api/messages/config/token';
