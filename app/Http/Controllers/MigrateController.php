@@ -114,9 +114,13 @@ class MigrateController extends Controller
 
     public function migrateProducts(Request $request)
     {
-        $products = Product::join('shops','shops.shop_id','=','products.shop_id')
+        $products = Product::with(['brand:brand_id,brand_name,brand_slug','ptype','pvariants.stock',])
+            ->join('shops','shops.shop_id','=','products.shop_id')
             ->select('products.*','shops.shop_slug')
             ->get();
+        foreach ($products as $product) {
+            $product['options'] = $product->pvariants[0]['options'] ?? null;
+        }
         return response()->json($products);
     }
 }
