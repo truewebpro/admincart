@@ -298,7 +298,7 @@ class SproController extends Controller
 
         Product::where('shop_id', $shopId)
             ->whereNotNull('thirdparty_id')
-            ->select('product_id', 'thirdparty_id')
+            ->select('product_id', 'thirdparty_id','shop_id')
             ->chunk(100, function ($products) use ($service, &$updated) {
                 $shopifyIds = $products->pluck('thirdparty_id')->map(fn ($id) => (int) $id)->all();
 
