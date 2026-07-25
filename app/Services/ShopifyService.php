@@ -433,6 +433,61 @@ class ShopifyService
         return $response->json('count', 0);
     }
 
+    public function getProductsSeo(array $shopifyProductIds): array
+    {
+        $this->ensureScope('products');
+
+        $token = $this->getAccessToken();
+        $results = [];
+
+        foreach (array_chunk($shopifyProductIds, 100) as $chunk) {
+            $gids = array_map(fn ($id) => "gid://shopify/Product/{$id}", $chunk);
+            $gidList = implode(',', array_map(fn ($gid) => "\"{$gid}\"", $gids));
+
+            $query = <<<GRAPHQL
+            query {
+              nodes(ids: [{$gidList}]) {
+                ... on Product {
+                  id
+                  seo {
+                    title
+                    description
+                  }
+                }
+              }
+            }
+            GRAPHQL;
+
+            $response = Http::withHeaders([
+                'X-Shopify-Access-Token' => $token,
+                'Content-Type'           => 'application/json',
+            ])->post(
+                "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/graphql.json",
+                ['query' => $query]
+            );
+
+            if ($response->failed()) {
+                throw new RuntimeException('Shopify SEO GraphQL request failed: ' . $response->body());
+            }
+
+            foreach ($response->json('data.nodes', []) as $node) {
+                if (! $node) {
+                    continue; // product no longer exists / was deleted on Shopify
+                }
+
+                $numericId = (int) basename($node['id']); // "gid://shopify/Product/123" -> 123
+
+                $results[$numericId] = [
+                    'title'       => $node['seo']['title'] ?? null,
+                    'description' => $node['seo']['description'] ?? null,
+                ];
+            }
+        }
+
+        return $results;
+    }
+
+
     public function getProductsGraphQl(int $first = 50): array
     {
         $token = $this->getAccessToken();

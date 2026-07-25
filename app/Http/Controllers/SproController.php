@@ -289,6 +289,49 @@ class SproController extends Controller
             ])->product_type_id;
     }
 
+    public function syncProductSeo(int $shopId)
+    {
+        $shopifyShop = ShopifyShop::where('shop_id', $shopId)->firstOrFail();
+        $service = new ShopifyService($shopifyShop);
+
+        $updated = 0;
+
+        Product::where('shop_id', $shopId)
+            ->whereNotNull('thirdparty_id')
+            ->select('product_id', 'thirdparty_id')
+            ->chunk(100, function ($products) use ($service, &$updated) {
+                $shopifyIds = $products->pluck('thirdparty_id')->map(fn ($id) => (int) $id)->all();
+
+                $seoData = $service->getProductsSeo($shopifyIds);
+
+                foreach ($products as $product) {
+                    $seo = $seoData[(int) $product->thirdparty_id] ?? null;
+
+                    if (! $seo) {
+                        continue;
+                    }
+
+                    $updates = [];
+
+                    if (! empty($seo['title'])) {
+                        $updates['meta_title'] = $seo['title'];
+                    }
+
+                    if (! empty($seo['description'])) {
+                        $updates['meta_desc'] = $seo['description'];
+                    }
+
+                    if ($updates) {
+                        $product->update($updates);
+                        $updated++;
+                    }
+                }
+            });
+
+        return response()->json(['success' => true, 'updated' => $updated]);
+    }
+
+
     public function import(Request $request)
     {
         $shopId = session('shop_id');

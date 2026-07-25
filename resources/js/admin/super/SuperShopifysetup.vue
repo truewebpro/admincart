@@ -56,6 +56,10 @@
                                    variant="outlined" color="success" density="compact">
                                 Import Products
                             </v-btn>
+                            <v-btn @click="syncProductsSeo" :loading="syncLoading" class="ms-2 mt-2"
+                                   variant="outlined" color="green" density="compact">
+                                Sync Products SEO
+                            </v-btn>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -282,6 +286,7 @@ export default {
     data(){
         return{
             cdn:this.$store.state.cdn,
+            shop_id:this.$store.state.shop_id,
             shopifyDetail:null,
             counts:{
                 products:0,
@@ -501,7 +506,22 @@ export default {
                 .finally(()=>{
                     this.isLoading = false;
                 })
-        }
+        },
+        syncProductsSeo(){
+            this.syncLoading = true;
+            axios.get('/superadmin/shopify/sync-products-seo/'+this.shop_id)
+                .then((resp)=>{
+                    console.log('Sync Respo',resp);
+                    this.loadItems();
+                    window.Toast.success(`products SEO Synced Successfully`)
+                })
+                .catch((err)=>{
+                    console.log("Sync Errors",err)
+                })
+                .finally(()=>{
+                    this.syncLoading = false;
+                })
+        },
     }
 }
 </script>

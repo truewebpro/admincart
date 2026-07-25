@@ -76,6 +76,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/shopify/import-and-save-scats', [ShopifyController::class, 'importSmartCollections']);
         Route::post('/shopify/add', [ShopifyController::class, 'addShopDetails']);
         Route::get('/shopify/sync-products', [SproController::class, 'sync']);
+        Route::get('/shopify/sync-products-seo/{id}', [SproController::class, 'syncProductSeo']);
         Route::get('/shopify/all-products', [SproController::class, 'index']);
         Route::post('/shopify/create-single-product', [SproController::class, 'createSingleProduct']);
         Route::post('/shopify/import-products', [SproController::class, 'import']);
