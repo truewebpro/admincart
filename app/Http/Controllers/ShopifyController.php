@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blog;
+use App\Models\Cat;
 use App\Models\ShopifyShop;
 use App\Models\ShopUser;
 use App\Services\ShopifyService;
@@ -23,11 +24,15 @@ class ShopifyController extends Controller
         $service = new ShopifyService($shopifyDetail);
         $counts = $service->getImportCounts();
         $blogs_count = Blog::where('shop_id', $shopId)->count();
+        $ccats_count = Cat::where('shop_id', $shopId)->where('cat_type','=','manual')->count();
+        $scats_count = Cat::where('shop_id', $shopId)->where('cat_type','=','smart')->count();
         return response()->json([
             'success' => true,
             'shopifyDetail' => $shopifyDetail ?? null,
             'counts' => $counts,
             'blogs_count' => $blogs_count ?? null,
+            'ccats_count' => $ccats_count ?? null,
+            'scats_count' => $scats_count ?? null,
         ]);
     }
 
@@ -204,6 +209,122 @@ class ShopifyController extends Controller
             'shop_user' => $shopUser ?? null,
             'articles' => $articles,
             'blogs' => $blogs,
+        ]);
+    }
+
+    public function importCustomCollections(Request $request)
+    {
+        $shopId = session('shop_id');
+        $shopifyShop = ShopifyShop::where('shop_id','=',$shopId)->first();
+        $service = new ShopifyService($shopifyShop);
+        $customCollections = $service->getCustomCollections();
+
+        $ccats = [];
+        $existingCats = Cat::where('shop_id','=',$shopId)->pluck('cat_image', 'cat_slug');
+        foreach ($customCollections as $customCollection) {
+            $cpath = $existingCats->get($customCollection['handle']);
+            if(!$cpath){
+                $cImage = $customCollection['image'] ?? null;
+                if(! empty($cImage['src'])) {
+                    $imageUrl = $cImage['src'];
+                    $response = Http::timeout(30)->get($imageUrl);
+                    if($response->successful()) {
+                        $filename = 'category_image_'.uniqid().'.png';
+                        $img = Image::make($response->body())->resize(600, 600, function ($constraint) {
+                            $constraint->aspectRatio();
+                        });
+                        $cpath = 'category/'.$filename;
+                        Storage::disk('s3')->put($cpath,(string)$img->encode());
+                    }
+                }
+            }
+            $catImage = $cpath;
+            $cat =  Cat::updateOrCreate(
+                [
+                    'shop_id' => $shopId,
+                    'cat_slug' => $customCollection['handle']],
+                [
+                    'cat_name' => $customCollection['title'],
+                    'cat_slug' => $customCollection['handle'],
+                    'cat_desc' => $customCollection['body_html'],
+                    'short_desc' => "",
+                    'cat_status' => 'Active',
+                    'cat_image' => $catImage,
+                    'cat_type' => 'manual',
+                    'cat_rule' => 'or',
+                    'sort_order' => 'title_asc',
+                    'shop_id' => $shopId,
+                    'meta_title' => $customCollection['title'],
+                    'meta_desc' => $customCollection['title'],
+                ]
+            );
+
+            $ccats[] = $cat;
+        }
+        return response()->json([
+            'success' => true,
+            'shopifycats' => $customCollections,
+            'ccats' => $ccats,
+        ]);
+    }
+
+    public function importSmartCollections(Request $request)
+    {
+        $shopId = session('shop_id');
+        $shopifyShop = ShopifyShop::where('shop_id','=',$shopId)->first();
+        $service = new ShopifyService($shopifyShop);
+        $smartCollections = $service->getSmartCollections();
+
+        $scats = [];
+        $existingCats = Cat::where('shop_id','=',$shopId)->pluck('cat_image', 'cat_slug');
+        foreach ($smartCollections as $smartCollection) {
+            $cpath = $existingCats->get($smartCollection['handle']);
+//            if(!$cpath){
+//                $cImage = $smartCollection['image'] ?? null;
+//                if(! empty($cImage['src'])) {
+//                    $imageUrl = $cImage['src'];
+//                    $response = Http::timeout(30)->get($imageUrl);
+//                    if($response->successful()) {
+//                        $filename = 'category_image_'.uniqid().'.png';
+//                        $img = Image::make($response->body())->resize(600, 600, function ($constraint) {
+//                            $constraint->aspectRatio();
+//                        });
+//                        $cpath = 'category/'.$filename;
+//                        Storage::disk('s3')->put($cpath,(string)$img->encode());
+//                    }
+//                }
+//            }
+            $catImage = $cpath;
+            $cat = [
+                    'cat_slug' => $smartCollection['handle'],
+                    'cat_name' => $smartCollection['title'],
+                    'cat_desc' => $smartCollection['body_html'],
+                    'short_desc' => "",
+                    'cat_status' => 'Active',
+                    'cat_image' => $catImage,
+                    'cat_type' => 'smart',
+                    'cat_rule' => 'or',
+                    'sort_order' => 'title_asc',
+                    'shop_id' => $shopId,
+                    'meta_title' => $smartCollection['title'],
+                    'meta_desc' => $smartCollection['title'],
+                    'rules' => $smartCollection['rules'],
+            ];
+//            $cat =  Cat::updateOrCreate(
+//                [
+//                    'shop_id' => $shopId,
+//                    'cat_slug' => $smartCollection['handle']],
+//                [
+//
+//                ]
+//            );
+
+            $scats[] = $cat;
+        }
+        return response()->json([
+            'success' => true,
+            'shopifycats' => $smartCollections,
+            'scats' => $scats,
         ]);
     }
 

@@ -72,6 +72,8 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/shopify/fetch-token', [ShopifyController::class, 'fetchToken']);
         Route::get('/shopify/fetch-products', [ShopifyController::class, 'fetchProducts']);
         Route::get('/shopify/import-and-save-articles', [ShopifyController::class, 'importArticles']);
+        Route::get('/shopify/import-and-save-ccats', [ShopifyController::class, 'importCustomCollections']);
+        Route::get('/shopify/import-and-save-scats', [ShopifyController::class, 'importSmartCollections']);
         Route::post('/shopify/add', [ShopifyController::class, 'addShopDetails']);
         Route::get('/shopify/sync-products', [SproController::class, 'sync']);
         Route::get('/shopify/all-products', [SproController::class, 'index']);

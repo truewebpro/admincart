@@ -124,6 +124,46 @@ class ShopifyService
         } while ($count === $limit);
     }
 
+    public function getCustomCollections(int $limit = 50): array
+    {
+        $token = $this->getAccessToken();
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+        ])->get(
+            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/custom_collections.json",
+            ['limit' => $limit]
+        );
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                'Shopify products request failed: ' . $response->body()
+            );
+        }
+
+        return $response->json('custom_collections', []);
+    }
+
+    public function getSmartCollections(int $limit = 250): array
+    {
+        $token = $this->getAccessToken();
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+        ])->get(
+            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/smart_collections.json",
+            ['limit' => $limit]
+        );
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                'Shopify products request failed: ' . $response->body()
+            );
+        }
+
+        return $response->json('smart_collections', []);
+    }
+
 
     /**
      * Fetch ALL products (REST), 250 per page, following Shopify's

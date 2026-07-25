@@ -66,17 +66,20 @@
                             <v-col cols="12" md="6">
                                 <h4 class="font-weight-semibold">Custom</h4>
                                 <div v-if="counts.custom_collections">
-                                    <h2>Total: {{counts?.custom_collections?.count}}</h2>
+                                    <h2>Total: {{ccats_count}} / {{counts?.custom_collections?.count}}</h2>
                                     <div class="text-body-1" v-if="counts?.custom_collections?.available">Scope: Available</div>
                                     <div v-if="counts?.custom_collections?.reason">Reason: {{counts?.custom_collections?.reason}}</div>
-                                    <v-btn class="mt-2" variant="outlined" color="success" density="compact">Import Custom Collections</v-btn>
+                                    <v-btn @click="getAndUpdateCustomCollections" :loading="isLoading"
+                                           class="mt-2" variant="outlined" color="success" density="compact">
+                                        Import Custom Collections
+                                    </v-btn>
                                 </div>
 
                             </v-col>
                             <v-col cols="12" md="6">
                                 <h4 class="font-weight-semibold">Smart</h4>
                                 <div v-if="counts.smart_collections">
-                                    <h2>Total: {{counts?.smart_collections?.count}}</h2>
+                                    <h2>Total: {{scats_count}} / {{counts?.smart_collections?.count}}</h2>
                                     <div class="text-body-1" v-if="counts?.smart_collections?.available">Scope: Available</div>
                                     <div class="text-red" v-if="counts?.smart_collections?.reason">Reason: {{counts?.smart_collections?.reason}}</div>
                                     <v-btn class="mt-2" variant="outlined" color="success" density="compact">Import Smart Collections</v-btn>
@@ -332,6 +335,8 @@ export default {
             ],
             blogs:[],
             blogs_count:0,
+            ccats_count:0,
+            scats_count:0,
         }
     },
     created() {
@@ -355,6 +360,8 @@ export default {
                     this.shopifyDetail = allData.shopifyDetail;
                     this.counts = allData.counts;
                     this.blogs_count = allData.blogs_count || 0;
+                    this.ccats_count = allData.ccats_count || 0;
+                    this.scats_count = allData.scats_count || 0;
                 })
         },
         showAddDialog(){
@@ -453,6 +460,36 @@ export default {
                 .then((resp)=>{
                     this.blogs = resp.data.blogs || [];
                     window.Toast.success('Articles imported Successfully')
+                })
+                .catch((err)=>{
+                    console.log('error',err);
+                    window.Toast.error(`Something Err ${err.message}`)
+                })
+                .finally(()=>{
+                    this.isLoading = false;
+                })
+        },
+        getAndUpdateCustomCollections(){
+            this.isLoading = true
+            axios.get('/superadmin/shopify/import-and-save-ccats')
+                .then((resp)=>{
+                    this.ccats = resp.data.ccats || [];
+                    window.Toast.success('Custom Collections imported Successfully')
+                })
+                .catch((err)=>{
+                    console.log('error',err);
+                    window.Toast.error(`Something Err ${err.message}`)
+                })
+                .finally(()=>{
+                    this.isLoading = false;
+                })
+        },
+        getAndUpdateSmartCollections(){
+            this.isLoading = true
+            axios.get('/superadmin/shopify/import-and-save-scats')
+                .then((resp)=>{
+                    this.scats = resp.data.scats || [];
+                    window.Toast.success('Smart Collections imported Successfully')
                 })
                 .catch((err)=>{
                     console.log('error',err);
