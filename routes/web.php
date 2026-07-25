@@ -71,6 +71,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/shopify/detail', [ShopifyController::class, 'getShopifyShop']);
         Route::get('/shopify/fetch-token', [ShopifyController::class, 'fetchToken']);
         Route::get('/shopify/fetch-products', [ShopifyController::class, 'fetchProducts']);
+        Route::get('/shopify/import-and-save-articles', [ShopifyController::class, 'importArticles']);
         Route::post('/shopify/add', [ShopifyController::class, 'addShopDetails']);
         Route::get('/shopify/sync-products', [SproController::class, 'sync']);
         Route::get('/shopify/all-products', [SproController::class, 'index']);

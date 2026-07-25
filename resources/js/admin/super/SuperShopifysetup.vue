@@ -92,7 +92,7 @@
                             <v-col cols="12" md="6">
                                 <h4 class="font-weight-semibold">Blogs</h4>
                                 <div v-if="counts.blogs">
-                                    <h2>Total: {{counts?.blogs?.count || 0}}</h2>
+                                    <h2>Total: {{blogs?.length || 0}} / {{counts?.blogs?.count || 0}}</h2>
                                     <div class="text-body-1" v-if="counts?.blogs?.available">Scope: Available</div>
                                     <div class="text-red" v-if="counts?.blogs?.reason">Reason: {{counts?.blogs?.reason}}</div>
                                     <v-btn v-if="counts?.blogs?.available" class="mt-2" variant="outlined"
@@ -102,10 +102,12 @@
                             <v-col cols="12" md="6">
                                 <h4 class="font-weight-semibold">Articles</h4>
                                 <div v-if="counts.articles">
-                                    <h2>Total: {{counts?.articles?.count || 0}}</h2>
+                                    <h2>Total: {{blogs_count}} / {{counts?.articles?.count || 0}}</h2>
                                     <div class="text-body-1" v-if="counts?.articles?.available">Scope: Available</div>
                                     <div class="text-red" v-if="counts?.articles?.reason">Reason: {{counts?.articles?.reason}}</div>
-                                    <v-btn v-if="counts?.articles?.available" class="mt-2" variant="outlined"
+                                    <v-btn v-if="counts?.articles?.available"
+                                           class="mt-2" variant="outlined"
+                                           @click="getAndUpdateArticles" :loading="isLoading"
                                            color="primary" density="compact">Import Articles</v-btn>
                                 </div>
                             </v-col>
@@ -328,6 +330,8 @@ export default {
                 {title:"ProductId",key:'product_id'},
                 {title:"Actions",key:'actions'},
             ],
+            blogs:[],
+            blogs_count:0,
         }
     },
     created() {
@@ -350,6 +354,7 @@ export default {
                     const allData = resp.data;
                     this.shopifyDetail = allData.shopifyDetail;
                     this.counts = allData.counts;
+                    this.blogs_count = allData.blogs_count || 0;
                 })
         },
         showAddDialog(){
@@ -440,6 +445,21 @@ export default {
                 })
                 .finally(()=>{
                     this.isLoading = false
+                })
+        },
+        getAndUpdateArticles(){
+            this.isLoading = true
+            axios.get('/superadmin/shopify/import-and-save-articles')
+                .then((resp)=>{
+                    this.blogs = resp.data.blogs || [];
+                    window.Toast.success('Articles imported Successfully')
+                })
+                .catch((err)=>{
+                    console.log('error',err);
+                    window.Toast.error(`Something Err ${err.message}`)
+                })
+                .finally(()=>{
+                    this.isLoading = false;
                 })
         }
     }

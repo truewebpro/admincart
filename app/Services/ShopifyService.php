@@ -197,7 +197,7 @@ class ShopifyService
         return $response->json('blogs', []);
     }
 
-    public function getArticles(): array
+    public function getArticles(int $limit = 100): array
     {
         $this->ensureScope('articles');
 
@@ -205,7 +205,8 @@ class ShopifyService
 
         $response = Http::withHeaders([
             'X-Shopify-Access-Token' => $token,
-        ])->get("https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/articles.json");
+        ])->get("https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/articles.json",
+            ['limit' => $limit]);
 
         if ($response->failed()) {
             throw new RuntimeException('Shopify blogs request failed: ' . $response->body());
