@@ -198,6 +198,22 @@
                                 <v-img v-else :src="cdn+'noimage.png'" max-width="60" max-height="60"/>
                             </span>
                         </template>
+                        <template #item.title="{item}">
+                            <div class="py-1">
+                                <div>{{item.title}}</div>
+                                <div v-if="item.options">
+                                    <div v-for="(option,odx) in item.options" :key="odx">
+                                        <div><span class="font-weight-medium">{{option.name}} :</span> <div v-if="option.values" class="d-flex flex-wrap ga-1">
+                                            <v-btn v-for="(val,vdx) in option.values" :key="vdx"
+                                                   size="small" density="compact" variant="tonal" color="success">
+                                                {{val}}
+                                            </v-btn>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
                         <template #item.actions="{item}">
                             <v-btn v-if="!item.product_id" @click="createProductInSystem(item)" size="small"
                                    color="success" variant="outlined" density="comfortable">
