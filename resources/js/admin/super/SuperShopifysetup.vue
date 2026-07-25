@@ -82,7 +82,10 @@
                                     <h2>Total: {{scats_count}} / {{counts?.smart_collections?.count}}</h2>
                                     <div class="text-body-1" v-if="counts?.smart_collections?.available">Scope: Available</div>
                                     <div class="text-red" v-if="counts?.smart_collections?.reason">Reason: {{counts?.smart_collections?.reason}}</div>
-                                    <v-btn class="mt-2" variant="outlined" color="success" density="compact">Import Smart Collections</v-btn>
+                                    <v-btn @click="getAndUpdateSmartCollections" :loading="isLoading"
+                                           class="mt-2" variant="outlined" color="success" density="compact">
+                                        Import Smart Collections
+                                    </v-btn>
                                 </div>
                             </v-col>
                         </v-row>

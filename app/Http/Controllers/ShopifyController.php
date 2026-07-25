@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blog;
+use App\Models\Brand;
 use App\Models\Cat;
+use App\Models\ProductType;
 use App\Models\ShopifyShop;
 use App\Models\ShopUser;
 use App\Services\ShopifyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Intervention\Image\Facades\Image;
 
@@ -279,45 +282,82 @@ class ShopifyController extends Controller
         $existingCats = Cat::where('shop_id','=',$shopId)->pluck('cat_image', 'cat_slug');
         foreach ($smartCollections as $smartCollection) {
             $cpath = $existingCats->get($smartCollection['handle']);
-//            if(!$cpath){
-//                $cImage = $smartCollection['image'] ?? null;
-//                if(! empty($cImage['src'])) {
-//                    $imageUrl = $cImage['src'];
-//                    $response = Http::timeout(30)->get($imageUrl);
-//                    if($response->successful()) {
-//                        $filename = 'category_image_'.uniqid().'.png';
-//                        $img = Image::make($response->body())->resize(600, 600, function ($constraint) {
-//                            $constraint->aspectRatio();
-//                        });
-//                        $cpath = 'category/'.$filename;
-//                        Storage::disk('s3')->put($cpath,(string)$img->encode());
-//                    }
-//                }
-//            }
+            if(!$cpath){
+                $cImage = $smartCollection['image'] ?? null;
+                if(! empty($cImage['src'])) {
+                    $imageUrl = $cImage['src'];
+                    $response = Http::timeout(30)->get($imageUrl);
+                    if($response->successful()) {
+                        $filename = 'category_image_'.uniqid().'.png';
+                        $img = Image::make($response->body())->resize(600, 600, function ($constraint) {
+                            $constraint->aspectRatio();
+                        });
+                        $cpath = 'category/'.$filename;
+                        Storage::disk('s3')->put($cpath,(string)$img->encode());
+                    }
+                }
+            }
             $catImage = $cpath;
-            $cat = [
-                    'cat_slug' => $smartCollection['handle'],
+            $arules = [];
+            foreach ($smartCollection['rules'] as $rule) {
+                $arule = [];
+                switch ($rule['column']) {
+                    case 'vendor':
+                        $arule['column']    = 'vendor';
+                        $arule['relation'] = $rule['relation'];
+                        $arule['condition'] = $this->getBrandId($rule['condition']);
+                        break;
+
+                    case 'type':
+                        $arule['column']    = 'type';
+                        $arule['relation'] = $rule['relation'];
+                        $arule['condition'] = $this->getTypeId($rule['condition']);
+                        break;
+
+                    case 'tag':
+                        $arule['column']    = 'tag';
+                        $arule['relation'] = $rule['relation'];
+                        $arule['condition'] = $rule['condition']; // tag name string, as-is
+                        break;
+
+                    default:
+                        $arule['column']    = 'title';
+                        $arule['relation'] = 'contains';
+                        $arule['condition'] = $rule['condition'];
+                        break;
+                }
+                $arules[] = $arule;
+            }
+
+            $cat =  Cat::updateOrCreate(
+                [
+                    'shop_id' => $shopId,
+                    'cat_slug' => $smartCollection['handle']],
+                [
                     'cat_name' => $smartCollection['title'],
+                    'cat_slug' => $smartCollection['handle'],
                     'cat_desc' => $smartCollection['body_html'],
                     'short_desc' => "",
                     'cat_status' => 'Active',
                     'cat_image' => $catImage,
                     'cat_type' => 'smart',
-                    'cat_rule' => 'or',
+                    'cat_rule' => 'and',
                     'sort_order' => 'title_asc',
                     'shop_id' => $shopId,
                     'meta_title' => $smartCollection['title'],
                     'meta_desc' => $smartCollection['title'],
-                    'rules' => $smartCollection['rules'],
-            ];
-//            $cat =  Cat::updateOrCreate(
-//                [
-//                    'shop_id' => $shopId,
-//                    'cat_slug' => $smartCollection['handle']],
-//                [
-//
-//                ]
-//            );
+                ]
+            );
+            \App\Models\Rule::where('shop_id', $shopId)->where('cat_id', $cat['cat_id'])->delete();
+            foreach ($arules as $arule) {
+                $rule = \App\Models\Rule::create([
+                    'shop_id'   => $shopId,
+                    'cat_id'    => $cat['cat_id'],
+                    'column'    => $arule['column'],
+                    'relation'  => $arule['relation'],
+                    'condition' => $arule['condition'],
+                ]);
+            }
 
             $scats[] = $cat;
         }
@@ -326,6 +366,31 @@ class ShopifyController extends Controller
             'shopifycats' => $smartCollections,
             'scats' => $scats,
         ]);
+    }
+
+    private function getBrandId($brandName)
+    {
+        $shopId = session('shop_id');
+
+        if (!$brandName) return null;
+        return Brand::firstOrCreate(
+            [
+                'brand_name' => trim($brandName),
+                'brand_slug' => Str::slug(strtolower(trim($brandName)),'-'),
+                'shop_id' => $shopId,
+            ]
+        )->brand_id;
+    }
+
+    private function getTypeId($typeName)
+    {
+        $shopId = session('shop_id');
+        if (!$typeName) return null;
+        return ProductType::firstOrCreate(
+            [
+                'product_type_name' => trim($typeName),
+                'shop_id' => $shopId,
+            ])->product_type_id;
     }
 
 }
