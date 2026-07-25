@@ -212,7 +212,6 @@
                 </v-card>
             </v-col>
         </v-row>
-        <pre>{{spros[24]}}</pre>
         <v-dialog v-model="addDialog" max-width="450">
             <v-form v-model="addValid" @submit.prevent="addOrUpdateDetail">
                 <v-card>
@@ -364,6 +363,7 @@ export default {
             axios.get('/superadmin/shopify/sync-products')
                 .then((resp)=>{
                     console.log('Sync Respo',resp);
+                    this.loadItems();
                     window.Toast.success(`product Synced Successfully`)
                 })
                 .catch((err)=>{
