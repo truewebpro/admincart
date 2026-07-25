@@ -64,6 +64,7 @@ import PlansList from "@/superadmin/plans/PlansList.vue";
 import SuperAdminDashboard from "@/admin/super/SuperAdminDashboard.vue";
 import SuperAdminLayout from "@/admin/super/SuperAdminLayout.vue";
 import SuperAdminShops from "@/admin/super/SuperAdminShops.vue";
+import SuperShopifysetup from "@/admin/super/SuperShopifysetup.vue";
 
 
 
@@ -77,6 +78,7 @@ const routes = [
             { path: 'dashboard', name: 'SuperAdminDashboard', component: SuperAdminDashboard },
             { path: 'shops', name: 'SuperAdminShops', component: SuperAdminShops },
             { path: 'plans', name: 'PlansList', component: PlansList },
+            { path: 'shopify', name: 'SuperShopifysetup', component: SuperShopifysetup },
         ]
     },
     {path:'/dashboard',name:"AdminDashboard",component:AdminDashboard,meta: { requiresOwner: true }},

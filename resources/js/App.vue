@@ -19,7 +19,11 @@
                 </v-list-item>
                 <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperAdminShops'}" prepend-icon="mdi-store">
                     <v-list-item-title>Shops</v-list-item-title>
-                </v-list-item><v-list-item v-if="isSuperAdmin" link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">
+                </v-list-item>
+                <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperShopifysetup'}" :prependAvatar="cdn+'icons/shopify.png'">
+                    <v-list-item-title>Shopify</v-list-item-title>
+                </v-list-item>
+                <v-list-item v-if="isSuperAdmin" link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">
                     <v-list-item-title>Plans</v-list-item-title>
                 </v-list-item>
                 <v-list-item link to="/dashboard" prepend-icon="mdi-view-dashboard-outline">

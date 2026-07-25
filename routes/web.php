@@ -5,6 +5,8 @@ use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\MailtrapController;
 use App\Http\Controllers\PageSettingController;
 use App\Http\Controllers\PromoController;
+use App\Http\Controllers\ShopifyController;
+use App\Http\Controllers\SproController;
 use App\Http\Controllers\SuperadminController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -66,6 +68,14 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
     Route::prefix('superadmin')->group(function(){
         Route::get('/dashboard', [SuperadminController::class, 'superadminDashboard']);
         Route::get('/shops', [SuperadminController::class, 'allShops']);
+        Route::get('/shopify/detail', [ShopifyController::class, 'getShopifyShop']);
+        Route::get('/shopify/fetch-token', [ShopifyController::class, 'fetchToken']);
+        Route::get('/shopify/fetch-products', [ShopifyController::class, 'fetchProducts']);
+        Route::post('/shopify/add', [ShopifyController::class, 'addShopDetails']);
+        Route::get('/shopify/sync-products', [SproController::class, 'sync']);
+        Route::get('/shopify/all-products', [SproController::class, 'index']);
+        Route::post('/shopify/create-single-product', [SproController::class, 'createSingleProduct']);
+        Route::post('/shopify/import-products', [SproController::class, 'import']);
         Route::post('/shops/assign-user',[SuperadminController::class, 'assignUserToShop']);
         Route::get('/shop-users', [SuperadminController::class, 'shopUsers']);
         Route::put('/shop/update/{shop_id}', [SuperadminController::class, 'updateShop']);
