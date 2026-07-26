@@ -5,6 +5,7 @@ use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\MailtrapController;
 use App\Http\Controllers\PageSettingController;
 use App\Http\Controllers\PromoController;
+use App\Http\Controllers\ScustController;
 use App\Http\Controllers\ShopifyController;
 use App\Http\Controllers\SproController;
 use App\Http\Controllers\SuperadminController;
@@ -80,6 +81,15 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/shopify/all-products', [SproController::class, 'index']);
         Route::post('/shopify/create-single-product', [SproController::class, 'createSingleProduct']);
         Route::post('/shopify/import-products', [SproController::class, 'import']);
+        // Customer Import Routes
+        Route::post('/shopify/{shopId}/sync-customers', [ScustController::class, 'sync']);
+        Route::get('/shopify/{shopId}/synced-customers', [ScustController::class, 'index']);
+        Route::post('/shopify/{shopId}/import-customers', [ScustController::class, 'import']);
+        // Customer Import Bulk Operations
+        Route::post('/shopify/{shopId}/bulk-sync-customers/start', [ScustController::class, 'startBulkSync']);
+        Route::get('/shopify/{shopId}/bulk-sync-customers/status', [ScustController::class, 'checkBulkSyncStatus']);
+        Route::post('/shopify/{shopId}/bulk-sync-customers/process', [ScustController::class, 'processBulkSync']);
+
         Route::post('/shops/assign-user',[SuperadminController::class, 'assignUserToShop']);
         Route::get('/shop-users', [SuperadminController::class, 'shopUsers']);
         Route::put('/shop/update/{shop_id}', [SuperadminController::class, 'updateShop']);

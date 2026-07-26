@@ -15,6 +15,7 @@ class CustomerShop extends Model
         'ctags',
         'customer_id',
         'shop_id',
+        'thirdparty_id',
         'status',
         'registered_at',
         'mailtrap_contact_id',
@@ -25,7 +26,9 @@ class CustomerShop extends Model
 
     protected $casts = [
         'ctags' => 'array',
+        'registered_at' => 'datetime',
         'mailtrap_synced' => 'boolean',
+        'mailtrap_synced_at' => 'datetime',
     ];
 
     protected static function booted()

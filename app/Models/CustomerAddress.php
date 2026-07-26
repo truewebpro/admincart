@@ -22,6 +22,7 @@ class CustomerAddress extends Model
         'phone',
         'is_default',
         'customer_id',
+        'thirdparty_id',
     ];
 
     protected $casts = [

@@ -6,6 +6,7 @@ use App\Models\Blog;
 use App\Models\Brand;
 use App\Models\Cat;
 use App\Models\ProductType;
+use App\Models\Scust;
 use App\Models\ShopifyShop;
 use App\Models\ShopUser;
 use App\Services\ShopifyService;
@@ -29,6 +30,7 @@ class ShopifyController extends Controller
         $blogs_count = Blog::where('shop_id', $shopId)->count();
         $ccats_count = Cat::where('shop_id', $shopId)->where('cat_type','=','manual')->count();
         $scats_count = Cat::where('shop_id', $shopId)->where('cat_type','=','smart')->count();
+        $scusts_count = Scust::where('shop_id', $shopId)->count();
         return response()->json([
             'success' => true,
             'shopifyDetail' => $shopifyDetail ?? null,
@@ -36,6 +38,7 @@ class ShopifyController extends Controller
             'blogs_count' => $blogs_count ?? null,
             'ccats_count' => $ccats_count ?? null,
             'scats_count' => $scats_count ?? null,
+            'scusts_count' => $scusts_count ?? null,
         ]);
     }
 

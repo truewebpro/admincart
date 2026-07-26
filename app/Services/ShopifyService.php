@@ -322,7 +322,7 @@ class ShopifyService
     {
         $counts = [];
 
-        foreach (['products', 'custom_collections', 'smart_collections', 'pages', 'blogs','articles'] as $resource) {
+        foreach (['products', 'custom_collections', 'smart_collections', 'pages', 'blogs','articles','customers'] as $resource) {
             if (! $this->shop->hasScope($this->requiredScopes[$resource])) {
                 $counts[$resource] = [
                     'count'     => null,
@@ -340,6 +340,7 @@ class ShopifyService
                     'pages'              => $this->pagesCount(),
                     'blogs'              => $this->blogsCount(),
                     'articles'           => $this->articlesCount(),
+                    'customers'           => $this->customersCount(),
                 },
                 'available' => true,
                 'reason'    => null,
@@ -433,6 +434,150 @@ class ShopifyService
         return $response->json('count', 0);
     }
 
+    /**
+     * Starts an async bulk export of ALL customers (with addresses and
+     * tags) via Shopify's Bulk Operations API. Runs server-side on
+     * Shopify's infrastructure — no rate-limit cost to your app at all.
+     * Returns the bulk operation's id immediately; the actual export
+     * runs in the background.
+     */
+    public function startCustomersBulkExport(): string
+    {
+        $this->ensureScope('customers');
+
+        $token = $this->getAccessToken();
+
+        $bulkQuery = <<<'GRAPHQL'
+        {
+          customers {
+            edges {
+              node {
+                id
+                email
+                firstName
+                lastName
+                phone
+                state
+                tags
+                createdAt
+                addresses {
+                  id
+                  firstName
+                  lastName
+                  address1
+                  address2
+                  city
+                  zip
+                  countryCodeV2
+                  phone
+                }
+                defaultAddress {
+                  id
+                }
+              }
+            }
+          }
+        }
+        GRAPHQL;
+
+        $mutation = <<<GRAPHQL
+        mutation {
+          bulkOperationRunQuery(query: {$this->graphqlStringLiteral($bulkQuery)}) {
+            bulkOperation { id status }
+            userErrors { field message }
+          }
+        }
+        GRAPHQL;
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+            'Content-Type'           => 'application/json',
+        ])->post(
+            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/graphql.json",
+            ['query' => $mutation]
+        );
+
+        if ($response->failed()) {
+            throw new RuntimeException('Failed to start bulk export: ' . $response->body());
+        }
+
+        $errors = $response->json('data.bulkOperationRunQuery.userErrors', []);
+        if (! empty($errors)) {
+            throw new RuntimeException('Bulk export rejected: ' . json_encode($errors));
+        }
+
+        return $response->json('data.bulkOperationRunQuery.bulkOperation.id');
+    }
+
+    /**
+     * Checks the status of the most recent bulk QUERY operation for this
+     * app+shop. Poll this every few seconds until status is COMPLETED
+     * (or FAILED/CANCELED).
+     *
+     * @return array{status: string, url: ?string, errorCode: ?string}
+     */
+    public function checkBulkOperationStatus(): array
+    {
+        $token = $this->getAccessToken();
+
+        $query = <<<'GRAPHQL'
+        query {
+          currentBulkOperation(type: QUERY) {
+            id
+            status
+            errorCode
+            objectCount
+            url
+          }
+        }
+        GRAPHQL;
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+            'Content-Type'           => 'application/json',
+        ])->post(
+            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/graphql.json",
+            ['query' => $query]
+        );
+
+        if ($response->failed()) {
+            throw new RuntimeException('Failed to check bulk operation status: ' . $response->body());
+        }
+
+        return $response->json('data.currentBulkOperation', []);
+    }
+
+    /**
+     * Downloads and parses the JSONL result file from a completed bulk
+     * operation, yielding one decoded customer array at a time — memory
+     * safe even for very large exports, same principle as the since_id
+     * batching but even cheaper since there's no per-page HTTP round trip.
+     */
+    public function streamBulkExportResults(string $url, callable $onCustomer): void
+    {
+        $stream = fopen($url, 'r');
+
+        if (! $stream) {
+            throw new RuntimeException("Failed to open bulk export result stream: {$url}");
+        }
+
+        while (($line = fgets($stream)) !== false) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+
+            $onCustomer(json_decode($line, true));
+        }
+
+        fclose($stream);
+    }
+
+    protected function graphqlStringLiteral(string $value): string
+    {
+        return json_encode($value);
+    }
+
     public function getProductsSeo(array $shopifyProductIds): array
     {
         $this->ensureScope('products');
@@ -485,6 +630,47 @@ class ShopifyService
         }
 
         return $results;
+    }
+
+    public function importCustomersSinceId(callable $onBatch, int $limit = 250, int $startingSinceId = 0): void
+    {
+        $this->ensureScope('customers');
+
+        $token = $this->getAccessToken();
+        $sinceId = $startingSinceId;
+
+        do {
+            $response = Http::withHeaders([
+                'X-Shopify-Access-Token' => $token,
+            ])->get(
+                "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/customers.json",
+                ['limit' => $limit, 'since_id' => $sinceId]
+            );
+
+            if ($response->failed()) {
+                throw new RuntimeException(
+                    'Shopify customers request failed: ' . $response->body()
+                );
+            }
+
+            $customers = $response->json('customers', []);
+            $count = count($customers);
+
+            if ($count > 0) {
+                $onBatch($customers);
+                $sinceId = end($customers)['id'];
+            }
+
+            unset($customers, $response);
+            gc_collect_cycles();
+
+        } while ($count === $limit);
+    }
+
+    public function customersCount(): int
+    {
+        $this->ensureScope('customers');
+        return $this->fetchCount('customers/count.json');
     }
 
 

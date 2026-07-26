@@ -47,20 +47,43 @@
                 <v-card class="mb-3" v-if="counts.products">
                     <v-card-title>Products</v-card-title>
                     <v-card-text>
-                        <div v-if="counts.products">
-                            <h2>Total: {{counts?.products?.count}}</h2>
-                            <h3>Products Fetched: {{stotal}} / {{counts?.products?.count}} </h3>
-                            <div class="text-body-1" v-if="counts?.products?.available">Scope: Available</div>
-                            <div v-if="counts?.products?.reason">Reason: {{counts?.custom_collections?.reason}}</div>
-                            <v-btn @click="startSyncPros" :loading="syncLoading" class="mt-2"
-                                   variant="outlined" color="success" density="compact">
-                                Import Products
-                            </v-btn>
-                            <v-btn @click="syncProductsSeo" :loading="syncLoading" class="ms-2 mt-2"
-                                   variant="outlined" color="green" density="compact">
-                                Sync Products SEO
-                            </v-btn>
-                        </div>
+                        <v-row dense>
+                            <v-col cols="12" md="6">
+                                <h4 class="font-weight-semibold">Products</h4>
+                                <div v-if="counts.products">
+                                    <h2>Total: {{counts?.products?.count}}</h2>
+                                    <h3>Products Fetched: {{stotal}} / {{counts?.products?.count}} </h3>
+                                    <div class="text-body-1" v-if="counts?.products?.available">Scope: Available</div>
+                                    <div v-if="counts?.products?.reason">Reason: {{counts?.products?.reason}}</div>
+                                    <v-btn @click="startSyncPros" :loading="syncLoading" class="mt-2"
+                                           variant="outlined" color="success" density="compact">
+                                        Import Products
+                                    </v-btn>
+                                    <v-btn @click="syncProductsSeo" :loading="syncLoading" class="mt-2"
+                                           variant="outlined" color="green" density="compact">
+                                        Sync Products SEO
+                                    </v-btn>
+                                </div>
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <h4 class="font-weight-semibold">Customers</h4>
+                                <div v-if="counts.customers">
+                                    <h2>Total: {{counts?.customers?.count}}</h2>
+                                    <h3>Customers Fetched: {{scusts_count}} / {{counts?.customers?.count}} </h3>
+                                    <div class="text-body-1" v-if="counts?.customers?.available">Scope: Available</div>
+                                    <div v-if="counts?.customers?.reason">Reason: {{counts?.customers?.reason}}</div>
+                                    <v-btn @click="startSyncCustomers" :loading="syncLoading" class="mt-2"
+                                           variant="outlined" color="success" density="compact">
+                                        Import Customers
+                                    </v-btn>
+                                    <v-btn :loading="syncLoading" class="mt-2"
+                                           variant="outlined" color="green" density="compact">
+                                        Import Customers in Bulk
+                                    </v-btn>
+                                </div>
+                            </v-col>
+                        </v-row>
+
                     </v-card-text>
                 </v-card>
                 <v-card class="mb-3" v-if="counts.custom_collections">
@@ -295,6 +318,7 @@ export default {
                 blogs:0,
                 articles:0,
                 pages:0,
+                customers:0,
             },
             syncLoading:false,
             addValid:false,
@@ -345,6 +369,7 @@ export default {
             blogs_count:0,
             ccats_count:0,
             scats_count:0,
+            scusts_count:0,
         }
     },
     created() {
@@ -370,6 +395,7 @@ export default {
                     this.blogs_count = allData.blogs_count || 0;
                     this.ccats_count = allData.ccats_count || 0;
                     this.scats_count = allData.scats_count || 0;
+                    this.scusts_count = allData.scusts_count || 0;
                 })
         },
         showAddDialog(){
@@ -453,7 +479,7 @@ export default {
                 id:item.id
             }).then((resp)=>{
                 console.log("respIn",resp.data);
-                this.getSyncedProducts();
+                this.loadItems();
             })
                 .catch((err)=>{
                     console.log(err)
@@ -522,6 +548,20 @@ export default {
                     this.syncLoading = false;
                 })
         },
+        startSyncCustomers(){
+            this.syncLoading = true;
+            axios.post(`/superadmin/shopify/${this.shop_id}/sync-customers`)
+                .then((resp)=>{
+                    console.log('Sync Resp',resp);
+                    window.Toast.success(`customers Synced Successfully`)
+                })
+                .catch((err)=>{
+                    console.log("Customer Sync Errors",err)
+                })
+                .finally(()=>{
+                    this.syncLoading = false;
+                })
+        }
     }
 }
 </script>
