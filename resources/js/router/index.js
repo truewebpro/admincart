@@ -65,6 +65,8 @@ import SuperAdminDashboard from "@/admin/super/SuperAdminDashboard.vue";
 import SuperAdminLayout from "@/admin/super/SuperAdminLayout.vue";
 import SuperAdminShops from "@/admin/super/SuperAdminShops.vue";
 import SuperShopifysetup from "@/admin/super/SuperShopifysetup.vue";
+import AnalyticsOverview from "@/admin/analytics/AnalyticsOverview.vue";
+import AnalyticsOrders from "@/admin/order/AnalyticsOrders.vue";
 
 
 
@@ -82,8 +84,10 @@ const routes = [
         ]
     },
     {path:'/dashboard',name:"AdminDashboard",component:AdminDashboard,meta: { requiresOwner: true }},
+    {path: '/analytics', name: 'AnalyticsOverview', component: AnalyticsOverview,},
     {path:'/orders',name:"AdminOrders",component:AdminOrders},
     {path:'/carts',name:"AdminCarts",component:AdminCarts},
+    {path:'/analytics/orders',name:"AnalyticsOrders",component:AnalyticsOrders},
     {path:'/abandoned/carts',name:"AbandonedCarts",component: AbandonedCarts},
     {path: '/orders/:order_id',name: 'OrderView',component:OrderView,props:true},
     {path: '/carts/:cart_id',name: 'CartView',component:CartView,props:true},

@@ -55,6 +55,7 @@ app.config.globalProperties.$toast = useToast();
 window.Toast = useToast();
 app.component('QuillEditor', QuillEditor);
 app.use(VueApexCharts);
+app.component("apexchart", VueApexCharts);
 app.use(vuetify);
 app.use(router);
 app.use(store);

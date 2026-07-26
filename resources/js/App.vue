@@ -29,6 +29,9 @@
                 <v-list-item link to="/dashboard" prepend-icon="mdi-view-dashboard-outline">
                     <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Dashboard</v-list-item-title>
                 </v-list-item>
+                <v-list-item link :to="{name:'AnalyticsOverview'}" prepend-icon="mdi-google-analytics">
+                    <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Analytics</v-list-item-title>
+                </v-list-item>
                 <v-list-group value="acarts">
                     <template v-slot:activator="{ props }">
                         <v-list-item v-bind="props" prepend-icon="mdi-cart-check">
@@ -42,6 +45,7 @@
                     </template>
                     <v-list-item link :to="{name:'AdminOrders'}" color="primary" prepend-icon="mdi-cart-check" title="Orders"></v-list-item>
                     <v-list-item link :to="{name:'AbandonedCarts'}" color="primary" prepend-icon="mdi-cart-remove" title="Abandoned Carts"></v-list-item>
+                    <v-list-item link :to="{name:'AnalyticsOrders'}" color="primary" prepend-icon="mdi-finance" title="Analytics"></v-list-item>
                 </v-list-group>
                 <v-list-item link :to="{name:'products'}" color="primary" prepend-icon="mdi-tag-outline" title="Products"></v-list-item>
                 <v-list-item link :to="{name:'InventoryList'}" color="primary" prepend-icon="mdi-format-list-numbered"
@@ -87,7 +91,7 @@
             </v-list>
         </v-navigation-drawer>
         <v-main class="py-1 bg-grey-lighten-5">
-            <v-container class="pa-0 mt-1" v-if="isSuperAdmin">
+            <v-container class="pa-0 mt-1 mb-1" v-if="isSuperAdmin">
                 <v-row dense>
                     <v-col cols="6" md="9">
                         <h2 class="text-caption">Viewing shop: {{currentShopName}}</h2>

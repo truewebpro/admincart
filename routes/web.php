@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\MailtrapController;
@@ -269,6 +270,14 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/review/update',[HomeController::class,'updateAdminProductReview']);
         Route::post('/generate/ai',[HomeController::class,'allContentFromAi']);
         Route::get('/plans',[SubscriptionController::class,'plans']);
+
+        // Inside Route::prefix('sadmin')->group(function(){ ... }), alongside /order-stats etc.
+        Route::get('/analytics/overview', [AnalyticsController::class, 'overview']);
+        Route::get('/analytics/sales-trend', [AnalyticsController::class, 'salesTrend']);
+        Route::get('/analytics/top-products', [AnalyticsController::class, 'topProducts']);
+        Route::get('/analytics/orders', [AnalyticsController::class, 'orders']);
+        Route::get('/analytics/breakdown', [AnalyticsController::class, 'breakdown']);
+        Route::get('/analytics/customer-split', [AnalyticsController::class, 'customerSplit']);
     });
 });
 
