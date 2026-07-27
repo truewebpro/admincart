@@ -280,6 +280,10 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/analytics/customer-split', [AnalyticsController::class, 'customerSplit']);
         Route::get('/analytics/cart-conversion', [AnalyticsController::class, 'cartConversion']);
         Route::get('/analytics/cart-funnel', [AnalyticsController::class, 'cartFunnel']);
+        Route::get('/analytics/live-now', [AnalyticsController::class, 'liveNow']);
+        Route::get('/analytics/pageview-trend', [AnalyticsController::class, 'pageviewTrend']);
+        Route::get('/analytics/top-pages', [AnalyticsController::class, 'topPages']);
+        Route::get('/analytics/traffic-breakdown', [AnalyticsController::class, 'trafficBreakdown']);
     });
 });
 

@@ -13,6 +13,7 @@ use App\Http\Controllers\PromoController;
 use App\Http\Controllers\SendcloudWebhookController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\SumupController;
+use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\VivaWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -85,6 +86,8 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/footer', [ShopController::class, 'getFooter']);
     Route::get('/customer/exists',[ShopController::class,'exitingCustomer']);
     Route::post('/reset-password',[ShopController::class,'resetPassword']);
+    Route::post('/track/pageview', [TrackingController::class, 'pageview']);
+    Route::post('/track/heartbeat', [TrackingController::class, 'heartbeat']);
 
     // Create SumUp checkout
     Route::post('/payment/sumup/create', [SumupController::class, 'createCheckout']);

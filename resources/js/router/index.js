@@ -67,7 +67,7 @@ import SuperAdminShops from "@/admin/super/SuperAdminShops.vue";
 import SuperShopifysetup from "@/admin/super/SuperShopifysetup.vue";
 import AnalyticsOverview from "@/admin/analytics/AnalyticsOverview.vue";
 import AnalyticsOrders from "@/admin/order/AnalyticsOrders.vue";
-
+import AnalyticsTraffic from "@/admin/analytics/AnalyticsTraffic.vue";
 
 
 const routes = [
@@ -86,6 +86,7 @@ const routes = [
     // {path:'/dashboard',name:"AdminDashboard",component:AdminDashboard,meta: { requiresOwner: true }},
     {path:'/dashboard',name:"AdminDashboard",redirect:"/analytics",meta: { requiresOwner: true }},
     {path: '/analytics', name: 'AnalyticsOverview', component: AnalyticsOverview,},
+    {path: '/traffic', name: 'AnalyticsTraffic', component: AnalyticsTraffic,},
     {path:'/orders',name:"AdminOrders",component:AdminOrders},
     {path:'/carts',name:"AdminCarts",component:AdminCarts},
     {path:'/analytics/orders',name:"AnalyticsOrders",component:AnalyticsOrders},

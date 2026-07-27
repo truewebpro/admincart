@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Acart;
 use App\Models\AcartEvent;
+use App\Models\ActiveVisitor;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PageView;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -344,6 +346,125 @@ class AnalyticsController extends Controller
         }
 
         return response()->json(['success' => true, 'funnel' => $funnel]);
+    }
+
+    /**
+     * How many distinct sessions have pinged (pageview OR heartbeat)
+     * within the last 5 minutes — this is your "X live now" number.
+     * Also returns what pages they're currently on, grouped.
+     */
+    public function liveNow(Request $request)
+    {
+        $shopId = session('shop_id');
+        $window = now()->subMinutes(5);
+
+        $liveCount = ActiveVisitor::where('shop_id', $shopId)
+            ->where('last_seen_at', '>=', $window)
+            ->count();
+
+        $currentPages = ActiveVisitor::where('shop_id', $shopId)
+            ->where('last_seen_at', '>=', $window)
+            ->select('current_path')
+            ->selectRaw('COUNT(*) as visitor_count')
+            ->groupBy('current_path')
+            ->orderByDesc('visitor_count')
+            ->limit(15)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'live_count' => $liveCount,
+            'current_pages' => $currentPages,
+        ]);
+    }
+
+    /**
+     * Day-by-day pageview + unique visitor (distinct session_id) trend,
+     * same zero-filled-days pattern as salesTrend().
+     */
+    public function pageviewTrend(Request $request)
+    {
+        $shopId = session('shop_id');
+        [$from, $to] = $this->resolveDateRange($request);
+
+        $rows = PageView::where('shop_id', $shopId)
+            ->whereBetween('created_at', [$from, $to])
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as pageviews, COUNT(DISTINCT session_id) as unique_visitors')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $series = [];
+        $cursor = $from->copy()->startOfDay();
+
+        while ($cursor->lte($to)) {
+            $dateKey = $cursor->toDateString();
+            $row = $rows->get($dateKey);
+
+            $series[] = [
+                'date' => $dateKey,
+                'pageviews' => $row ? (int) $row->pageviews : 0,
+                'unique_visitors' => $row ? (int) $row->unique_visitors : 0,
+            ];
+
+            $cursor->addDay();
+        }
+
+        return response()->json(['success' => true, 'series' => $series]);
+    }
+
+    /**
+     * Most-viewed pages/paths within the period.
+     */
+    public function topPages(Request $request)
+    {
+        $shopId = session('shop_id');
+        [$from, $to] = $this->resolveDateRange($request);
+        $limit = min((int) $request->input('limit', 15), 50);
+
+        $pages = PageView::where('shop_id', $shopId)
+            ->whereBetween('created_at', [$from, $to])
+            ->select('path')
+            ->selectRaw('COUNT(*) as views, COUNT(DISTINCT session_id) as unique_visitors')
+            ->groupBy('path')
+            ->orderByDesc('views')
+            ->limit($limit)
+            ->get();
+
+        return response()->json(['success' => true, 'pages' => $pages]);
+    }
+
+    /**
+     * Breakdown by device_type or browser, for a donut chart. Same
+     * generic-column pattern as breakdown() above, just against
+     * page_views instead of orders.
+     *
+     * Usage: /analytics/traffic-breakdown?by=device_type
+     *        /analytics/traffic-breakdown?by=browser
+     */
+    public function trafficBreakdown(Request $request)
+    {
+        $allowedColumns = ['device_type', 'browser'];
+        $by = $request->input('by');
+
+        if (! in_array($by, $allowedColumns, true)) {
+            return response()->json(['success' => false, 'message' => 'Invalid breakdown column'], 422);
+        }
+
+        $shopId = session('shop_id');
+        [$from, $to] = $this->resolveDateRange($request);
+
+        $rows = PageView::where('shop_id', $shopId)
+            ->whereBetween('created_at', [$from, $to])
+            ->selectRaw("COALESCE({$by}, 'Unknown') as label")
+            ->selectRaw('COUNT(*) as views')
+            ->selectRaw('COUNT(DISTINCT session_id) as unique_visitors')
+            ->groupBy('label')
+            ->orderByDesc('views')
+            ->get();
+
+        return response()->json(['success' => true, 'by' => $by, 'breakdown' => $rows]);
     }
 
     /**
