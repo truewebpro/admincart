@@ -1,13 +1,19 @@
 <template>
     <v-card elevation="2">
-        <v-card-title class="text-subtitle-1 d-flex align-center justify-space-between">
-            Visitors by {{ by === 'device_type' ? 'Device' : 'Browser' }}
-            <v-btn-toggle v-model="by" density="compact" mandatory @update:model-value="fetchBreakdown">
-                <v-btn value="device_type" size="small">Device</v-btn>
-                <v-btn value="browser" size="small">Browser</v-btn>
-            </v-btn-toggle>
-        </v-card-title>
-
+        <v-card-item>
+            <template #title>
+                Visitors
+            </template>
+            <template #subtitle>
+                by {{ by === 'device_type' ? 'Device' : 'Browser' }}
+            </template>
+            <template #append>
+                <v-btn-toggle color="success" v-model="by" density="compact" mandatory @update:model-value="fetchBreakdown">
+                    <v-btn value="device_type" size="small">Device</v-btn>
+                    <v-btn value="browser" size="small">Browser</v-btn>
+                </v-btn-toggle>
+            </template>
+        </v-card-item>
         <v-card-text>
             <v-progress-linear v-show="loading" indeterminate class="mb-4" />
             <apexchart

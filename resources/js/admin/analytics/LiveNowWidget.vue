@@ -1,9 +1,10 @@
 <template>
     <v-card elevation="2">
-        <v-card-title class="text-subtitle-1 d-flex align-center">
-            <v-icon icon="mdi-circle" color="success" size="10" class="mr-2" />
-            Live Now
-        </v-card-title>
+        <v-card-item title="Live Now">
+            <template #append>
+                <v-icon icon="mdi-circle" color="success" size="16" class="mr-2" />
+            </template>
+        </v-card-item>
         <v-card-text>
             <div class="text-h3 font-weight-bold">{{ liveCount }}</div>
             <div class="text-body-2 text-medium-emphasis mb-3">visitors active right now</div>

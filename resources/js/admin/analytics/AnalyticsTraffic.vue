@@ -36,7 +36,7 @@
 
             <v-col cols="12" md="8">
                 <v-card elevation="2">
-                    <v-card-title class="text-subtitle-1">Traffic Trend</v-card-title>
+                    <v-card-item title="Traffic Trend" append-icon="mdi-chart-bell-curve"></v-card-item>
                     <v-card-text>
                         <v-progress-linear v-show="loadingTrend" indeterminate class="mb-4" />
                         <apexchart
@@ -57,7 +57,7 @@
             </v-col>
             <v-col cols="12" md="8">
                 <v-card elevation="2">
-                    <v-card-title class="text-subtitle-1">Top Pages</v-card-title>
+                    <v-card-item title="Top Pages" append-icon="mdi-web"></v-card-item>
                     <v-data-table
                         :headers="pageHeaders"
                         :items="topPages"
