@@ -41,6 +41,9 @@
                                 <p class="text-body-1 mt-3">
                                     Have done 😎 more sales? Check your new raising badge in your profile.
                                 </p>
+                                <p class="text-body-1 mt-1 font-weight-medium">
+                                    {{dayjs(from).format('D MMM, YYYY')}} to {{dayjs(to).format('D MMM, YYYY')}}
+                                </p>
                             </div>
                             <div class="position-absolute bottom-0 right-0">
                                 <v-img width="225"
@@ -89,7 +92,9 @@
                         append-icon="mdi-chart-bar">
                     </v-card-item>
                     <v-card-text>
-                        <div class="text-caption text-medium-emphasis">{{from}} to {{to}}</div>
+                        <div class="text-caption text-medium-emphasis">
+                            {{dayjs(from).format('D MMM, YYYY')}} to {{dayjs(to).format('D MMM, YYYY')}}
+                        </div>
                         <div class="text-h5 font-weight-bold mt-1">
                             {{ formatCurrency(overview?.current?.revenue) }}
                         </div>
@@ -98,7 +103,7 @@
                             :color="changeColor(overview.change.revenue)"
                             size="small"
                             class="mt-2"
-                            variant="tonal"
+                            variant="elevated"
                         >
                             {{ formatChange(overview.change.revenue) }} vs previous period
                         </v-chip>
@@ -113,7 +118,9 @@
                         append-icon="mdi-truck-fast-outline">
                     </v-card-item>
                     <v-card-text>
-                        <div class="text-caption text-medium-emphasis">{{from}} to {{to}}</div>
+                        <div class="text-caption text-medium-emphasis">
+                            {{dayjs(from).format('D MMM, YYYY')}} to {{dayjs(to).format('D MMM, YYYY')}}
+                        </div>
                         <div class="text-h5 font-weight-bold mt-1">
                             {{ overview?.current?.order_count ?? '—' }}
                         </div>
@@ -122,7 +129,7 @@
                             :color="changeColor(overview.change.orders)"
                             size="small"
                             class="mt-2"
-                            variant="tonal"
+                            variant="elevated"
                         >
                             {{ formatChange(overview.change.orders) }} vs previous period
                         </v-chip>
@@ -137,7 +144,9 @@
                         append-icon="mdi-sale-outline">
                     </v-card-item>
                     <v-card-text>
-                        <div class="text-caption text-medium-emphasis">{{from}} to {{to}}</div>
+                        <div class="text-caption text-medium-emphasis">
+                            {{dayjs(from).format('D MMM, YYYY')}} to {{dayjs(to).format('D MMM, YYYY')}}
+                        </div>
                         <div class="text-h5 font-weight-bold mt-1">
                             {{ formatCurrency(overview?.current?.avg_order_value) }}
                         </div>
@@ -146,7 +155,7 @@
                             :color="changeColor(overview.change.aov)"
                             size="small"
                             class="mt-2"
-                            variant="tonal"
+                            variant="elevated"
                         >
                             {{ formatChange(overview.change.aov) }} vs previous period
                         </v-chip>
@@ -159,9 +168,9 @@
                 <v-card elevation="2">
                     <v-card-item
                         title="Revenue trend"
+                        subtitle="Trend day basis as select"
                         append-icon="mdi-finance">
                     </v-card-item>
-                    <v-card-title class="text-subtitle-1">Revenue Trend</v-card-title>
                     <v-card-text>
                         <v-progress-linear v-show="loadingTrend" indeterminate class="mb-3" />
                         <apexchart
@@ -178,13 +187,14 @@
         <v-row class="mt-2">
             <v-col cols="12">
                 <v-card elevation="2">
-                    <v-card-title class="text-subtitle-1 d-flex align-center justify-space-between">
-                        Top Products
-                        <v-btn-toggle color="success" v-model="topProductsSort" density="compact" mandatory @update:model-value="fetchTopProducts">
-                            <v-btn value="revenue" size="small">By Revenue</v-btn>
-                            <v-btn value="quantity" size="small">By Quantity</v-btn>
-                        </v-btn-toggle>
-                    </v-card-title>
+                    <v-card-item title="Top Products">
+                        <template #append>
+                            <v-btn-toggle color="success" v-model="topProductsSort" density="compact" mandatory @update:model-value="fetchTopProducts">
+                                <v-btn value="revenue" size="small">By Revenue</v-btn>
+                                <v-btn value="quantity" size="small">By Quantity</v-btn>
+                            </v-btn-toggle>
+                        </template>
+                    </v-card-item>
                     <v-data-table
                         :headers="topProductsHeaders"
                         :items="topProducts"
@@ -203,6 +213,7 @@
 </template>
 <script>
 import {VDateInput} from "vuetify/labs/VDateInput";
+import dayjs from "dayjs";
 export default {
     name: "AnalyticsOverview",
     components: {VDateInput},
@@ -279,6 +290,7 @@ export default {
         this.getAllUsers();
     },
     methods:{
+        dayjs,
         fetchAll() {
             this.fetchOverview();
             this.fetchTrend();
@@ -358,7 +370,7 @@ export default {
         changeColor(value) {
             if (value > 0) return 'success';
             if (value < 0) return 'error';
-            return 'grey';
+            return 'info';
         },
     },
 };
