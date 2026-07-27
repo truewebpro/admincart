@@ -184,7 +184,7 @@
                 </v-card>
             </v-col>
         </v-row>
-        <v-row class="mt-2">
+        <v-row class="mt-2 mb-2">
             <v-col cols="12">
                 <v-card elevation="2">
                     <v-card-item title="Top Products">
@@ -209,14 +209,16 @@
                 </v-card>
             </v-col>
         </v-row>
+        <CartConversionFunnel :to="to" :from="from"/>
     </v-container>
 </template>
 <script>
 import {VDateInput} from "vuetify/labs/VDateInput";
 import dayjs from "dayjs";
+import CartConversionFunnel from "@/admin/analytics/CartConversionFunnel.vue";
 export default {
     name: "AnalyticsOverview",
-    components: {VDateInput},
+    components: {CartConversionFunnel, VDateInput},
     data() {
         const today = new Date();
         const thirtyDaysAgo = new Date();

@@ -278,6 +278,8 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/analytics/orders', [AnalyticsController::class, 'orders']);
         Route::get('/analytics/breakdown', [AnalyticsController::class, 'breakdown']);
         Route::get('/analytics/customer-split', [AnalyticsController::class, 'customerSplit']);
+        Route::get('/analytics/cart-conversion', [AnalyticsController::class, 'cartConversion']);
+        Route::get('/analytics/cart-funnel', [AnalyticsController::class, 'cartFunnel']);
     });
 });
 

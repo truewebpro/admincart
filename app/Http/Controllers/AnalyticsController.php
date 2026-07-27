@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Acart;
+use App\Models\AcartEvent;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Carbon\Carbon;
@@ -244,6 +246,104 @@ class AnalyticsController extends Controller
             'new' => $summary->get('new', ['customer_count' => 0, 'order_count' => 0, 'revenue' => 0]),
             'returning' => $summary->get('returning', ['customer_count' => 0, 'order_count' => 0, 'revenue' => 0]),
         ]);
+    }
+
+    /**
+     * Cart-to-order conversion: how many carts that had actual items in
+     * them ended up converting to a real order, vs. sitting abandoned.
+     * order_id IS NOT NULL is used as "converted" since it's a direct
+     * link to a real order — more reliable than trusting cart_status
+     * strings staying perfectly in sync.
+     */
+    public function cartConversion(Request $request)
+    {
+        $shopId = session('shop_id');
+        [$from, $to] = $this->resolveDateRange($request);
+
+        $carts = Acart::where('shop_id', $shopId)
+            ->whereBetween('created_at', [$from, $to])
+            ->where('items_count', '>', 0) // ignore empty/never-used carts entirely
+            ->selectRaw('
+                COUNT(*) as total_carts,
+                SUM(CASE WHEN order_id IS NOT NULL THEN 1 ELSE 0 END) as converted_carts,
+                SUM(CASE WHEN order_id IS NULL THEN cart_total ELSE 0 END) as abandoned_value,
+                SUM(CASE WHEN order_id IS NOT NULL THEN cart_total ELSE 0 END) as converted_value
+            ')
+            ->first();
+
+        $totalCarts = (int) $carts->total_carts;
+        $convertedCarts = (int) $carts->converted_carts;
+
+        return response()->json([
+            'success' => true,
+            'total_carts' => $totalCarts,
+            'converted_carts' => $convertedCarts,
+            'abandoned_carts' => $totalCarts - $convertedCarts,
+            'conversion_rate' => $totalCarts > 0 ? round(($convertedCarts / $totalCarts) * 100, 1) : 0,
+            'abandoned_value' => round((float) $carts->abandoned_value, 2),
+            'converted_value' => round((float) $carts->converted_value, 2),
+        ]);
+    }
+
+    /**
+     * The natural funnel order based on your actual event_type values.
+     * item_removed/quantity_updated are cart-editing events, not forward
+     * funnel progress, so they're intentionally excluded here.
+     */
+    protected const FUNNEL_STAGES = [
+        'item_added',
+        'checkout_started',
+        'customer_attached',
+        'payment_selected',
+        'shipping_selected',
+        'order_created',
+    ];
+
+    /**
+     * Funnel breakdown: how many DISTINCT carts reached each stage
+     * within the period, in the correct funnel order, with drop-off %
+     * calculated between each consecutive stage.
+     */
+    public function cartFunnel(Request $request)
+    {
+        $shopId = session('shop_id');
+        [$from, $to] = $this->resolveDateRange($request);
+
+        $counts = AcartEvent::where('shop_id', $shopId)
+            ->whereBetween('created_at', [$from, $to])
+            ->whereIn('event_type', self::FUNNEL_STAGES)
+            ->select('event_type')
+            ->selectRaw('COUNT(DISTINCT acart_id) as cart_count')
+            ->groupBy('event_type')
+            ->pluck('cart_count', 'event_type');
+
+        $funnel = [];
+        $previousCount = null;
+
+        foreach (self::FUNNEL_STAGES as $stage) {
+            $count = (int) ($counts->get($stage) ?? 0);
+
+            $funnel[] = [
+                'stage' => $stage,
+                'cart_count' => $count,
+                // % of carts that reached this stage relative to the
+                // PREVIOUS stage — null for the first stage, since
+                // there's nothing before it to compare against.
+                'drop_off_from_previous' => $previousCount === null
+                    ? null
+                    : ($previousCount > 0 ? round((1 - ($count / $previousCount)) * 100, 1) : null),
+                // % relative to the very first stage (item_added) —
+                // useful for an overall "of everyone who added an item,
+                // X% completed checkout" style stat.
+                'percent_of_start' => isset($funnel[0])
+                    ? ($funnel[0]['cart_count'] > 0 ? round(($count / $funnel[0]['cart_count']) * 100, 1) : 0)
+                    : 100,
+            ];
+
+            $previousCount = $count;
+        }
+
+        return response()->json(['success' => true, 'funnel' => $funnel]);
     }
 
     /**
