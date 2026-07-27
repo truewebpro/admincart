@@ -26,11 +26,11 @@
                 <v-list-item v-if="isSuperAdmin" link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">
                     <v-list-item-title>Plans</v-list-item-title>
                 </v-list-item>
-                <v-list-item link to="/dashboard" prepend-icon="mdi-view-dashboard-outline">
+                <v-list-item class="d-none" link to="/dashboard" prepend-icon="mdi-view-dashboard-outline">
                     <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Dashboard</v-list-item-title>
                 </v-list-item>
                 <v-list-item link :to="{name:'AnalyticsOverview'}" prepend-icon="mdi-google-analytics">
-                    <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Analytics</v-list-item-title>
+                    <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Dashboard</v-list-item-title>
                 </v-list-item>
                 <v-list-group value="acarts">
                     <template v-slot:activator="{ props }">
@@ -201,7 +201,7 @@ export default {
     methods: {
         async switchShop(shopId) {
             await this.$store.dispatch('switchShop',shopId)
-            this.$router.push('/dashboard');
+            this.$router.push('/analytics');
         },
         async logout(){
             await axios.post('/logout')

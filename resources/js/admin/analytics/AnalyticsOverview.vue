@@ -1,8 +1,8 @@
 <template>
     <v-container class="pa-1">
-        <v-row class="mb-2" align="center">
+        <v-row class="mb-1" align="center">
             <v-col cols="12" md="6">
-                <h2 class="text-h4 font-weight-bold">Analytics</h2>
+                <h2 class="text-h4 font-weight-bold">Analytics Dashboard</h2>
             </v-col>
             <v-col cols="12" md="6" class="d-flex ga-2 justify-start justify-lg-end">
                 <v-date-input
@@ -31,12 +31,65 @@
                 />
             </v-col>
         </v-row>
-
+        <v-row align="stretch">
+            <v-col cols="12" md="8">
+                <v-card class="position-relative overflow-visible elevation-2 rounded-lg h-100">
+                    <v-card-text>
+                        <div class="d-flex">
+                            <div class="w-75 d-flex flex-column justify-space-between">
+                                <div class="text-h5 text-md-h4">Welcome <span class="font-weight-bold">{{suser.name}} {{$store.getters.currentShopName}} 🎉</span></div>
+                                <p class="text-body-1 mt-3">
+                                    Have done 😎 more sales? Check your new raising badge in your profile.
+                                </p>
+                            </div>
+                            <div class="position-absolute bottom-0 right-0">
+                                <v-img width="225"
+                                       src="https://demos.themeselection.com/materio-vuetify-vuejs-admin-template/demo-1/assets/illustration-john-2-DCqPs8R_.png"/>
+                            </div>
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+                <v-card :loading="loadingOverview" elevation="2">
+                    <v-card-item
+                        title="Products & Users"
+                        subtitle="Total Growth 😎 this store "
+                        append-icon="mdi-credit-card-wireless-outline"></v-card-item>
+                    <v-card-text>
+                        <v-row>
+                            <v-col cols="12" md="6">
+                                <div class="d-flex align-center ga-3">
+                                    <v-avatar icon="mdi-account-group" class="bg-success rounded"></v-avatar>
+                                    <div class="d-flex flex-column">
+                                        <div class="text-body-1 text-medium-emphasis">Customers</div>
+                                        <h5 class="text-h5 font-weight-medium">{{custNew}}</h5>
+                                    </div>
+                                </div>
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <div class="d-flex align-center ga-3">
+                                    <v-avatar icon="mdi-cart-arrow-down" class="bg-info rounded"></v-avatar>
+                                    <div class="d-flex flex-column">
+                                        <div class="text-body-1 text-medium-emphasis">Products</div>
+                                        <h5 class="text-h5 font-weight-medium">{{productsCount}}</h5>
+                                    </div>
+                                </div>
+                            </v-col>
+                        </v-row>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+        </v-row>
         <v-row>
             <v-col cols="12" sm="4">
                 <v-card :loading="loadingOverview" elevation="2">
+                    <v-card-item
+                        title="Revenue"
+                        append-icon="mdi-chart-bar">
+                    </v-card-item>
                     <v-card-text>
-                        <div class="text-caption text-medium-emphasis">Revenue</div>
+                        <div class="text-caption text-medium-emphasis">{{from}} to {{to}}</div>
                         <div class="text-h5 font-weight-bold mt-1">
                             {{ formatCurrency(overview?.current?.revenue) }}
                         </div>
@@ -55,8 +108,12 @@
 
             <v-col cols="12" sm="4">
                 <v-card :loading="loadingOverview" elevation="2">
+                    <v-card-item
+                        title="Orders"
+                        append-icon="mdi-truck-fast-outline">
+                    </v-card-item>
                     <v-card-text>
-                        <div class="text-caption text-medium-emphasis">Orders</div>
+                        <div class="text-caption text-medium-emphasis">{{from}} to {{to}}</div>
                         <div class="text-h5 font-weight-bold mt-1">
                             {{ overview?.current?.order_count ?? '—' }}
                         </div>
@@ -75,8 +132,12 @@
 
             <v-col cols="12" sm="4">
                 <v-card :loading="loadingOverview" elevation="2">
+                    <v-card-item
+                        title="Avg. Order Value"
+                        append-icon="mdi-sale-outline">
+                    </v-card-item>
                     <v-card-text>
-                        <div class="text-caption text-medium-emphasis">Avg. Order Value</div>
+                        <div class="text-caption text-medium-emphasis">{{from}} to {{to}}</div>
                         <div class="text-h5 font-weight-bold mt-1">
                             {{ formatCurrency(overview?.current?.avg_order_value) }}
                         </div>
@@ -93,10 +154,13 @@
                 </v-card>
             </v-col>
         </v-row>
-
         <v-row class="mt-2">
             <v-col cols="12">
                 <v-card elevation="2">
+                    <v-card-item
+                        title="Revenue trend"
+                        append-icon="mdi-finance">
+                    </v-card-item>
                     <v-card-title class="text-subtitle-1">Revenue Trend</v-card-title>
                     <v-card-text>
                         <v-progress-linear v-show="loadingTrend" indeterminate class="mb-3" />
@@ -111,7 +175,6 @@
                 </v-card>
             </v-col>
         </v-row>
-
         <v-row class="mt-2">
             <v-col cols="12">
                 <v-card elevation="2">
@@ -149,6 +212,10 @@ export default {
         thirtyDaysAgo.setDate(today.getDate() - 29);
 
         return {
+            cdn:this.$store.state.cdn,
+            suser:{},
+            productsCount:0,
+            custNew:0,
             from: thirtyDaysAgo.toISOString().slice(0, 10),
             to: today.toISOString().slice(0, 10),
 
@@ -208,11 +275,36 @@ export default {
     mounted() {
         this.fetchAll();
     },
+    created() {
+        this.getAllUsers();
+    },
     methods:{
         fetchAll() {
             this.fetchOverview();
             this.fetchTrend();
             this.fetchTopProducts();
+        },
+        getAllUsers(){
+            axios.get(`/sadmin/dashboard`)
+                .then((resp)=>{
+                    this.users = resp.data.users;
+                    this.suser = resp.data.users;
+                    this.ashops = resp.data.shops;
+                    if(this.ashops.length > 0){
+                        this.selectedShop = this.ashops[0];
+                    }
+                    this.rorders = resp.data.orders;
+                    this.pendingRev = resp.data.pendingCount;
+                    this.paidRev = resp.data.paidCount;
+                    this.shippedOrd = resp.data.shippedOrd;
+                    this.pendingOrd = resp.data.pendingOrd;
+                    this.ordersCount = resp.data.ordersCount;
+                    this.productsCount = resp.data.productsCount;
+                    this.variantsCount = resp.data.variantsCount;
+                    this.shopUsers = resp.data.shopUsers;
+                    this.tpros = resp.data.tpros;
+                    this.custNew = resp.data.customersNew;
+                })
         },
         async fetchOverview() {
             this.loadingOverview = true;

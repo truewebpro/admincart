@@ -83,7 +83,8 @@ const routes = [
             { path: 'shopify', name: 'SuperShopifysetup', component: SuperShopifysetup },
         ]
     },
-    {path:'/dashboard',name:"AdminDashboard",component:AdminDashboard,meta: { requiresOwner: true }},
+    // {path:'/dashboard',name:"AdminDashboard",component:AdminDashboard,meta: { requiresOwner: true }},
+    {path:'/dashboard',name:"AdminDashboard",redirect:"/analytics",meta: { requiresOwner: true }},
     {path: '/analytics', name: 'AnalyticsOverview', component: AnalyticsOverview,},
     {path:'/orders',name:"AdminOrders",component:AdminOrders},
     {path:'/carts',name:"AdminCarts",component:AdminCarts},
@@ -167,11 +168,11 @@ router.beforeEach(async (to, from, next) => {
     const requiresOwner = to.matched.some(r => r.meta.requiresOwner)
 
     if (requiresSuperAdmin && role !== 'superadmin') {
-        return next('/dashboard')
+        return next('/analytics')
     }
 
     if (requiresOwner && !['owner', 'superadmin'].includes(role)) {
-        return next('/dashboard')
+        return next('/analytics')
     }
 
     next()
