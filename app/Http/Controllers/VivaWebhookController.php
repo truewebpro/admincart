@@ -42,7 +42,7 @@ class VivaWebhookController extends Controller
             [
                 'order_code' => $payload['OrderCode'] ?? null,
                 'transaction_id' => $payload['TransactionId'] ?? null,
-                'status_id' => $payload['StatusId'],
+                'status_id' => $payload['StatusId'] ?? "F",
                 'amount' => $payload['Amount'],
                 'fullname' => $payload['FullName'] ?? null,
                 'email' => $payload['Email'],

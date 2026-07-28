@@ -6,7 +6,7 @@ const store = createStore({
         user: window.APP_USER || JSON.parse(localStorage.getItem('user') || 'null'),
         shop: window.APP_SHOP || JSON.parse(localStorage.getItem('shop') || 'null'),
         shop_id: window.APP_SHOP?.shop_id || JSON.parse(localStorage.getItem('shop_id') || 'null'),
-        cdn:"https://truewebcart.s3-accelerate.amazonaws.com/",
+        cdn:"https://cdn.truewebcart.com/",
         orderStats: {
             total: 0,
             fulfilled: 0,

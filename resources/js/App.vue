@@ -29,11 +29,11 @@
                 <v-list-item class="d-none" link to="/dashboard" prepend-icon="mdi-view-dashboard-outline">
                     <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Dashboard</v-list-item-title>
                 </v-list-item>
-                <v-list-item link :to="{name:'AnalyticsOverview'}" prepend-icon="mdi-google-analytics">
+                <v-list-item link :to="{name:'AnalyticsOverview'}" prepend-icon="mdi-view-dashboard-outline">
                     <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Dashboard</v-list-item-title>
                 </v-list-item>
-                <v-list-item link :to="{name:'AnalyticsTraffic'}" prepend-icon="mdi-web-sync">
-                    <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Traffic</v-list-item-title>
+                <v-list-item link :to="{name:'AnalyticsTraffic'}" prepend-icon="mdi-google-analytics">
+                    <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Analytics</v-list-item-title>
                 </v-list-item>
                 <v-list-group value="acarts">
                     <template v-slot:activator="{ props }">
