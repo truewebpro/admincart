@@ -3,7 +3,7 @@
         <h2 class="mb-2">Cart Conversion Funnel</h2>
         <v-row class="mb-2">
             <v-col cols="12" sm="4">
-                <v-card>
+                <v-card rounded="lg">
                     <v-card-item title="Conversion Rate" append-icon="mdi-cart-percent"></v-card-item>
                     <v-card-text>
                         <div class="text-h5 font-weight-bold">{{ conversion.conversion_rate }}%</div>
@@ -14,7 +14,7 @@
                 </v-card>
             </v-col>
             <v-col cols="12" sm="4">
-                <v-card>
+                <v-card rounded="lg">
                     <v-card-item title="Recovered Revenue" append-icon="mdi-cart-check"></v-card-item>
                     <v-card-text>
                         <div class="text-h5 font-weight-bold">{{ formatCurrency(conversion.converted_value) }}</div>
@@ -25,7 +25,7 @@
                 </v-card>
             </v-col>
             <v-col cols="12" sm="4">
-                <v-card>
+                <v-card rounded="lg">
                     <v-card-item title="Abandoned Value" append-icon="mdi-cart-minus"></v-card-item>
                     <v-card-text>
                         <div class="text-h5 font-weight-bold text-error">{{ formatCurrency(conversion.abandoned_value) }}</div>
@@ -35,7 +35,7 @@
             </v-col>
         </v-row>
 
-        <v-card elevation="2">
+        <v-card elevation="2" rounded="lg">
             <v-card-text>
                 <v-progress-linear v-show="loading" indeterminate class="mb-4" />
                 <apexchart
@@ -47,7 +47,7 @@
                 />
             </v-card-text>
         </v-card>
-        <v-card class="mt-4">
+        <v-card class="mt-4" rounded="lg">
             <v-table density="compact" hover>
                 <thead class="bg-grey-lighten-4">
                 <tr>

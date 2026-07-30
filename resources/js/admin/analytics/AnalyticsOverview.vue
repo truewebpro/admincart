@@ -1,8 +1,8 @@
 <template>
     <v-container class="pa-1">
-        <v-row class="mb-1" align="center">
+        <v-row class="mb-1 mt-2" align="center">
             <v-col cols="12" md="6">
-                <h2 class="text-h4 font-weight-bold">Analytics Dashboard</h2>
+                <h2 class="text-h4 font-weight-bold">Dashboard</h2>
             </v-col>
             <v-col cols="12" md="6" class="d-flex ga-2 justify-start justify-lg-end">
                 <v-date-input
@@ -31,7 +31,7 @@
                 />
             </v-col>
         </v-row>
-        <v-row align="stretch">
+        <v-row align="end">
             <v-col cols="12" md="8">
                 <v-card class="position-relative overflow-visible elevation-2 rounded-lg h-100">
                     <v-card-text>
@@ -54,7 +54,7 @@
                 </v-card>
             </v-col>
             <v-col cols="12" md="4">
-                <v-card :loading="loadingOverview" elevation="2">
+                <v-card :loading="loadingOverview" elevation="2" rounded="lg">
                     <v-card-item
                         title="Products & Users"
                         subtitle="Total Growth 😎 this store "
@@ -86,7 +86,7 @@
         </v-row>
         <v-row>
             <v-col cols="12" sm="4">
-                <v-card :loading="loadingOverview" elevation="2">
+                <v-card :loading="loadingOverview" elevation="2" rounded="lg">
                     <v-card-item
                         title="Revenue"
                         append-icon="mdi-chart-bar">
@@ -112,7 +112,7 @@
             </v-col>
 
             <v-col cols="12" sm="4">
-                <v-card :loading="loadingOverview" elevation="2">
+                <v-card :loading="loadingOverview" elevation="2" rounded="lg">
                     <v-card-item
                         title="Orders"
                         append-icon="mdi-truck-fast-outline">
@@ -138,7 +138,7 @@
             </v-col>
 
             <v-col cols="12" sm="4">
-                <v-card :loading="loadingOverview" elevation="2">
+                <v-card :loading="loadingOverview" elevation="2" rounded="lg">
                     <v-card-item
                         title="Avg. Order Value"
                         append-icon="mdi-sale-outline">
@@ -165,7 +165,7 @@
         </v-row>
         <v-row class="mt-2">
             <v-col cols="12">
-                <v-card elevation="2">
+                <v-card elevation="2" rounded="lg">
                     <v-card-item
                         title="Revenue trend"
                         subtitle="Trend day basis as select"
@@ -186,7 +186,7 @@
         </v-row>
         <v-row class="mt-2 mb-2">
             <v-col cols="12">
-                <v-card elevation="2">
+                <v-card elevation="2" rounded="lg">
                     <v-card-item title="Top Products">
                         <template #append>
                             <v-btn-toggle color="success" v-model="topProductsSort" density="compact" mandatory @update:model-value="fetchTopProducts">

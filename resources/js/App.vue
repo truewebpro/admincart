@@ -32,9 +32,6 @@
                 <v-list-item link :to="{name:'AnalyticsOverview'}" prepend-icon="mdi-view-dashboard-outline">
                     <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Dashboard</v-list-item-title>
                 </v-list-item>
-                <v-list-item link :to="{name:'AnalyticsTraffic'}" prepend-icon="mdi-google-analytics">
-                    <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Analytics</v-list-item-title>
-                </v-list-item>
                 <v-list-group value="acarts">
                     <template v-slot:activator="{ props }">
                         <v-list-item v-bind="props" prepend-icon="mdi-cart-check">
@@ -46,9 +43,10 @@
                             </template>
                         </v-list-item>
                     </template>
-                    <v-list-item link :to="{name:'AdminOrders'}" color="primary" prepend-icon="mdi-cart-check" title="Orders"></v-list-item>
-                    <v-list-item link :to="{name:'AbandonedCarts'}" color="primary" prepend-icon="mdi-cart-remove" title="Abandoned Carts"></v-list-item>
-                    <v-list-item link :to="{name:'AnalyticsOrders'}" color="primary" prepend-icon="mdi-finance" title="Analytics"></v-list-item>
+                    <v-list-item link :to="{name:'AdminOrders'}" color="primary" prepend-icon="mdi-cart-arrow-right" title="Orders"></v-list-item>
+                    <v-list-item link :to="{name:'AbandonedCarts'}" color="primary" prepend-icon="mdi-cart-arrow-down" title="Abandoned Carts"></v-list-item>
+                    <v-list-item link :to="{name:'DraftOrdersList'}" color="primary" prepend-icon="mdi-cart-plus" title="Drafts"></v-list-item>
+
                 </v-list-group>
                 <v-list-item link :to="{name:'products'}" color="primary" prepend-icon="mdi-tag-outline" title="Products"></v-list-item>
                 <v-list-item link :to="{name:'InventoryList'}" color="primary" prepend-icon="mdi-format-list-numbered"
@@ -67,19 +65,31 @@
                     <v-list-item :to="{name:'poptions'}" color="primary" title="Options" prepend-icon="mdi-filter-variant" link/>
                     <v-list-item :to="{name:'Features'}" color="primary" title="Features" prepend-icon="mdi-feature-search-outline" link/>
                 </v-list-group>
+                <v-list-group value="analytics">
+                    <template v-slot:activator="{ props }">
+                        <v-list-item v-bind="props" prepend-icon="mdi-google-analytics">
+                            <template #title>
+                                Analytics
+                            </template>
+                        </v-list-item>
+                    </template>
+                    <v-list-item link :to="{name:'AnalyticsTraffic'}" prepend-icon="mdi-web" title="Traffic"></v-list-item>
+                    <v-list-item link :to="{name:'AnalyticsOrders'}" color="primary" prepend-icon="mdi-finance" title="Orders"></v-list-item>
+                </v-list-group>
                 <v-list-group value="themes">
                     <template v-slot:activator="{props}">
                         <v-list-item v-bind="props" prepend-icon="mdi-store-settings" title="Shop Settings"></v-list-item>
                     </template>
-                    <v-list-item link :to="{name:'ThemeView'}" color="primary" title="Theme" prepend-icon="mdi-tablet-cellphone"></v-list-item>
+                    <v-list-item link :to="{name:'ShopHome'}" color="primary" prepend-icon="mdi-store-cog" title="Theme Settings">
+                    </v-list-item>
+<!--                    <v-list-item link :to="{name:'ThemeView'}" color="primary" title="Theme" prepend-icon="mdi-tablet-cellphone"></v-list-item>-->
                     <v-list-item link :to="{name:'Preferences'}" color="primary" title="Preferences" prepend-icon="mdi-web-plus"></v-list-item>
                     <v-list-item link :to="{name:'MenusList'}" color="primary" title="Menus" prepend-icon="mdi-menu"></v-list-item>
                     <v-list-item link :to="{name:'PagesList'}" title="Pages" color="primary" prepend-icon="mdi-page-next-outline"></v-list-item>
                     <v-list-item link :to="{name:'BlogsList'}" title="Blogs" color="primary" prepend-icon="mdi-post-outline"></v-list-item>
                     <v-list-item link :to="{name:'PoliciesList'}" title="Policies" color="primary" prepend-icon="mdi-file-sign"></v-list-item>
                 </v-list-group>
-                <v-list-item link :to="{name:'ShopHome'}" color="primary" prepend-icon="mdi-store-cog" title="Theme Settings">
-                </v-list-item>
+
                 <v-spacer/>
                 <v-list-item link :to="{name:'IntegrateList'}" color="primary" prepend-icon="mdi-apps" title="Integration">
                 </v-list-item>

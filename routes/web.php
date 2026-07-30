@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\DraftOrderController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\MailtrapController;
 use App\Http\Controllers\PageSettingController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromoController;
 use App\Http\Controllers\ScustController;
 use App\Http\Controllers\ShopifyController;
@@ -284,6 +286,45 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/analytics/pageview-trend', [AnalyticsController::class, 'pageviewTrend']);
         Route::get('/analytics/top-pages', [AnalyticsController::class, 'topPages']);
         Route::get('/analytics/traffic-breakdown', [AnalyticsController::class, 'trafficBreakdown']);
+
+        //Draft Order Routes
+        Route::get('draft-orders', [DraftOrderController::class, 'index']);
+        Route::post('draft-orders', [DraftOrderController::class, 'store']);
+        Route::get('draft-orders/{id}', [DraftOrderController::class, 'show']);
+        Route::delete('draft-orders/{id}', [DraftOrderController::class, 'destroy']);
+        Route::post('draft-orders/{id}/duplicate', [DraftOrderController::class, 'duplicate']);
+        Route::post('draft-orders/{id}/convert', [DraftOrderController::class, 'convert']);
+
+        Route::post('draft-orders/{id}/items', [DraftOrderController::class, 'addItem']);
+        Route::put('draft-orders/{id}/items/{itemId}', [DraftOrderController::class, 'updateItem']);
+        Route::delete('draft-orders/{id}/items/{itemId}', [DraftOrderController::class, 'removeItem']);
+
+        Route::put('draft-orders/{id}/customer', [DraftOrderController::class, 'setCustomer']);
+        Route::delete('draft-orders/{id}/customer', [DraftOrderController::class, 'removeCustomer']);
+
+        Route::post('draft-orders/{id}/discount', [DraftOrderController::class, 'applyDiscount']);
+        Route::delete('draft-orders/{id}/discount', [DraftOrderController::class, 'removeDiscount']);
+
+        Route::post('draft-orders/{id}/shipping', [DraftOrderController::class, 'updateShipping']);
+        Route::post('draft-orders/{id}/notes', [DraftOrderController::class, 'updateNotes']);
+        Route::post('draft-orders/{id}/tags', [DraftOrderController::class, 'syncTags']);
+
+        Route::post('draft-orders/{id}/payments', [DraftOrderController::class, 'recordPayment']);
+        Route::get('draft-orders/{id}/payments', [DraftOrderController::class, 'listPayments']);
+
+        // Admin Product Search
+        Route::get('/products-search',[DraftOrderController::class,'searchProducts']);
+
+        Route::get('/customers-search', [DraftOrderController::class, 'searchCustomers']);
+        Route::post('/shop-customers', [DraftOrderController::class, 'createCustomer']);
+        Route::get('/shop-customers/{customerId}/addresses', [DraftOrderController::class, 'listCustomerAddresses']);
+        Route::post('/shop-customers/{customerId}/addresses', [DraftOrderController::class, 'createCustomerAddress']);
+
+        Route::post('draft-orders/{id}/shipping-address', [DraftOrderController::class, 'setShippingAddress']);
+
+        Route::get('/shop-ctags', [DraftOrderController::class, 'listTags']);
+        Route::get('/ship-methods', [DraftOrderController::class, 'listShipMethods']);
+
     });
 });
 

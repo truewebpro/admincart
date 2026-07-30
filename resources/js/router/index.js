@@ -68,6 +68,8 @@ import SuperShopifysetup from "@/admin/super/SuperShopifysetup.vue";
 import AnalyticsOverview from "@/admin/analytics/AnalyticsOverview.vue";
 import AnalyticsOrders from "@/admin/order/AnalyticsOrders.vue";
 import AnalyticsTraffic from "@/admin/analytics/AnalyticsTraffic.vue";
+import DraftOrdersList from "@/admin/order/DraftOrdersList.vue";
+import DraftOrderCreate from "@/admin/order/DraftOrderCreate.vue";
 
 
 const routes = [
@@ -88,6 +90,9 @@ const routes = [
     {path: '/analytics', name: 'AnalyticsOverview', component: AnalyticsOverview,},
     {path: '/traffic', name: 'AnalyticsTraffic', component: AnalyticsTraffic,},
     {path:'/orders',name:"AdminOrders",component:AdminOrders},
+    {path:'/draft-orders',name:"DraftOrdersList",component:DraftOrdersList},
+    {path:'/draft-orders/create',name:"DraftOrderCreate",component:DraftOrderCreate},
+    {path:'/draft-orders/:id/edit',name:"DraftOrderEdit",component:DraftOrderCreate,props:true},
     {path:'/carts',name:"AdminCarts",component:AdminCarts},
     {path:'/analytics/orders',name:"AnalyticsOrders",component:AnalyticsOrders},
     {path:'/abandoned/carts',name:"AbandonedCarts",component: AbandonedCarts},

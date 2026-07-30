@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Setting extends Model
 {
@@ -26,6 +28,26 @@ class Setting extends Model
         'free_delivery_amount' => 'float',
     ];
 
+    protected function minCheckoutPrice(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => round((float) $value, 2),
+        );
+    }
+
+    protected function shippingProtectionFee(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => round((float) $value, 2),
+        );
+    }
+
     public $hidden = ['created_at', 'updated_at'];
+
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
+    }
+
 
 }

@@ -36,6 +36,13 @@ class OrderItem extends Model
         );
     }
 
+    protected function total(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => round((float) $value, 2),
+        );
+    }
+
     public function order()
     {
         return $this->belongsTo(Order::class, 'order_id', 'order_id');

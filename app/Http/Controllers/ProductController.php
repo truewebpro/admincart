@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\Cat;
 use App\Models\Product;
 use App\Models\ProductType;
+use App\Models\Variant;
 use App\Services\CacheKeys;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;

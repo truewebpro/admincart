@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
@@ -75,5 +76,25 @@ class Order extends Model
     public function orderAddress()
     {
         return $this->hasOne(CustomerAddress::class,'address_id','address_id');
+    }
+
+    public function address(): BelongsTo
+    {
+        return $this->belongsTo(CustomerAddress::class, 'address_id', 'address_id');
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class, 'coupon_id', 'coupon_id');
+    }
+
+    public function draftOrder(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(DraftOrder::class, 'converted_order_id', 'order_id');
+    }
+
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
     }
 }

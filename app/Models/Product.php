@@ -119,4 +119,25 @@ class Product extends Model
             ->select('variants.*','stocks.quantity as astock')->orderBy('variants.option_values', 'ASC');
     }
 
+    public function defaultVariant(): HasMany
+    {
+        return $this->hasMany(Variant::class, 'product_id', 'product_id')
+            ->orderByDesc('isdefault');
+    }
+
+    public function productType(): BelongsTo
+    {
+        return $this->belongsTo(ProductType::class, 'product_type_id', 'product_type_id');
+    }
+
+    public function isActive(): bool
+    {
+        return $this->product_status === 'Active';
+    }
+
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
+    }
+
 }
