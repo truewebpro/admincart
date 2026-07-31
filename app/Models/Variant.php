@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasVat;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Variant extends Model
 {
-    use HasFactory;
+    use HasFactory, HasVat;
     protected $primaryKey = 'variant_id';
     protected $fillable = [
         'sku',
@@ -33,6 +34,13 @@ class Variant extends Model
         'option_values' => 'array',
         'istax' => 'boolean',
         'isdefault' => 'boolean',
+    ];
+
+    protected $appends = [
+        'display_price',
+        'price_excl_vat',
+        'price_incl_vat',
+        'vat_amount',
     ];
 
     protected function price(): Attribute
