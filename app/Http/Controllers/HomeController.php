@@ -60,12 +60,15 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Models\Variant;
 use App\Models\VivaPayment;
+use App\Services\CacheKeys;
 use App\Services\MailtrapService;
 use App\Services\SmartCategoryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -533,19 +536,19 @@ class HomeController extends Controller
     public function orderStats()
     {
         $shopId = session('shop_id');
+        $stats = Order::where('shop_id', $shopId)
+            ->whereNull('deleted_at')
+            ->selectRaw("
+            SUM(CASE WHEN fulfillment_status = 'unfulfilled' THEN 1 ELSE 0 END) as unfulfilled,
+            SUM(CASE WHEN order_status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN order_status = 'processing' THEN 1 ELSE 0 END) as processing
+        ")
+            ->first();
+
         return response()->json([
-            'unfulfilled' => Order::where('shop_id', $shopId)
-                ->whereNull('deleted_at')
-                ->where('fulfillment_status', 'unfulfilled')
-                ->count(),
-            'pending' => Order::where('shop_id', $shopId)
-                ->whereNull('deleted_at')
-                ->where('order_status', 'pending')
-                ->count(),
-            'processing' => Order::where('shop_id', $shopId)
-                ->whereNull('deleted_at')
-                ->where('order_status', 'processing')
-                ->count(),
+            'unfulfilled' => (int) $stats->unfulfilled,
+            'pending' => (int) $stats->pending,
+            'processing' => (int) $stats->processing,
         ]);
     }
 
@@ -1058,11 +1061,10 @@ class HomeController extends Controller
         $tag = $request->tag;
         $status = $request->status;
         $query = Product::withTrashed()
-            ->with('variants','brand','ptype')
+            ->with('variants.astock','brand','ptype')
             ->withCount('astock')
             ->withSum('astock','quantity')
             ->where('shop_id','=',$shopId);
-//        $query->select(['products.*', DB::raw("CASE WHEN deleted_at IS NOT NULL THEN 'Archived' ELSE product_status END as display_status")]);
         if ($search) {
             $terms = preg_split('/\s+/', trim($search));
             $query->where(function ($q) use ($terms) {
@@ -1112,39 +1114,58 @@ class HomeController extends Controller
                     ->where('product_status', $status);
             }
         }
+
         $filters = [
-            'brands' => Brand::where('shop_id', $shopId)
-                ->orderBy('brand_name')
-                ->pluck('brand_name'),
+            'brands' => Cache::remember(
+                "shop:${shopId}:shop_brands",
+                now()->addHours(6),
+                fn() => Brand::where('shop_id', $shopId)
+                    ->orderBy('brand_name')
+                    ->pluck('brand_name'),
+            ),
 
-            'types' => ProductType::where('shop_id', $shopId)
-                ->orderBy('product_type_name')
-                ->pluck('product_type_name'),
+            "types" => Cache::remember(
+                "shop:{$shopId}:shop_product_types",
+                now()->addHours(6),
+                fn() => ProductType::where('shop_id', $shopId)
+                    ->orderBy('product_type_name')
+                    ->pluck('product_type_name'),
+            ),
 
-            'tags' => Product::where('shop_id', $shopId)
-                ->whereNotNull('tags')
-                ->pluck('tags')
-                ->flatten()
-                ->unique()
-                ->sort()
-                ->values(),
+            'tags' => Cache::remember(
+                "shop:{$shopId}:product_tags",
+                now()->addHours(6),
+                fn() => Product::where('shop_id', $shopId)
+                    ->whereNotNull('tags')
+                    ->pluck('tags')
+                    ->flatten()
+                    ->unique()
+                    ->sort()
+                    ->values()
+            ),
+
         ];
+
         $sortBy = $allowedSorts[$request->sort_by] ?? 'product_id';
         $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
         $perPage = (int) $request->per_page;
         if ($perPage === -1) {
-            $perPage = min($query->count(), 500);
-        } else {
-            $perPage = $perPage > 0
-                ? min($perPage, 500)
-                : 50;
+            $perPage = 100;
         }
+        $perPage = $perPage > 0 ? $perPage : 50;
         $products = $query->paginate($perPage);
-        $aptags = Tag::where('shop_id','=',$shopId)
-            ->select('tag_id','tag_name','tag_status')
-            ->orderBy('tag_name')
-            ->get();
+        $aptags = Cache::remember(
+            CacheKeys::brands($shopId),
+            now()->addHours(6),
+            function () use($shopId) {
+                return Tag::where('shop_id','=',$shopId)
+                    ->select('tag_id','tag_name','tag_status')
+                    ->orderBy('tag_name')
+                    ->get();
+            }
+        );
+
         return response()->json([
             'users' => auth()->user(),
             'pcount'=> $products->count(),

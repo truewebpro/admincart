@@ -5,15 +5,24 @@ namespace App\Traits;
 trait HasVat
 {
 
+    protected static array $vatSettingsCache = [];
+
     protected function vatSettings()
     {
-        return cache()->remember(
+//        return cache()->remember(
+//            "shop_vat_{$this->shop_id}",
+//            now()->addHours(12),
+//            fn() => \App\Models\Setting::select(
+//                'shop_id',
+//                'vat_included'
+//            )->find($this->shop_id)
+//        );
+
+        return static::$vatSettingsCache[$this->shop_id] ??= cache()->remember(
             "shop_vat_{$this->shop_id}",
             now()->addHours(12),
-            fn() => \App\Models\Setting::select(
-                'shop_id',
-                'vat_included'
-            )->find($this->shop_id)
+            fn() => \App\Models\Setting::select('shop_id', 'vat_included')
+                ->find($this->shop_id)
         );
     }
 

@@ -337,6 +337,66 @@ export default {
     },
     methods:{
         mergeProps,
+        getAllPros(){
+            this.isLoading = true;
+            axios.get('/sadmin/all-products',{
+                params:{
+                    page:this.page,
+                    search:this.psearch,
+                    per_page: this.itemsPerPage,
+                    sort_by:this.sort_by,
+                    sort_order:this.sort_order,
+                    type: this.selectedType,
+                    brand: this.selectedBrand,
+                    tag: this.selectedTag,
+                    status: this.status,
+                }
+            })
+                .then((resp)=>{
+                    const respData = resp.data;
+                    const allData = respData.products;
+                    this.pros = allData.data;
+                    this.totalItems = allData.total;
+                    this.page = allData.current_page;
+                    const filtersData = respData.filters;
+                    this.protypes = filtersData.types || [];
+                    this.pbrands = filtersData.brands || [];
+                    this.atags = filtersData.tags || [];
+                    this.aptags = respData.aptags || [];
+                })
+                .finally(()=>{
+                    this.isLoading = false;
+                })
+            // try {
+            //     const resp = axios.get('/sadmin/pros',{
+            //         params:{
+            //             page:this.page,
+            //             search:this.psearch,
+            //             per_page: this.itemsPerPage,
+            //             sort_by:this.sort_by,
+            //             sort_order:this.sort_order,
+            //             type: this.selectedType,
+            //             brand: this.selectedBrand,
+            //             tag: this.selectedTag,
+            //             status: this.status,
+            //         }
+            //     });
+            //     const respData = resp.data;
+            //     const allData = respData.products;
+            //     this.pros = allData.data;
+            //     this.totalItems = allData.total;
+            //     this.page = allData.current_page;
+            //     const filtersData = respData.filters;
+            //     this.protypes = filtersData.types || [];
+            //     this.pbrands = filtersData.brands || [];
+            //     this.atags = filtersData.tags || [];
+            //     this.aptags = respData.aptags || [];
+            // } catch (e) {
+            //     console.error("Failed to load products", e);
+            // } finally {
+            //     this.isLoading = false;
+            // }
+        },
         loadItems(options) {
             this.page = options.page;
             this.itemsPerPage = options.itemsPerPage;
@@ -378,38 +438,6 @@ export default {
             this.removeBulkTagDialog = false;
             this.seltags = [];
             this.selectedPros = [];
-        },
-        async getAllPros(){
-            this.isLoading = true;
-            try {
-                const resp = await axios.get('/sadmin/pros',{
-                    params:{
-                        page:this.page,
-                        search:this.psearch,
-                        per_page: this.itemsPerPage,
-                        sort_by:this.sort_by,
-                        sort_order:this.sort_order,
-                        type: this.selectedType,
-                        brand: this.selectedBrand,
-                        tag: this.selectedTag,
-                        status: this.status,
-                    }
-                });
-                const respData = resp.data;
-                const allData = respData.products;
-                this.pros = allData.data;
-                this.totalItems = allData.total;
-                this.page = allData.current_page;
-                const filtersData = respData.filters;
-                this.protypes = filtersData.types || [];
-                this.pbrands = filtersData.brands || [];
-                this.atags = filtersData.tags || [];
-                this.aptags = respData.aptags || [];
-            } catch (e) {
-                console.error("Failed to load products", e);
-            } finally {
-                this.isLoading = false;
-            }
         },
         archiveProducts(){
             const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}

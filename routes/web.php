@@ -28,31 +28,31 @@ use App\Http\Controllers\CartController;
 Route::get('/',[FrontController::class,'homePage'])->name('homePage');
 Route::get('/plans',[FrontController::class,'plansPage'])->name('plansPage');
 
-Route::get('/google/autocomplete',function (Request $request){
-    $input = $request->input('query');
-    if (empty($input)) {
-        return response()->json(['error' => 'Missing input'], 400);
-    }
-    $apiKey = 'AIzaSyD1cGNhJz2BiG4oODjDAkfOH__dxXC_N10';
-    $url = "https://maps.googleapis.com/maps/api/place/autocomplete/json";
-    $response = Http::get($url, [
-        'input' => $input,
-        'types' => 'address',
-        'components' => 'country:gb',
-        'key' => $apiKey,
-    ]);
-    return $response->json();
-});
-Route::get('/google/details', function (Request $request) {
-    $apiKey = "AIzaSyD1cGNhJz2BiG4oODjDAkfOH__dxXC_N10";
-    $placeId = $request->query('place_id');
-    $url = "https://maps.googleapis.com/maps/api/place/details/json";
-    $response = Http::get($url,[
-        'place_id' => $placeId,
-        'key' => $apiKey,
-    ]);
-    return $response->json();
-});
+//Route::get('/google/autocomplete',function (Request $request){
+//    $input = $request->input('query');
+//    if (empty($input)) {
+//        return response()->json(['error' => 'Missing input'], 400);
+//    }
+//    $apiKey = 'AIzaSyD1cGNhJz2BiG4oODjDAkfOH__dxXC_N10';
+//    $url = "https://maps.googleapis.com/maps/api/place/autocomplete/json";
+//    $response = Http::get($url, [
+//        'input' => $input,
+//        'types' => 'address',
+//        'components' => 'country:gb',
+//        'key' => $apiKey,
+//    ]);
+//    return $response->json();
+//});
+//Route::get('/google/details', function (Request $request) {
+//    $apiKey = "AIzaSyD1cGNhJz2BiG4oODjDAkfOH__dxXC_N10";
+//    $placeId = $request->query('place_id');
+//    $url = "https://maps.googleapis.com/maps/api/place/details/json";
+//    $response = Http::get($url,[
+//        'place_id' => $placeId,
+//        'key' => $apiKey,
+//    ]);
+//    return $response->json();
+//});
 
 Auth::routes();
 
@@ -149,7 +149,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/order/sendtosendcloud/single',[HomeController::class,'sendToSendCloudSingle']);
         Route::get('/order-invoice/{id}', [HomeController::class, 'invoice']);
         Route::get('/order-label/{id}', [HomeController::class, 'label']);
-        Route::get('/pros',[HomeController::class,'allProducts']);
+        Route::get('/all-products',[HomeController::class,'allProducts']);
         Route::get('/products/{product_id}',[HomeController::class,'getProductbyId']);
         Route::get('/pros/new',[HomeController::class,'addProductView']);
         Route::post('/product/section/add/new',[HomeController::class,'addNewProductSection']);
