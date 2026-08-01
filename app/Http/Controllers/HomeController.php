@@ -1117,7 +1117,7 @@ class HomeController extends Controller
 
         $filters = [
             'brands' => Cache::remember(
-                "shop:${shopId}:shop_brands",
+                "shop:{$shopId}:shop_brands",
                 now()->addHours(6),
                 fn() => Brand::where('shop_id', $shopId)
                     ->orderBy('brand_name')
