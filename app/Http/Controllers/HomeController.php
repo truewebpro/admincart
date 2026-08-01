@@ -1113,33 +1113,21 @@ class HomeController extends Controller
         }
 
         $filters = [
-            'brands' => Cache::remember(
-                "shop:{$shopId}:shop_brands",
-                now()->addHours(6),
-                fn() => Brand::where('shop_id', $shopId)
-                    ->orderBy('brand_name')
-                    ->pluck('brand_name'),
-            ),
+            'brands' => Brand::where('shop_id', $shopId)
+                ->orderBy('brand_name')
+                ->pluck('brand_name'),
 
-            "types" => Cache::remember(
-                "shop:{$shopId}:shop_product_types",
-                now()->addHours(6),
-                fn() => ProductType::where('shop_id', $shopId)
-                    ->orderBy('product_type_name')
-                    ->pluck('product_type_name'),
-            ),
+            "types" => ProductType::where('shop_id', $shopId)
+                ->orderBy('product_type_name')
+                ->pluck('product_type_name'),
 
-            'tags' => Cache::remember(
-                "shop:{$shopId}:product_tags",
-                now()->addHours(6),
-                fn() => Product::where('shop_id', $shopId)
-                    ->whereNotNull('tags')
-                    ->pluck('tags')
-                    ->flatten()
-                    ->unique()
-                    ->sort()
-                    ->values()
-            ),
+            'tags' => Product::where('shop_id', $shopId)
+                ->whereNotNull('tags')
+                ->pluck('tags')
+                ->flatten()
+                ->unique()
+                ->sort()
+                ->values()
 
         ];
 
@@ -1152,16 +1140,10 @@ class HomeController extends Controller
         }
         $perPage = $perPage > 0 ? $perPage : 50;
         $products = $query->paginate($perPage);
-        $aptags = Cache::remember(
-            CacheKeys::brands($shopId),
-            now()->addHours(6),
-            function () use($shopId) {
-                return Tag::where('shop_id','=',$shopId)
-                    ->select('tag_id','tag_name','tag_status')
-                    ->orderBy('tag_name')
-                    ->get();
-            }
-        );
+        $aptags = Tag::where('shop_id','=',$shopId)
+            ->select('tag_id','tag_name','tag_status')
+            ->orderBy('tag_name')
+            ->get();
 
         return response()->json([
             'users' => auth()->user(),
