@@ -245,12 +245,20 @@ class SuperadminController extends Controller
             }
         }
 
+        $shop = Shop::findOrFail($shopId);
+
         // set session
-        session(['shop_id' => $shopId]);
+//        session(['shop_id' => $shopId]);
+        session([
+            'shop_id' => $shop->shop_id,
+            'shop' => $shop,
+        ]);
+        session()->save();
 
         return response()->json([
             'success' => true,
-            'shop_id' => $shopId
+            'shop_id' => $shopId,
+            'shop' => $shop,
         ]);
     }
 

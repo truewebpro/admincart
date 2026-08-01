@@ -491,7 +491,6 @@ class HomeController extends Controller
 
     public function dashboard(Request $request)
     {
-        $shop = session('shop');
         $shopId = session('shop_id');
 //        $shopId = $request->get('shop_id');
         $shops = Shop::where('shop_id','=',$shopId)
@@ -962,7 +961,6 @@ class HomeController extends Controller
     }
 
     public function allCarts(Request $request){
-        $shop = session('shop');
         $shopId = session('shop_id');
         $search = $request->search;
         $status = $request->status;
@@ -1006,7 +1004,6 @@ class HomeController extends Controller
 
     public function getCartById($cart_id)
     {
-        $shop = session('shop');
         $shopId = session('shop_id');
         $cart = Acart::with('order.orderItems','items.product','items.variant','customer','address','aevents')
             ->withCount('items')

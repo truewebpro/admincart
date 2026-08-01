@@ -69,7 +69,7 @@ class Customer extends Authenticatable  implements JWTSubject
     /**
      * The business profile for this customer within the currently resolved
      * shop. Uses App\Support\CurrentShop, which checks app('currentShop')
-     * first, then falls back to session('shop') — matching what
+     * first, then falls back to — matching what
      * ResolveAdminShop actually sets, rather than assuming a container
      * binding that isn't wired up yet. Returns null if the customer has
      * no customer_shops row (and therefore no profile) for this shop.
