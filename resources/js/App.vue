@@ -208,7 +208,7 @@ export default {
             this.$store.dispatch('fetchOrderStats');
         });
         this.drawer = this.isDesktop;
-        await this.$store.dispatch('loadContext');
+        await this.$store.dispatch('loadContext',true);
     },
     methods: {
         async switchShop(shopId) {

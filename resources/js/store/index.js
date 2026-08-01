@@ -231,10 +231,10 @@ const store = createStore({
                 if (!respo.data.success) {
                     throw new Error('Switch failed')
                 }
-                commit('SET_SHOP', shopId)
+                // commit('SET_SHOP', shopId)
                 window.location.reload();
-                await dispatch('loadContext', true)
-                await dispatch('fetchOrderStats')
+                // await dispatch('loadContext', true)
+                // await dispatch('fetchOrderStats')
             } catch (e) {
                 console.error('Switch shop failed', e)
             } finally {
