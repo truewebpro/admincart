@@ -23,9 +23,6 @@
                 <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperShopifysetup'}" :prependAvatar="cdn+'icons/shopify.png'">
                     <v-list-item-title>Shopify</v-list-item-title>
                 </v-list-item>
-                <v-list-item v-if="isSuperAdmin" link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">
-                    <v-list-item-title>Plans</v-list-item-title>
-                </v-list-item>
                 <v-list-item class="d-none" link to="/dashboard" prepend-icon="mdi-view-dashboard-outline">
                     <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Dashboard</v-list-item-title>
                 </v-list-item>
@@ -44,9 +41,8 @@
                         </v-list-item>
                     </template>
                     <v-list-item link :to="{name:'AdminOrders'}" color="primary" prepend-icon="mdi-cart-arrow-right" title="Orders"></v-list-item>
-                    <v-list-item link :to="{name:'AbandonedCarts'}" color="primary" prepend-icon="mdi-cart-arrow-down" title="Abandoned Carts"></v-list-item>
                     <v-list-item link :to="{name:'DraftOrdersList'}" color="primary" prepend-icon="mdi-cart-plus" title="Drafts"></v-list-item>
-
+                    <v-list-item link :to="{name:'AbandonedCarts'}" color="primary" prepend-icon="mdi-cart-arrow-down" title="Abandoned Carts"></v-list-item>
                 </v-list-group>
                 <v-list-item link :to="{name:'products'}" color="primary" prepend-icon="mdi-tag-outline" title="Products"></v-list-item>
                 <v-list-item link :to="{name:'InventoryList'}" color="primary" prepend-icon="mdi-format-list-numbered"
@@ -91,6 +87,9 @@
                 </v-list-group>
 
                 <v-spacer/>
+                <v-list-item v-if="isSuperAdmin" link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">
+                    <v-list-item-title>Plans</v-list-item-title>
+                </v-list-item>
                 <v-list-item link :to="{name:'IntegrateList'}" color="primary" prepend-icon="mdi-apps" title="Integration">
                 </v-list-item>
                 <v-list-item link :to="{name:'Settings'}" color="primary" prepend-icon="mdi-cog" title="Settings">

@@ -8,15 +8,15 @@
                     <div class="muted">{{ saveStatusLabel }}</div>
                 </div>
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="6" class="text-end">
                 <v-btn variant="outlined" size="small" class="mr-2" @click="saveDraft" :loading="saving">
                     Save draft
                 </v-btn>
             </v-col>
         </v-row>
-        <v-row v-if="draftOrder.converted_order_id">
+        <v-row dense v-if="draftOrder.converted_order_id">
             <v-col cols="12" md="12">
-                <v-card>
+                <v-card class="section-card">
                     <v-card-title class="bg-success">{{ draftOrder.status }}</v-card-title>
                     <v-card-text class="pt-4 text-body-1">
                         Order created on {{dayjs(draftOrder.confirmed_at).format('DD MMM YYYY, h:mm a')}}. You can
@@ -313,7 +313,7 @@
                                     ></v-list-item>
                                 </template>
                             </v-autocomplete>
-                            <v-btn variant="text" size="small" class="mt-2" @click="customerCreateDialog = true">
+                            <v-btn variant="outlined" density="comfortable" size="small" class="mt-2" @click="customerCreateDialog = true">
                                 <v-icon size="16" class="mr-1">mdi-plus</v-icon> Create new customer
                             </v-btn>
                         </div>
@@ -334,7 +334,10 @@
                                 <div>{{ draftOrder.shipping_address.address_line1 }}</div>
                                 <div v-if="draftOrder.shipping_address.address_line2">{{ draftOrder.shipping_address.address_line2 }}</div>
                                 <div>{{ draftOrder.shipping_address.city }}, {{ draftOrder.shipping_address.postcode }}</div>
-                                <v-btn variant="text" size="small" class="mt-1 pa-0" @click="openAddressDialog">Change address</v-btn>
+                                <v-btn variant="outlined" size="small" density="comfortable" class="mt-1"
+                                       @click="openAddressDialog">
+                                    Change address
+                                </v-btn>
                             </div>
                             <div v-else>
                                 <v-alert type="warning" variant="tonal" density="compact" class="mb-2">

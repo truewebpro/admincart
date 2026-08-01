@@ -30,22 +30,26 @@
                         class="draft-orders-table"
                     >
                         <template #item.draft_number="{ item }">
-                            <span style="font-weight:600;">{{ item.draft_number }}</span>
+                            <span class="font-weight-semibold">{{ item.draft_number }}</span>
                         </template>
 
                         <template #item.customer="{ item }">
-                            <span v-if="item.customer">{{ item.customer.name }}</span>
+                            <span v-if="item.customer" class="font-weight-medium text-capitalize">{{ item.customer.name }}</span>
                             <span v-else class="muted">—</span>
                         </template>
 
                         <template #item.status="{ item }">
-                            <v-chip size="small" :color="statusColor(item.status)" variant="tonal">
+                            <v-chip size="small" :color="statusColor(item.status)"
+                                    class="font-weight-medium"
+                                    density="comfortable" variant="outlined">
                                 {{ item.status }}
                             </v-chip>
                         </template>
 
                         <template #item.payment_status="{ item }">
-                            <v-chip size="small" :color="paymentStatusColor(item.payment_status)" variant="tonal">
+                            <v-chip size="small" :color="paymentStatusColor(item.payment_status)"
+                                    class="font-weight-medium"
+                                    variant="outlined" density="comfortable">
                                 {{ paymentStatusLabel(item.payment_status) }}
                             </v-chip>
                         </template>
@@ -117,12 +121,12 @@ export default {
             snackbar: { show: false, text: '', color: 'success' },
             headers: [
                 { title: 'Draft #', key: 'draft_number' },
-                { title: 'Customer', key: 'customer' },
-                { title: 'Status', key: 'status' },
-                { title: 'Payment', key: 'payment_status' },
-                { title: 'Items', key: 'item_count', align: 'center' },
-                { title: 'Total', key: 'total', align: 'end' },
                 { title: 'Created', key: 'created_at' },
+                { title: 'Customer', key: 'customer' },
+                { title: 'Total', key: 'total', align: 'end' },
+                { title: 'Payment', key: 'payment_status' },
+                { title: 'Status', key: 'status' },
+                { title: 'Items', key: 'item_count', align: 'center' },
                 { title: '', key: 'actions', sortable: false, align: 'end', width: 56 },
             ],
         }
@@ -178,7 +182,7 @@ export default {
             }
         },
         statusColor(status) {
-            const map = { draft: 'grey-darken-1', confirmed: 'primary', processing: 'info', completed: 'success', cancelled: 'error' };
+            const map = { draft: 'grey-darken-1', confirmed: 'success', processing: 'info', completed: 'success', cancelled: 'error' };
             return map[status] || 'grey';
         },
 
@@ -188,7 +192,7 @@ export default {
         },
 
         paymentStatusColor(status) {
-            const map = { unpaid: 'grey', partially_paid: 'warning', paid: 'success', refunded: 'error' };
+            const map = { unpaid: 'red', partially_paid: 'red', paid: 'success', refunded: 'error' };
             return map[status] || 'grey';
         },
 
