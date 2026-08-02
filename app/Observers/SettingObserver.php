@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Setting;
 use App\Services\ShopCacheService;
+use Illuminate\Support\Facades\Cache;
 
 class SettingObserver
 {
@@ -15,6 +16,8 @@ class SettingObserver
         ShopCacheService::forgetShop(
             $setting->shop_id
         );
+        Cache::forget("shop_vat_{$setting->shop_id}");
+
     }
 
     /**
@@ -25,6 +28,7 @@ class SettingObserver
         ShopCacheService::forgetShop(
             $setting->shop_id
         );
+        Cache::forget("shop_vat_{$setting->shop_id}");
     }
 
     /**
