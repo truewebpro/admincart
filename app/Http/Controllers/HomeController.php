@@ -1058,9 +1058,16 @@ class HomeController extends Controller
         $tag = $request->tag;
         $status = $request->status;
         $query = Product::withTrashed()
-            ->with('variants.astock','brand','ptype')
+            ->with('brand','ptype')
             ->withCount('astock')
             ->withSum('astock','quantity')
+            ->withMin('variants','price')
+            ->withCount('variants')
+            ->addSelect(['first_variant_options' => Variant::select('options')
+                ->whereColumn('product_id', 'products.product_id')
+                ->orderBy('variant_id')
+                ->limit(1)
+            ])
             ->where('shop_id','=',$shopId);
         if ($search) {
             $terms = preg_split('/\s+/', trim($search));
@@ -1068,9 +1075,6 @@ class HomeController extends Controller
                 foreach ($terms as $term) {
                     $q->where(function ($subQ) use ($term) {
                         $subQ->where('title', 'LIKE', "%{$term}%")
-                            ->orWhereHas('variants', function ($variantQ) use ($term) {
-                                $variantQ->where('sku', 'LIKE', "%{$term}%");
-                            })
                             ->orWhereHas('brand', function ($brandQ) use ($term) {
                                 $brandQ->where('brand_name', 'LIKE', "%{$term}%");
                             })

@@ -147,10 +147,10 @@
                             </template>
                             <template v-slot:item.astock_sum_quantity="{item}">
                                 <div v-if="item.astock_sum_quantity > 0">{{ item.astock_sum_quantity }} in stock
-                                    <span v-if="item.variants[0].options != null">for {{item.variants.length}} variants</span>
+                                    <span v-if="item.first_variant_options">for {{item.variants_count }} variants</span>
                                 </div>
                                 <div v-if="item.astock_sum_quantity < 1" class="text-red">{{ item.astock_sum_quantity }} in stock
-                                    <span v-if="item.variants[0].options != null">for {{item.variants.length}} variants</span>
+                                    <span v-if="item.first_variant_options">for {{item.variants_count }} variants</span>
                                 </div>
                             </template>
                         </v-data-table-server>
