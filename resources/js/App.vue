@@ -61,11 +61,11 @@
                     <v-list-item :to="{name:'poptions'}" color="primary" title="Options" prepend-icon="mdi-filter-variant" link/>
                     <v-list-item :to="{name:'Features'}" color="primary" title="Features" prepend-icon="mdi-feature-search-outline" link/>
                 </v-list-group>
-                <v-list-group value="analytics">
+                <v-list-group value="analytic">
                     <template v-slot:activator="{ props }">
                         <v-list-item v-bind="props" prepend-icon="mdi-google-analytics">
                             <template #title>
-                                Analytics
+                                Analytic
                             </template>
                         </v-list-item>
                     </template>
