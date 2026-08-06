@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'resolve.admin.shop' => \App\Http\Middleware\ResolveAdminShop::class,
         'resolve.shop' => \App\Http\Middleware\ResolveShop::class,
         'auth.customer' => \App\Http\Middleware\AuthenticateCustomer::class,
+        'resolve.customer-shop' => \App\Http\Middleware\ResolveCustomerShop::class, // new
     ];
 }

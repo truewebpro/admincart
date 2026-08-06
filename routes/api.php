@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\LoyaltyActionController;
+use App\Http\Controllers\Api\LoyaltyController;
+use App\Http\Controllers\Api\LoyaltyPointsPreviewController;
+use App\Http\Controllers\Api\StoreCreditController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CartController;
@@ -55,7 +59,6 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/brandsections/{brand_slug}', [BrandController::class, 'getBrandSections']);
     Route::get('/cats', [CatController::class, 'allCats']);
     Route::get('/all-cats', [CatController::class, 'getAllCats']);
-    Route::get('/catpro/{slug}', [CatController::class, 'getCatorProduct']);
     Route::get('/cat/{slug}', [CatController::class, 'getCategory']);
     Route::get('/catbyslug/{slug}', [CatController::class, 'getCatBySlug']);
     Route::get('/catsections/{slug}', [CatController::class, 'getCatSections']);
@@ -95,6 +98,12 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     // Verify payment after redirect (called from frontend)
     Route::post('/payment/sumup/verify', [SumupController::class, 'verify']);
 
+    Route::prefix('loyalty/points-preview')->group(function () {
+        Route::get('/{variantId}', [LoyaltyPointsPreviewController::class, 'show']);
+        Route::post('/', [LoyaltyPointsPreviewController::class, 'bulk']);
+    });
+
+
     Route::prefix('cart')->group(function () {
         Route::get('/', [CartController::class, 'getCart']);
         Route::post('/event', [CartController::class, 'event']);
@@ -120,10 +129,36 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
             Route::post('/address/add',[CustomerController::class,'addNewAddress']);
             Route::post('/address/update',[CustomerController::class,'updateAddress']);
             Route::post('/address/delete',[CustomerController::class,'deleteAddress']);
+
+            //Loyalty  and Reward Points Routes
+            Route::middleware('resolve.customer-shop')->group(function () {
+                Route::prefix('store-credit')->group(function () {
+                    Route::get('/balance', [StoreCreditController::class, 'balance']);
+                    Route::get('/history', [StoreCreditController::class, 'history']);
+                });
+
+                Route::prefix('checkout/store-credit')->group(function () {
+                    Route::post('/preview', [StoreCreditController::class, 'previewApplication']);
+                });
+
+
+                Route::prefix('loyalty')->group(function () {
+                    Route::get('/balance', [LoyaltyController::class, 'balance']);
+                    Route::get('/history', [LoyaltyController::class, 'history']);
+                    Route::get('/rewards', [LoyaltyController::class, 'rewards']);
+                    Route::post('/redeem', [LoyaltyController::class, 'redeem']);
+
+
+                    // "Ways to earn": reviews, social follows/shares, custom actions
+                    Route::get('/earn-actions', [LoyaltyActionController::class, 'index']);
+                    Route::post('/earn-actions/{actionId}/claim', [LoyaltyActionController::class, 'claim']);
+                });
+            });
         });
     });
 
 });
+
 
 Route::prefix('migrate')->group(function () {
     Route::get('/shops', [MigrateController::class, 'migrateShops']);

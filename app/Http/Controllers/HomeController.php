@@ -2754,6 +2754,7 @@ class HomeController extends Controller
                 ->where('shop_id','=',$shopId)->latest()->first();
             $customer['defaultaddress'] = $defaultAddress;
             $customer['ctags'] = $cshops->ctags;
+            $customer['cshop_id'] = $cshops->cshop_id;
             return response()->json([
                 'success' => true,
                 'customer' => $customer,

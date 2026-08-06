@@ -14,6 +14,11 @@ class ActiveVisitor extends Model
         'customer_id',
         'current_path',
         'last_seen_at',
+        'country',
+        'region',
+        'city',
+        'latitude',
+        'longitude',
     ];
 
     protected $casts = [

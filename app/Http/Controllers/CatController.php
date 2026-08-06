@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\EnrichesWithLoyaltyPoints;
 use App\Models\Cat;
 use App\Models\Catpro;
 use App\Models\Product;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 
 class CatController extends Controller
 {
+    use EnrichesWithLoyaltyPoints;
     public function allCats(Request $request)
     {
         $shopId = $request->shop_id;
@@ -118,6 +120,8 @@ class CatController extends Controller
 //            })
             ->orderBy('catpros.position','asc')
             ->paginate(24);
+        $allVariants = $alpros->getCollection()->flatMap(fn ($product) => $product->variants);
+        $this->attachLoyaltyPointsToMany($shopId, $allVariants);
 
         $cat['catpros'] = $alpros;
         return response()->json([
@@ -171,7 +175,8 @@ class CatController extends Controller
                             })
                             ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
                             ->get();
-
+                        $allVariants = $products->flatMap(fn ($product) => $product->variants);
+                        $this->attachLoyaltyPointsToMany($shopId, $allVariants);
                         $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
                         $sectionArray['section_json']['stype_json']['catpros'] = $products;
                     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\EnrichesWithLoyaltyPoints;
 use App\Models\Announcement;
 use App\Models\Blog;
 use App\Models\Brand;
@@ -36,6 +37,8 @@ use Illuminate\Support\Facades\Hash;
 
 class ShopController extends Controller
 {
+    use EnrichesWithLoyaltyPoints;
+
     public function shopSetting(Request $request)
     {
         $shopId = $request->shop_id;
@@ -198,6 +201,8 @@ class ShopController extends Controller
                         })
                         ->limit($stypeJson['plimit'] ?? 12)
                         ->get();
+                    $allVariants = $products->flatMap(fn ($product) => $product->variants);
+                    $this->attachLoyaltyPointsToMany($shopId, $allVariants);
                     $stypeJson['cat_slug'] = $cat->cat_slug ?? null;
                     $stypeJson['cat_image'] = $cat->cat_image ?? null;
                     $stypeJson['catpros'] = $products ?? [];
@@ -291,6 +296,8 @@ class ShopController extends Controller
                             })
                             ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
                             ->get();
+                        $allVariants = $products->flatMap(fn ($product) => $product->variants);
+                        $this->attachLoyaltyPointsToMany($shopId, $allVariants);
                         $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
                         $sectionArray['section_json']['stype_json']['catpros'] = $products;
                     }
@@ -549,6 +556,8 @@ class ShopController extends Controller
                             })
                             ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
                             ->get();
+                        $allVariants = $products->flatMap(fn ($product) => $product->variants);
+                        $this->attachLoyaltyPointsToMany($shopId, $allVariants);
                         $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
                         $sectionArray['section_json']['stype_json']['catpros'] = $products;
                     }

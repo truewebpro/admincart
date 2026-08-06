@@ -23,6 +23,7 @@ class CustomerShop extends Model
         'mailtrap_synced',
         'mailtrap_synced_at',
         'mailtrap_last_error',
+        'store_credit_balance', 'loyalty_points_balance',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class CustomerShop extends Model
         'registered_at' => 'datetime',
         'mailtrap_synced' => 'boolean',
         'mailtrap_synced_at' => 'datetime',
+        'store_credit_balance' => 'decimal:2'
     ];
 
     protected static function booted()
@@ -55,5 +57,21 @@ class CustomerShop extends Model
     {
         return $this->hasOne(CustomerBusinessProfile::class, 'cshop_id', 'cshop_id');
     }
+
+    public function storeCreditTransactions()
+    {
+        return $this->hasMany(StoreCreditTransaction::class, 'cshop_id', 'cshop_id');
+    }
+
+    public function loyaltyTransactions()
+    {
+        return $this->hasMany(LoyaltyTransaction::class, 'cshop_id', 'cshop_id');
+    }
+
+    public function loyaltyActionCompletions()
+    {
+        return $this->hasMany(LoyaltyActionCompletion::class, 'cshop_id', 'cshop_id');
+    }
+
 
 }

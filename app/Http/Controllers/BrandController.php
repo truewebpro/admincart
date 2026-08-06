@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\EnrichesWithLoyaltyPoints;
 use App\Models\Brand;
 use App\Models\Cat;
 use App\Models\Product;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\Cache;
 
 class BrandController extends Controller
 {
+    use EnrichesWithLoyaltyPoints;
+
     public function allBrands(Request $request)
     {
         $shopId = $request->shop_id;
@@ -65,6 +68,9 @@ class BrandController extends Controller
             ->where('brand_id', $brand->brand_id)
             ->where('product_status', 'Active')
             ->paginate(12);
+
+        $allVariants = $brand_products->getCollection()->flatMap(fn ($product) => $product->variants);
+        $this->attachLoyaltyPointsToMany($shopId, $allVariants);
 //        $brand_products = Cache::remember(
 //            CacheKeys::brandProducts($shopId, $brand_slug),
 //            now()->addHours(6),
@@ -96,7 +102,8 @@ class BrandController extends Controller
         ]);
     }
 
-    public function getBrandSections(Request $request,$shopname,$brand_slug)
+    public function
+    getBrandSections(Request $request,$shopname,$brand_slug)
     {
         $shopId = $request->shop_id;
         $data = Cache::remember(
@@ -125,6 +132,8 @@ class BrandController extends Controller
                             })
                             ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
                             ->get();
+                        $allVariants = $products->flatMap(fn ($product) => $product->variants);
+                        $this->attachLoyaltyPointsToMany($shopId, $allVariants);
                         $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
                         $sectionArray['section_json']['stype_json']['catpros'] = $products;
                     }

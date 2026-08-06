@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\EnrichesWithLoyaltyPoints;
 use App\Models\Brand;
 use App\Models\Cat;
 use App\Models\Product;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
+    use EnrichesWithLoyaltyPoints;
     public function getProductData(Request $request,$shopname,$slug)
     {
         $shopId = $request->shop_id;
@@ -51,6 +53,10 @@ class ProductController extends Controller
                 'sproduct' => null,
             ]);
         }
+
+        $sproduct->variants = collect(
+            $this->attachLoyaltyPointsToMany($shopId, $sproduct->variants)
+        );
 
         return response()->json([
             'status' => true,
@@ -111,6 +117,8 @@ class ProductController extends Controller
                             })
                             ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
                             ->get();
+                        $allVariants = $products->flatMap(fn ($product) => $product->variants);
+                        $this->attachLoyaltyPointsToMany($shopId, $allVariants);
                         $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
                         $sectionArray['section_json']['stype_json']['catpros'] = $products;
                     }
@@ -134,6 +142,12 @@ class ProductController extends Controller
                 'slug' => $slug,
             ]);
         }
+        $allAddons = $data['addons']->flatMap(fn ($product) => $product->variants);
+        $this->attachLoyaltyPointsToMany($shopId, $allAddons);
+
+        $allRpros = $data['related_products']->flatMap(fn ($product) => $product->variants);
+        $this->attachLoyaltyPointsToMany($shopId, $allRpros);
+
         return response()->json([
             'status' => true,
             'type' => 'Product',
@@ -270,6 +284,8 @@ class ProductController extends Controller
                 $query->latest();
         }
         $products = $query->paginate(24);
+        $allVariants = $products->getCollection()->flatMap(fn ($product) => $product->variants);
+        $this->attachLoyaltyPointsToMany($shopId, $allVariants);
 
         $filters = Cache::remember(
             CacheKeys::productFilters($shopId),

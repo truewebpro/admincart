@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\LoyaltyActionApprovalController;
+use App\Http\Controllers\Admin\LoyaltyEarnActionController;
+use App\Http\Controllers\Admin\LoyaltyProductPointController;
+use App\Http\Controllers\Admin\LoyaltySettingController;
+use App\Http\Controllers\Admin\StoreCreditController as AdminStoreCreditController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\DraftOrderController;
 use App\Http\Controllers\FaqController;
@@ -286,6 +291,25 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/analytics/pageview-trend', [AnalyticsController::class, 'pageviewTrend']);
         Route::get('/analytics/top-pages', [AnalyticsController::class, 'topPages']);
         Route::get('/analytics/traffic-breakdown', [AnalyticsController::class, 'trafficBreakdown']);
+        Route::get('/analytics/sessions-over-time', [AnalyticsController::class, 'sessionsOverTime']);
+        Route::get('/analytics/daily-stats', [AnalyticsController::class, 'dailyStats']);
+        Route::get('/analytics/live-locations', [AnalyticsController::class, 'liveLocations']);
+        Route::get('/analytics/sessions-by-location', [AnalyticsController::class, 'sessionsByLocation']);
+        Route::get('/analytics/customer-behavior', [AnalyticsController::class, 'customerBehavior']);
+        Route::get('/analytics/sales-stat-cards', [AnalyticsController::class, 'salesStatCards']);
+        Route::get('/analytics/total-sales-over-time', [AnalyticsController::class, 'totalSalesOverTime']);
+        Route::get('/analytics/sales-breakdown', [AnalyticsController::class, 'salesBreakdown']);
+        Route::get('/analytics/sales-by-channel', [AnalyticsController::class, 'salesByChannel']);
+        Route::get('/analytics/aov-over-time', [AnalyticsController::class, 'aovOverTime']);
+        Route::get('/analytics/sales-by-product', [AnalyticsController::class, 'salesByProduct']);
+        Route::get('/analytics/sessions-over-time-range', [AnalyticsController::class, 'sessionsOverTimeRange']);
+        Route::get('/analytics/conversion-rate-over-time', [AnalyticsController::class, 'conversionRateOverTime']);
+        Route::get('/analytics/conversion-breakdown', [AnalyticsController::class, 'conversionBreakdown']);
+        Route::get('/analytics/sessions-by-location-comparison', [AnalyticsController::class, 'sessionsByLocationComparison']);
+        Route::get('/analytics/sales-by-social-referrer', [AnalyticsController::class, 'salesBySocialReferrer']);
+        Route::get('/analytics/sessions-by-referrer', [AnalyticsController::class, 'sessionsByReferrer']);
+        Route::get('/analytics/sales-by-pos-location', [AnalyticsController::class, 'salesByPosLocation']);
+        Route::get('/analytics/products-sell-through', [AnalyticsController::class, 'productsBySellThroughRate']);
 
         //Draft Order Routes
         Route::get('draft-orders', [DraftOrderController::class, 'index']);
@@ -324,6 +348,35 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
 
         Route::get('/shop-ctags', [DraftOrderController::class, 'listTags']);
         Route::get('/ship-methods', [DraftOrderController::class, 'listShipMethods']);
+
+        // Loyalty sadmin routes
+        Route::get('/customer-shops/{customerShop}/store-credit', [AdminStoreCreditController::class, 'show']);
+        Route::post('/customer-shops/{customerShop}/store-credit/adjust', [AdminStoreCreditController::class, 'adjust']);
+        Route::post('/orders/{order}/refund-as-credit', [AdminStoreCreditController::class, 'refundAsCredit']);
+
+        Route::get('/loyalty/settings', [LoyaltySettingController::class, 'show']);
+        Route::put('/loyalty/settings', [LoyaltySettingController::class, 'update']);
+        Route::post('/loyalty/redeem-rules', [LoyaltySettingController::class, 'storeRule']);
+        Route::put('/loyalty/redeem-rules/{rule}', [LoyaltySettingController::class, 'updateRule']);
+        Route::delete('/loyalty/redeem-rules/{rule}', [LoyaltySettingController::class, 'destroyRule']);
+
+        // Per-product-variant points overrides — editable anytime, no redeploy needed
+        Route::get('/loyalty/product-points', [LoyaltyProductPointController::class, 'index']);
+        Route::post('/loyalty/product-points', [LoyaltyProductPointController::class, 'store']);
+        Route::put('/loyalty/product-points/{override}', [LoyaltyProductPointController::class, 'update']);
+        Route::delete('/loyalty/product-points/{override}', [LoyaltyProductPointController::class, 'destroy']);
+
+        // Ways-to-earn actions (reviews, social, share, custom)
+        Route::get('/loyalty/earn-actions', [LoyaltyEarnActionController::class, 'index']);
+        Route::post('/loyalty/earn-actions', [LoyaltyEarnActionController::class, 'store']);
+        Route::put('/loyalty/earn-actions/{action}', [LoyaltyEarnActionController::class, 'update']);
+        Route::delete('/loyalty/earn-actions/{action}', [LoyaltyEarnActionController::class, 'destroy']);
+
+        // Manual review queue for actions that can't be auto-verified
+        Route::get('/loyalty/action-completions', [LoyaltyActionApprovalController::class, 'index']);
+        Route::post('/loyalty/action-completions/{completion}/approve', [LoyaltyActionApprovalController::class, 'approve']);
+        Route::post('/loyalty/action-completions/{completion}/reject', [LoyaltyActionApprovalController::class, 'reject']);
+
 
     });
 });

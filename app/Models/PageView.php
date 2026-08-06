@@ -18,6 +18,11 @@ class PageView extends Model
         'referrer',
         'device_type',
         'browser',
+        'country',
+        'region',
+        'city',
+        'latitude',
+        'longitude'
     ];
 
     protected $casts = [

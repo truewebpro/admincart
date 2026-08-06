@@ -68,8 +68,17 @@ import SuperShopifysetup from "@/admin/super/SuperShopifysetup.vue";
 import AnalyticsOverview from "@/admin/analytics/AnalyticsOverview.vue";
 import AnalyticsOrders from "@/admin/order/AnalyticsOrders.vue";
 import AnalyticsTraffic from "@/admin/analytics/AnalyticsTraffic.vue";
+import ShopifyStyleOverview from "@/admin/analytics/ShopifyStyleOverview.vue";
+import SalesAnalytics from "@/admin/analytics/SalesAnalytics.vue";
+import SessionsAnalytics from "@/admin/analytics/SessionsAnalytics.vue";
+import ReferrerProductAnalytics from "@/admin/analytics/ReferrerProductAnalytics.vue";
+import LiveViewPage from "@/admin/analytics/LiveViewPage.vue";
 import DraftOrdersList from "@/admin/order/DraftOrdersList.vue";
 import DraftOrderCreate from "@/admin/order/DraftOrderCreate.vue";
+import LoyaltySettings from "@/admin/loyalty/LoyaltySettings.vue";
+import LoyaltyProductPointsOverride from "@/admin/loyalty/LoyaltyProductPointsOverride.vue";
+import LoyaltyEarnActions from "@/admin/loyalty/LoyaltyEarnActions.vue";
+import LoyaltyActionReviewQueue from "@/admin/loyalty/LoyaltyActionReviewQueue.vue";
 
 
 const routes = [
@@ -88,13 +97,18 @@ const routes = [
     // {path:'/dashboard',name:"AdminDashboard",component:AdminDashboard,meta: { requiresOwner: true }},
     {path:'/dashboard',name:"AdminDashboard",redirect:"/analytics",meta: { requiresOwner: true }},
     {path: '/analytics', name: 'AnalyticsOverview', component: AnalyticsOverview,},
-    {path: '/traffic', name: 'AnalyticsTraffic', component: AnalyticsTraffic,},
     {path:'/orders',name:"AdminOrders",component:AdminOrders},
     {path:'/draft-orders',name:"DraftOrdersList",component:DraftOrdersList},
     {path:'/draft-orders/create',name:"DraftOrderCreate",component:DraftOrderCreate},
     {path:'/draft-orders/:id/edit',name:"DraftOrderEdit",component:DraftOrderCreate,props:true},
     {path:'/carts',name:"AdminCarts",component:AdminCarts},
+    {path: '/analytics/shopify', name: 'ShopifyStyleOverview', component: ShopifyStyleOverview,},
+    {path: '/analytics/traffic', name: 'AnalyticsTraffic', component: AnalyticsTraffic,},
     {path:'/analytics/orders',name:"AnalyticsOrders",component:AnalyticsOrders},
+    {path:'/analytics/sales',name:"SalesAnalytics",component:SalesAnalytics},
+    {path:'/analytics/sessions',name:"SessionsAnalytics",component:SessionsAnalytics},
+    {path:'/analytics/products',name:"ReferrerProductAnalytics",component:ReferrerProductAnalytics},
+    {path:'/analytics/live-view',name:"LiveViewPage",component:LiveViewPage},
     {path:'/abandoned/carts',name:"AbandonedCarts",component: AbandonedCarts},
     {path: '/orders/:order_id',name: 'OrderView',component:OrderView,props:true},
     {path: '/carts/:cart_id',name: 'CartView',component:CartView,props:true},
@@ -111,6 +125,10 @@ const routes = [
     {path: '/pros/tags',name: 'tags',component: Tags},
     {path: '/pros/poptions',name: 'poptions',component: Poptions},
     {path: '/pros/features',name: 'Features',component: Features},
+    {path: '/loyalty/settings',name: 'LoyaltySettings',component: LoyaltySettings},
+    {path: '/loyalty/product-points-override',name: 'LoyaltyProductPointsOverride',component: LoyaltyProductPointsOverride},
+    {path: '/loyalty/earn-actions',name: 'LoyaltyEarnActions',component: LoyaltyEarnActions},
+    {path: '/loyalty/review-queue',name: 'LoyaltyActionReviewQueue',component: LoyaltyActionReviewQueue},
     {path: '/customers',name: 'customers',component: Customers},
     {path: '/customers/:customer_id',name: 'CustomerEdit',component: CustomerEdit,props:true},
     {path: '/shop',component: ShopSettings,

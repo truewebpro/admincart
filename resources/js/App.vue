@@ -69,8 +69,13 @@
                             </template>
                         </v-list-item>
                     </template>
-                    <v-list-item link :to="{name:'AnalyticsTraffic'}" prepend-icon="mdi-web" title="Traffic"></v-list-item>
-                    <v-list-item link :to="{name:'AnalyticsOrders'}" color="primary" prepend-icon="mdi-finance" title="Orders"></v-list-item>
+                    <v-list-item link :to="{name:'AnalyticsTraffic'}" prepend-icon="mdi-chart-timeline" title="Traffic"></v-list-item>
+                    <v-list-item link :to="{name:'SalesAnalytics'}" prepend-icon="mdi-chart-bell-curve" title="Sales"></v-list-item>
+                    <v-list-item link :to="{name:'SessionsAnalytics'}" prepend-icon="mdi-chart-timeline-variant-shimmer" title="Sessions"></v-list-item>
+                    <v-list-item link :to="{name:'ShopifyStyleOverview'}" prepend-icon="mdi-chart-bar-stacked"  title="Overview"></v-list-item>
+                    <v-list-item link :to="{name:'ReferrerProductAnalytics'}" prepend-icon="mdi-chart-box-outline"  title="Products"></v-list-item>
+                    <v-list-item link :to="{name:'LiveViewPage'}" prepend-icon="mdi-timer-marker-outline"  title="Live View"></v-list-item>
+                    <v-list-item link :to="{name:'AnalyticsOrders'}" color="primary" prepend-icon="mdi-finance" title="Customers"></v-list-item>
                 </v-list-group>
                 <v-list-group value="themes">
                     <template v-slot:activator="{props}">
@@ -90,6 +95,16 @@
                 <v-list-item v-if="isSuperAdmin" link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">
                     <v-list-item-title>Plans</v-list-item-title>
                 </v-list-item>
+                <v-list-group value="loyalty" base-color="success">
+                    <template v-slot:activator="{props}">
+                        <v-list-item v-bind="props" prepend-icon="mdi-shield-star-outline" title="Loyalty Program"></v-list-item>
+                    </template>
+                    <v-list-item link :to="{name:'LoyaltySettings'}" color="success" prepend-icon="mdi-star-cog-outline" title="Earn Setting"></v-list-item>
+                    <v-list-item link :to="{name:'LoyaltyProductPointsOverride'}" color="success" prepend-icon="mdi-octagram-edit-outline" title="Product Override"></v-list-item>
+                    <v-list-item link :to="{name:'LoyaltyEarnActions'}" color="success" prepend-icon="mdi-qrcode-plus" title="Earn Actions"></v-list-item>
+                    <v-list-item link :to="{name:'LoyaltyActionReviewQueue'}" color="success" prepend-icon="mdi-queue-first-in-last-out" title="Review Queue"></v-list-item>
+                </v-list-group>
+
                 <v-list-item link :to="{name:'IntegrateList'}" color="primary" prepend-icon="mdi-apps" title="Integration">
                 </v-list-item>
                 <v-list-item link :to="{name:'Settings'}" color="primary" prepend-icon="mdi-cog" title="Settings">
