@@ -30,14 +30,14 @@
                 </v-card>
             </v-col>
         </v-row>
-        <v-dialog v-model="addFaqDialog" maxWidth="600" zIndex="100">
+        <v-dialog v-model="addFaqDialog" maxWidth="800" zIndex="100">
             <v-card>
                 <v-card-title>Add New Question</v-card-title>
                 <v-card-text>
                     <v-text-field variant="outlined" density="compact" persistentPlaceholder
                                   placeholder="Question about the product"
                                   v-model="question" label="Question"></v-text-field>
-                    <RichTextEditor v-model="answer"/>
+                    <SemiRichTextEditor v-model="answer"/>
                 </v-card-text>
                 <v-card-actions>
                     <v-btn @click="addFaq" :loading="addLoading" color="green" variant="elevated" density="comfortable">Save</v-btn>
@@ -45,14 +45,14 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <v-dialog v-model="editFaqDialog" maxWidth="600" zIndex="100">
+        <v-dialog v-model="editFaqDialog" maxWidth="800" zIndex="100">
             <v-card>
                 <v-card-title>Edit Faq</v-card-title>
                 <v-card-text>
                     <v-text-field variant="outlined" density="compact" persistentPlaceholder
                                   placeholder="Question about the product"
                                   v-model="editedItem.question" label="Question"></v-text-field>
-                    <RichTextEditor v-model="editedItem.answer"/>
+                    <SemiRichTextEditor v-model="editedItem.answer"/>
                 </v-card-text>
                 <v-card-actions>
                     <v-btn @click="updateFaq" :loading="editLoading" color="green" variant="elevated" density="comfortable">Update</v-btn>
@@ -77,11 +77,11 @@
 </template>
 
 <script>
-import RichTextEditor from "@/components/RichTextEditor.vue";
+import SemiRichTextEditor from "@/components/SemiRichTextEditor.vue";
 
 export default {
     name: "ProductFaqs",
-    components: {RichTextEditor},
+    components: {SemiRichTextEditor},
     props: {
         faqs: Array,
         product_id: [String, Number],

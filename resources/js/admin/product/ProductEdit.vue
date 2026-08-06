@@ -55,8 +55,7 @@
                                 <v-textarea v-model="pro.short_description" variant="outlined" label="Short Description"
                                             persistent-placeholder counter="500" persistent-counter
                                             class="mb-2" density="compact"></v-textarea>
-                                <quill-editor ref="quillRef" theme="snow" v-model="quillContent"  @text-change="onEditorChange"
-                                              :options="quillOptions"></quill-editor>
+                                <RichTextEditor v-model="quillContent"/>
                                 <v-btn color="primary" variant="outlined" density="compact"
                                        prepend-icon="mdi-text-search-variant" class="mt-1"
                                        @click="contentDialog = true">Write AI Description</v-btn>
@@ -593,10 +592,12 @@ import ProductSpecifics from "@/admin/product/ProductSpecifics.vue";
 import ProductTiers from "@/admin/product/ProductTiers.vue";
 import ProductHighlights from "@/admin/product/ProductHighlights.vue";
 import ProductFaqs from "@/admin/product/ProductFaqs.vue";
+import RichTextEditor from "@/components/RichTextEditor.vue";
 
 export default {
     name:"ProductEdit",
     components: {
+        RichTextEditor,
         ProductFaqs,
         ProductHighlights,
         ProductTiers,
@@ -680,21 +681,6 @@ export default {
             duplicateProductId: null,
             deleteLoading: false,
             quillContent:'',
-            quillOptions: {
-                theme: 'snow',
-                contentType:'Delta',
-                modules: {
-                    toolbar: [
-                        [{'header': [1, 2, 3, 4, 5, 6, false]}],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        ['link'],
-                        [{list: 'ordered'}, {list: 'bullet'}],
-                        [{'indent': '-1'}, {'indent': '+1'}],
-                        [{'align': []}],
-                        ['clean'],
-                    ],
-                },
-            },
             istax:1,
             isdefault:1,
             mptypes:[],
@@ -958,12 +944,6 @@ export default {
                     this.pro.handle = prod.handle;
                     this.quillContent = prod.body_html;
                     this.pro.short_description = prod.short_description;
-                    const quill = this.$refs.quillRef.getQuill()
-                    if (quill.getLength() <= 1) {
-                        quill.clipboard.dangerouslyPasteHTML(this.quillContent);
-                        const html = quill.root.innerHTML;
-                        this.quillContent = html;
-                    }
                     this.productname = prod.title;
                     this.productdesc = prod.body_html;
                     if (prod.featured_image) this.featuredImage = prod.featured_image;
@@ -1449,10 +1429,6 @@ export default {
                     window.Toast.error(err.message);
                 })
         },
-        onEditorChange(delta, oldDelta, source) {
-            const quill = this.$refs.quillRef.getQuill();
-            this.quillContent = quill.root.innerHTML;
-        },
         stripHtml(html) {
             const div = document.createElement('div')
             div.innerHTML = html
@@ -1599,12 +1575,6 @@ export default {
             axios.post('/sadmin/generate/ai',aidata,uheaders)
                 .then((resp)=>{
                     this.quillContent = resp.data.result.description;
-                    const quill = this.$refs.quillRef.getQuill()
-                    if (quill.getLength() <= 1) {
-                        quill.clipboard.dangerouslyPasteHTML(this.quillContent);
-                        const html = quill.root.innerHTML;
-                        this.quillContent = html;
-                    }
                     this.contentDialog = false;
                 })
                 .catch((err)=>{

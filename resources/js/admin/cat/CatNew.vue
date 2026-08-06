@@ -226,12 +226,11 @@
 <script>
 import axios from "axios";
 import {VFileUpload} from "vuetify/labs/components";
-import {QuillEditor} from "@vueup/vue-quill";
 import RichTextEditor from "@/components/RichTextEditor.vue";
 
 export default {
     name:"CatView",
-    components:{RichTextEditor, QuillEditor, VFileUpload},
+    components:{RichTextEditor, VFileUpload},
     computed:{
         plainTextDesc() {
             return this.cat.cat_desc

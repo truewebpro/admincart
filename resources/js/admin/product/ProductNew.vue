@@ -25,7 +25,7 @@
                             <v-textarea v-model="npro.short_description" variant="outlined" label="Short Description"
                                         persistent-placeholder counter="500" persistent-counter
                                         class="mb-2" density="compact"></v-textarea>
-                            <quill-editor ref="quillRef" v-model="npro.quillContent" @text-change="onEditorChange"></quill-editor>
+                            <SemiRichTextEditor v-model="npro.quillContent"/>
                             <div class="mt-3">
                                 <v-card flat class="d-flex align-center border justify-center" height="90" outlined @click="triggerFileInput">
                                     <v-icon v-if="!featuredImage" size="40" color="grey darken-1">mdi-image-area</v-icon>
@@ -281,8 +281,10 @@
 <script>
 import axios from "axios";
 import {toRaw} from "vue";
+import SemiRichTextEditor from "@/components/SemiRichTextEditor.vue";
 export default{
     name:"ProductsNew",
+    components: {SemiRichTextEditor},
     data(){
         return{
             selectedOption: "",
@@ -648,10 +650,6 @@ export default{
                 .finally(()=>{
                     this.isLoading = false;
                 })
-        },
-        onEditorChange(delta, oldDelta, source) {
-            const quill = this.$refs.quillRef.getQuill();
-            this.npro.quillContent = quill.root.innerHTML;
         },
         resetForm(){
             this.$refs.adForm.reset();
