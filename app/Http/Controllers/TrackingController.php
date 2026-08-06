@@ -14,22 +14,34 @@ class TrackingController extends Controller
     }
 
     /**
-     * Resolves the REAL visitor IP, not the connecting server's IP.
-     * Since requests arrive via Next.js's server (Vercel), $request->ip()
-     * alone would return Vercel's IP. The Next.js BFF route explicitly
-     * forwards the true client IP via X-Forwarded-For — trust that
-     * header first, fall back to $request->ip() only if it's missing
-     * (e.g. someone hits this endpoint directly, bypassing Next.js).
+     * Resolves geo data with two sources, in priority order:
+     *
+     * 1. Pre-resolved geo sent directly from Next.js (Vercel's own edge
+     *    network already geolocates every request before our function
+     *    even runs — this is more reliable than IP-forwarding, since
+     *    intermediate proxies/hosts commonly strip or overwrite a
+     *    client-supplied X-Forwarded-For header for security reasons,
+     *    which is exactly what was happening: Laravel was resolving
+     *    Vercel's own execution region instead of the real visitor).
+     * 2. Fallback: local MaxMind lookup via $request->ip(), for
+     *    non-Vercel traffic (local dev, direct API testing, or if this
+     *    ever runs behind something other than Vercel).
      */
-    protected function resolveVisitorIp(Request $request): ?string
+    protected function resolveGeo(Request $request): array
     {
-        $forwarded = $request->header('X-Forwarded-For');
+        $geo = $request->input('geo');
 
-        if ($forwarded) {
-            return trim(explode(',', $forwarded)[0]);
+        if (is_array($geo) && ! empty(array_filter($geo))) {
+            return [
+                'country' => $geo['country'] ?? null,
+                'region' => $geo['region'] ?? null,
+                'city' => $geo['city'] ?? null,
+                'latitude' => $geo['latitude'] ?? null,
+                'longitude' => $geo['longitude'] ?? null,
+            ];
         }
 
-        return $request->ip();
+        return $this->geoIp->lookup($request->ip());
     }
 
     /**
@@ -50,7 +62,7 @@ class TrackingController extends Controller
         ]);
 
         $customerId = $request->attributes->get('customer_id'); // set this if you resolve logged-in customers on public routes; null otherwise
-        $geo = $this->geoIp->lookup($this->resolveVisitorIp($request));
+        $geo = $this->resolveGeo($request);
 //        $geo = $this->geoIp->lookup('81.2.69.142');
 
         PageView::create([
@@ -101,7 +113,7 @@ class TrackingController extends Controller
         ]);
 
         $customerId = $request->attributes->get('customer_id');
-        $geo = $this->geoIp->lookup($this->resolveVisitorIp($request));
+        $geo = $this->resolveGeo($request);
 //        $geo = $this->geoIp->lookup('81.2.69.142');
 
         ActiveVisitor::updateOrCreate(
