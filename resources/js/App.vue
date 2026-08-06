@@ -90,11 +90,6 @@
                     <v-list-item link :to="{name:'BlogsList'}" title="Blogs" color="primary" prepend-icon="mdi-post-outline"></v-list-item>
                     <v-list-item link :to="{name:'PoliciesList'}" title="Policies" color="primary" prepend-icon="mdi-file-sign"></v-list-item>
                 </v-list-group>
-
-                <v-spacer/>
-                <v-list-item v-if="isSuperAdmin" link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">
-                    <v-list-item-title>Plans</v-list-item-title>
-                </v-list-item>
                 <v-list-group value="loyalty" base-color="success">
                     <template v-slot:activator="{props}">
                         <v-list-item v-bind="props" prepend-icon="mdi-shield-star-outline" title="Loyalty Program"></v-list-item>
@@ -104,6 +99,11 @@
                     <v-list-item link :to="{name:'LoyaltyEarnActions'}" color="success" prepend-icon="mdi-qrcode-plus" title="Earn Actions"></v-list-item>
                     <v-list-item link :to="{name:'LoyaltyActionReviewQueue'}" color="success" prepend-icon="mdi-queue-first-in-last-out" title="Review Queue"></v-list-item>
                 </v-list-group>
+                <v-spacer/>
+                <v-list-item v-if="isSuperAdmin" link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">
+                    <v-list-item-title>Plans</v-list-item-title>
+                </v-list-item>
+
 
                 <v-list-item link :to="{name:'IntegrateList'}" color="primary" prepend-icon="mdi-apps" title="Integration">
                 </v-list-item>

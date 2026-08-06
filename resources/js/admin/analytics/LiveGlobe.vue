@@ -75,16 +75,28 @@ export default {
 
     beforeUnmount() {
         // Set this FIRST — any in-flight fetch() callback (loadLandData)
-        // checks this before touching the DOM, preventing the exact race
-        // that causes "insertBefore, parent is null": the fetch resolving
-        // after the container's already been torn down.
+        // checks this before touching the DOM.
         this._destroyed = true;
 
         window.removeEventListener('resize', this._resizeHandler);
 
-        // globe.gl doesn't expose an official teardown method; clearing the
-        // container's innerHTML releases the WebGL context and DOM nodes it
-        // created, avoiding a leak if this component mounts/unmounts repeatedly.
+        // CRITICAL ORDERING: pauseAnimation() must run BEFORE clearing the
+        // DOM, not after. globe.gl runs an internal requestAnimationFrame
+        // loop that also repositions the hover-tooltip label elements on
+        // every frame (via DOM insertBefore calls). If we clear innerHTML
+        // first, a frame that was already scheduled can still fire
+        // afterward and try to reposition a tooltip into a parent that no
+        // longer exists — that's the exact "insertBefore, e is null" error.
+        // pauseAnimation() stops that loop first, so no further frame runs
+        // at all once we proceed to actually remove the DOM nodes.
+        if (this.globeInstance && typeof this.globeInstance.pauseAnimation === 'function') {
+            this.globeInstance.pauseAnimation();
+        }
+
+        // globe.gl doesn't expose a full official teardown method; clearing
+        // the container's innerHTML (now safe, animation loop is stopped)
+        // releases the WebGL context and DOM nodes it created, avoiding a
+        // leak if this component mounts/unmounts repeatedly.
         if (this.$refs.container) {
             this.$refs.container.innerHTML = '';
         }
