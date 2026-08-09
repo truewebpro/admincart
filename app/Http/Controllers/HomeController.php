@@ -1856,15 +1856,20 @@ class HomeController extends Controller
         foreach ($cats as $cat){
             foreach ($cat->rules as $rule){
                 $coltype = $rule->column;
-                if($coltype === 'type'){
-                    $rule->condition = ProductType::where('shop_id','=',$shopId)
-                        ->where('product_type_id','=',$rule->condition)
-                        ->first()->product_type_name;
+                if ($rule->column === 'type') {
+                    $type = ProductType::where('shop_id', $shopId)
+                        ->where('product_type_id', $rule->condition)
+                        ->first();
+
+                    $rule->condition = $type?->product_type_name ?? 'Unknown Type';
                 }
-                if($coltype === 'vendor'){
-                    $rule->condition = Brand::where('shop_id','=',$shopId)
-                        ->where('brand_id','=',$rule->condition)
-                        ->first()->brand_name;
+
+                if ($rule->column === 'vendor') {
+                    $brand = Brand::where('shop_id', $shopId)
+                        ->where('brand_id', $rule->condition)
+                        ->first();
+
+                    $rule->condition = $brand?->brand_name ?? 'Unknown Brand';
                 }
             }
         }
