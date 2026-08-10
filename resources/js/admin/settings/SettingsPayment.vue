@@ -50,7 +50,7 @@
                                 <div>
                                     <div class="font-weight-medium">{{key.toUpperCase()}}</div>
                                     <v-radio-group v-if="key === 'environment'" v-model="formData[key]" inline hide-details>
-                                        <v-radio value="dev" label="Develoment" density="default" color="green"></v-radio>
+                                        <v-radio value="dev" label="Development" density="default" color="green"></v-radio>
                                         <v-radio value="prod" label="Production" density="default" color="red"></v-radio>
                                     </v-radio-group>
                                     <v-text-field v-model="formData[key]" v-if="key === 'company_name'" variant="outlined" density="compact" :rules="compRule" persistent-counter></v-text-field>
@@ -59,6 +59,9 @@
                                     <v-text-field v-model="formData[key]" v-if="key === 'sort_code'" variant="outlined" density="compact" :rules="sortcodeRule" counter="30" counter-value="30" persistent-counter></v-text-field>
                                     <v-text-field v-model="formData[key]" v-if="key === 'client_id'" variant="outlined" density="compact" :rules="cidRule" counter="100" counter-value="100" persistent-counter></v-text-field>
                                     <v-text-field v-model="formData[key]" v-if="key === 'publish_key'" variant="outlined" density="compact" :rules="cidRule" counter="100" counter-value="100" persistent-counter></v-text-field>
+                                    <v-text-field v-model="formData[key]" v-if="key === 'entity'" variant="outlined" density="compact" :rules="entityRule" counter="20" counter-value="20" persistent-counter></v-text-field>
+                                    <v-text-field v-model="formData[key]" v-if="key === 'username'" variant="outlined" density="compact" :rules="usernameRule" counter="50" counter-value="50" persistent-counter></v-text-field>
+                                    <v-text-field v-model="formData[key]" v-if="key === 'password'" variant="outlined" density="compact" :rules="passwordRule" counter="100" counter-value="100" persistent-counter></v-text-field>
                                     <v-text-field v-model="formData[key]" v-if="key === 'secret_key'" variant="outlined" density="compact" :rules="secretRule" counter persistent-counter></v-text-field>
                                     <v-text-field v-model="formData[key]" v-if="key === 'merchant_id'" variant="outlined" density="compact" :rules="merchantRule" counter persistent-counter></v-text-field>
                                     <v-text-field v-model="formData[key]" v-if="key === 'api_key'" variant="outlined" density="compact" :rules="apiRule" counter persistent-counter></v-text-field>
@@ -103,7 +106,15 @@
                                 <v-text-field label="Secret key" v-model="editedItem.payment_options.secret_key" variant="outlined"
                                               density="compact" :rules="secretRule"></v-text-field>
                             </div>
-                            <div v-if="editedItem.payment_method === 'world_pay' || editedItem.payment_method === 'credit_card' || editedItem.payment_method === 'others'">
+                            <div v-if="editedItem.payment_method === 'world_pay'">
+                                <v-text-field label="Entity" v-model="editedItem.payment_options.entity" variant="outlined"
+                                              density="compact" :rules="entityRule"></v-text-field>
+                                <v-text-field label="Client Username" v-model="editedItem.payment_options.username" variant="outlined"
+                                              density="compact" :rules="usernameRule"></v-text-field>
+                                <v-text-field label="Client Password" v-model="editedItem.payment_options.password" variant="outlined"
+                                              density="compact" :rules="passwordRule"></v-text-field>
+                            </div>
+                            <div v-if="editedItem.payment_method === 'credit_card' || editedItem.payment_method === 'others'">
                                 <v-text-field label="Merchant ID" v-model="editedItem.payment_options.merchant_id" variant="outlined"
                                               density="compact" :rules="merchantRule"></v-text-field>
                                 <v-text-field label="API key" v-model="editedItem.payment_options.api_key" variant="outlined"
@@ -192,8 +203,9 @@ export default {
                     handling_fee:"0.00",fee_type:"fixed",
                     payment_options:{
                         environment:'dev',
-                        merchant_id:'',
-                        api_key:'',
+                        entity:'',
+                        username:'',
+                        password:'',
                         note:'',
                         test_mode:true,
                     }},
@@ -261,6 +273,21 @@ export default {
                 (v) => !!v || "Merchant ID is required",
                 (v) => (v && v.length >= 4) || "Minimum 4 characters required",
                 (v) => (v && v.length <= 200) || "Maximum 100 characters allowed"
+            ],
+            entityRule:[
+                (v) => !!v || "Entity Start with PO is required",
+                (v) => (v && v.length >= 12) || "Minimum 12 with PO... characters required",
+                (v) => (v && v.length <= 20) || "Maximum 20 characters allowed"
+            ],
+            usernameRule:[
+                (v) => !!v || "Client Username is required",
+                (v) => (v && v.length >= 12) || "Minimum 12 characters required",
+                (v) => (v && v.length <= 59) || "Maximum 50 characters allowed"
+            ],
+            passwordRule:[
+                (v) => !!v || "Client Password is required",
+                (v) => (v && v.length >= 12) || "Minimum 12 characters required",
+                (v) => (v && v.length <= 100) || "Maximum 100 characters allowed"
             ],
             apiRule:[
                 (v) => !!v || "API key is required",

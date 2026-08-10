@@ -19,6 +19,7 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\SumupController;
 use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\VivaWebhookController;
+use App\Http\Controllers\WorldpayWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +44,7 @@ Route::post('/shop/vapeportwholesale/sendcloud/webhook',[SendcloudWebhookControl
 Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () {
     Route::get('/shop',[ShopController::class,'shopSetting']);
     Route::post('/sendcloud/webhook',[SendcloudWebhookController::class,'handleSendCloudWebHookEvents']);
+    Route::post('/worldpay/webhook',[WorldpayWebhookController::class,'handleWorldPayWebhook']);
     Route::get('/viva/gettoken',[VivaWebhookController::class,'getConfigToken']);
     Route::get('/viva/webhook/verify', [VivaWebhookController::class, 'verifyWebhook']);
     Route::post('/viva/webhook/verify',[VivaWebhookController::class,'handleWebhook']);
