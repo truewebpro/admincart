@@ -62,54 +62,58 @@
 
         <!-- Live visitors panel -->
         <v-col cols="12" md="3">
-            <v-card elevation="1" rounded="lg" class="pa-4 h-100">
-                <div class="d-flex align-center justify-space-between mb-4">
-                    <span class="text-body-2 font-weight-medium">Live visitors</span>
-                    <div class="d-flex align-center ga-2">
-                        <span class="text-h6 font-weight-bold">{{ liveCount }}</span>
-                        <v-icon icon="mdi-circle" :color="liveCount > 0 ? 'success' : 'grey'" size="10" />
-                    </div>
-                </div>
+            <LiveNowWidget/>
+<!--            <v-card elevation="1" rounded="lg" class="pa-4 h-100">-->
+<!--                <div class="d-flex align-center justify-space-between mb-4">-->
+<!--                    <span class="text-body-2 font-weight-medium">Live visitors</span>-->
+<!--                    <div class="d-flex align-center ga-2">-->
+<!--                        <span class="text-h6 font-weight-bold">{{ liveCount }}</span>-->
+<!--                        <v-icon icon="mdi-circle" :color="liveCount > 0 ? 'success' : 'grey'" size="10" />-->
+<!--                    </div>-->
+<!--                </div>-->
 
-                <v-list density="compact" lines="two" class="pa-0">
-                    <v-list-item
-                        v-for="visitor in recentVisitors"
-                        :key="visitor.session_id"
-                        class="px-0"
-                    >
-                        <template #prepend>
-                            <v-icon icon="mdi-circle" color="success" size="8" class="mr-2" />
-                        </template>
-                        <v-list-item-title class="text-body-2">
-                            {{ visitor.current_path || 'Unknown page' }}
-                        </v-list-item-title>
-                        <v-list-item-subtitle class="text-caption">
-                            Page view · {{ formatTime(visitor.last_seen_at) }}
-                        </v-list-item-subtitle>
-                    </v-list-item>
+<!--                <v-list density="compact" lines="two" class="pa-0">-->
+<!--                    <v-list-item-->
+<!--                        v-for="visitor in recentVisitors"-->
+<!--                        :key="visitor.session_id"-->
+<!--                        class="px-0"-->
+<!--                    >-->
+<!--                        <template #prepend>-->
+<!--                            <v-icon icon="mdi-circle" color="success" size="8" class="mr-2" />-->
+<!--                        </template>-->
+<!--                        <v-list-item-title class="text-body-2">-->
+<!--                            {{ visitor.current_path || 'Unknown page' }}-->
+<!--                        </v-list-item-title>-->
+<!--                        <v-list-item-subtitle class="text-caption">-->
+<!--                            Page view · {{ formatTime(visitor.last_seen_at) }}-->
+<!--                        </v-list-item-subtitle>-->
+<!--                    </v-list-item>-->
 
-                    <v-list-item v-if="!recentVisitors.length" class="px-0">
-                        <v-list-item-title class="text-body-2 text-medium-emphasis">
-                            No live visitors right now
-                        </v-list-item-title>
-                    </v-list-item>
-                </v-list>
+<!--                    <v-list-item v-if="!recentVisitors.length" class="px-0">-->
+<!--                        <v-list-item-title class="text-body-2 text-medium-emphasis">-->
+<!--                            No live visitors right now-->
+<!--                        </v-list-item-title>-->
+<!--                    </v-list-item>-->
+<!--                </v-list>-->
 
-                <div class="text-caption text-medium-emphasis mt-2">
-                    City-level location requires IP geolocation — not wired up yet.
-                    This list shows page + time only for now.
-                </div>
-            </v-card>
+<!--                <div class="text-caption text-medium-emphasis mt-2">-->
+<!--                    City-level location requires IP geolocation — not wired up yet.-->
+<!--                    This list shows page + time only for now.-->
+<!--                </div>-->
+<!--            </v-card>-->
         </v-col>
     </v-row>
 </template>
 
 <script>
 
+import LiveNowWidget from "@/admin/analytics/LiveNowWidget.vue";
+
 const LIVE_POLL_INTERVAL_MS = 15000;
 
 export default {
   name: 'ShopifyStyleOverview',
+    components: {LiveNowWidget},
 
   data() {
     return {
