@@ -10,8 +10,8 @@
             <v-list density="compact" nav color="primary"
                     class="fw-bold d-flex flex-column fill-height overflow-y-auto"
                     activeClass="bg-blue-lighten-5">
-                <v-list-item base-color="dark" :prepend-avatar="cdn+'trpng.png'">
-                    <v-list-item-title>Truewebcart</v-list-item-title>
+                <v-list-item base-color="dark" :prepend-avatar="cdn+this.$store.state.shop.shop_slug+'/favicon.ico'">
+                    <v-list-item-title><span v-if="this.$store.state.shop">{{this.$store.state.shop.shop_name}}</span></v-list-item-title>
                 </v-list-item>
                 <v-divider></v-divider>
                 <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperAdminDashboard'}" prepend-icon="mdi-view-dashboard-outline">
@@ -242,6 +242,11 @@ export default {
 </script>
 
 <style>
+.section-card {
+    border: 1px solid #e1e3e6 !important;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.04) !important;
+    border-radius: 8px !important;
+}
 .v-list-group__items {
     --indent-padding: -6px !important;
 }

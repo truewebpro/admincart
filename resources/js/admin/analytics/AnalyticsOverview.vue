@@ -1,6 +1,6 @@
 <template>
     <v-container class="pa-1">
-        <v-row class="mb-1 mt-2" align="center">
+        <v-row class="mt-2" align="center">
             <v-col cols="12" md="6">
                 <h2 class="text-h4 font-weight-bold">Dashboard</h2>
             </v-col>
@@ -33,20 +33,22 @@
         </v-row>
         <v-row align="end">
             <v-col cols="12" md="8">
-                <v-card class="position-relative overflow-visible elevation-2 rounded-lg h-100">
+                <v-card class="section-card position-relative overflow-visible elevation-2 rounded-lg h-100">
                     <v-card-text>
                         <div class="d-flex">
                             <div class="w-75 d-flex flex-column justify-space-between">
-                                <div class="text-h5 text-md-h4">Welcome <span class="font-weight-bold">{{suser.name}} {{$store.getters.currentShopName}} 🎉</span></div>
-                                <p class="text-body-1 mt-3">
-                                    Have done 😎 more sales? Check your new raising badge in your profile.
-                                </p>
-                                <p class="text-body-1 mt-1 font-weight-medium">
-                                    {{dayjs(from).format('D MMM, YYYY')}} to {{dayjs(to).format('D MMM, YYYY')}}
+                                <div class="text-h5 text-md-h4">Welcome <span class="font-weight-bold">{{suser.name}} 🎉</span></div>
+                                <p class="text-body-1 mt-3 font-weight-medium">
+                                    Let’s continue growing your business !
                                 </p>
                             </div>
                             <div class="position-absolute bottom-0 right-0">
-                                <v-img width="225"
+                                <v-img
+                                    v-if="this.$store.state.shop.shop_slug"
+                                    class="spin180"
+                                    width="100"
+                                    :src="cdn+this.$store.state.shop.shop_slug+'/favicon.ico'"></v-img>
+                                <v-img v-else width="225"
                                        src="https://demos.themeselection.com/materio-vuetify-vuejs-admin-template/demo-1/assets/illustration-john-2-DCqPs8R_.png"/>
                             </div>
                         </div>
@@ -54,7 +56,7 @@
                 </v-card>
             </v-col>
             <v-col cols="12" md="4">
-                <v-card :loading="loadingOverview" elevation="2" rounded="lg">
+                <v-card :loading="loadingOverview" elevation="2" rounded="lg" class="section-card">
                     <v-card-item
                         title="Products & Users"
                         subtitle="Total Growth 😎 this store "
@@ -383,3 +385,17 @@ export default {
     },
 };
 </script>
+<style scoped>
+.section-card { border: 1px solid #e1e3e6; box-shadow: 0 1px 2px rgba(16,24,40,0.04); border-radius: 8px; }
+.spin180 {
+    animation: spin180 5s ease-in-out infinite;
+}
+@keyframes spin180 {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+</style>

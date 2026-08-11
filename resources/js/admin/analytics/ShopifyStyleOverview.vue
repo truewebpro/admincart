@@ -1,7 +1,7 @@
 <template>
     <v-row>
         <v-col cols="12" md="9">
-            <v-card elevation="1" rounded="lg" class="pa-4">
+            <v-card elevation="1" rounded="lg" class="pa-4 section-card">
                 <!-- Stat pill row -->
                 <v-row class="d-flex align-center flex-wrap mb-6">
                     <v-col cols="6" md="3"

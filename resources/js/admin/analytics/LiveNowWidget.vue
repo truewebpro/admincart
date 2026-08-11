@@ -1,5 +1,5 @@
 <template>
-    <v-card elevation="2">
+    <v-card elevation="2" class="h-100 overflow-y-scroll section-card" max-height="461">
         <v-card-item title="Live Now">
             <template #append>
                 <v-icon icon="mdi-circle" color="success" size="16" class="mr-2" />

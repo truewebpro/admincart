@@ -11,7 +11,7 @@
     <!-- Stat cards -->
     <v-row>
       <v-col v-for="card in statCards" :key="card.key" cols="12" sm="3">
-        <v-card elevation="1" rounded="lg" class="pa-4" :loading="loadingCards">
+        <v-card rounded="lg" class="pa-4 section-card" :loading="loadingCards">
           <div class="text-caption text-medium-emphasis text-decoration-underline">{{ card.label }}</div>
           <div class="d-flex align-center justify-space-between mt-1">
             <div>
@@ -27,9 +27,9 @@
     </v-row>
 
     <!-- Total sales over time + breakdown -->
-    <v-row class="mt-2">
+    <v-row class="mt-2" align="stretch">
       <v-col cols="12" md="8">
-        <v-card elevation="1" rounded="lg" class="pa-4">
+        <v-card elevation="1" rounded="lg" class="pa-4 section-card">
           <div class="text-subtitle-2 text-decoration-underline mb-2">Total sales over time</div>
           <div class="d-flex align-center ga-2 mb-2">
             <span class="text-h5 font-weight-bold">{{ formatCurrency(totalSales.current_total) }}</span>
@@ -44,7 +44,7 @@
       </v-col>
 
       <v-col cols="12" md="4">
-        <v-card elevation="1" rounded="lg" class="pa-4">
+        <v-card elevation="1" rounded="lg" class="pa-4 h-100 section-card">
           <div class="text-subtitle-2 text-decoration-underline mb-3">Total sales breakdown</div>
           <div v-for="(row, key) in breakdown" :key="key" class="breakdown-row">
             <span :class="key === 'total_sales' ? 'font-weight-bold' : 'text-primary'">{{ breakdownLabels[key] }}</span>
@@ -63,7 +63,7 @@
     <!-- Channel donut, AOV, sales by product -->
     <v-row class="mt-2" align="stretch">
       <v-col cols="12" md="3">
-        <v-card elevation="1" rounded="lg" class="pa-4">
+        <v-card elevation="1" rounded="lg" class="pa-4 section-card">
           <div class="text-subtitle-2 text-decoration-underline mb-2">Total sales by sales channel</div>
           <div class="d-flex flex-column align-center ga-3 mt-3">
             <apexchart type="donut" width="180" height="180" :options="channelDonutOptions" :series="channelSeries" />
@@ -75,14 +75,14 @@
       </v-col>
 
       <v-col cols="12" md="4">
-        <v-card elevation="1" rounded="lg" class="pa-4">
+        <v-card elevation="1" rounded="lg" class="pa-4 section-card">
           <div class="text-subtitle-2 text-decoration-underline mb-2">Average order value over time</div>
           <apexchart type="line" height="200" :options="aovChartOptions" :series="aovChartSeries" />
         </v-card>
       </v-col>
 
       <v-col cols="12" md="5">
-        <v-card elevation="1" rounded="lg" class="pa-4 h-100">
+        <v-card elevation="1" rounded="lg" class="pa-4 h-100 section-card">
           <div class="text-subtitle-2 text-decoration-underline mb-2">Total sales by product</div>
           <dual-bar-comparison-list :items="productItems" value-format="currency" />
         </v-card>
