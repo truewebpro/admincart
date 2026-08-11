@@ -31,21 +31,24 @@
 <!--                />-->
             </v-col>
         </v-row>
-        <v-row align="end">
+        <v-row align="stretch">
             <v-col cols="12" md="8">
                 <v-card class="section-card position-relative overflow-visible elevation-2 rounded-lg h-100">
                     <v-card-text>
                         <div class="d-flex">
                             <div class="w-75 d-flex flex-column justify-space-between">
                                 <div class="text-h5 text-md-h4">Welcome <span class="font-weight-bold">{{suser.name}} 🎉</span></div>
-                                <p class="text-body-1 mt-3 font-weight-medium">
+                                <p class="text-h6 mt-3 font-weight-medium">
                                     Let’s continue growing your business !
+                                </p>
+                                <p class="text-body-1 font-weight-medium mt-2">
+                                    Track your store performance with daily sales, revenue, traffic and order insights.
                                 </p>
                             </div>
                             <div class="position-absolute bottom-0 right-0">
                                 <v-img
                                     v-if="this.$store.state.shop.shop_slug"
-                                    class="spin180"
+                                    class="spin"
                                     width="100"
                                     :src="cdn+this.$store.state.shop.shop_slug+'/favicon.ico'"></v-img>
                                 <v-img v-else width="225"

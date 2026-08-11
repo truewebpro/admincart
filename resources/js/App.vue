@@ -11,7 +11,9 @@
                     class="fw-bold d-flex flex-column fill-height overflow-y-auto"
                     activeClass="bg-blue-lighten-5">
                 <v-list-item base-color="dark" :prepend-avatar="cdn+this.$store.state.shop.shop_slug+'/favicon.ico'">
-                    <v-list-item-title><span v-if="this.$store.state.shop">{{this.$store.state.shop.shop_name}}</span></v-list-item-title>
+                    <v-list-item-title>
+                        <v-img width="100" height="25" :src="cdn+this.$store.state.shop.shop_slug+'/logo.png'"></v-img>
+                    </v-list-item-title>
                 </v-list-item>
                 <v-divider></v-divider>
                 <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperAdminDashboard'}" prepend-icon="mdi-view-dashboard-outline">
