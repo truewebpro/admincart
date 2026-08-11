@@ -1,7 +1,7 @@
 <template>
   <v-container>
       <v-row>
-          <v-col cols="12" md="4" style="max-height: 90vh; overflow-y: auto;">
+          <v-col cols="12" md="5" style="max-height: 90vh; overflow-y: auto;">
               <div class="d-flex align-center mb-3">
                   <v-icon icon="mdi-earth" class="mr-2" />
                   <span class="text-h6 font-weight-bold">Live View</span>
@@ -55,7 +55,7 @@
               </v-card>
           </v-col>
 
-          <v-col cols="12" md="8">
+          <v-col cols="12" md="7">
               <live-globe :visitors="liveVisitors" style="height: 90vh;" />
           </v-col>
       </v-row>

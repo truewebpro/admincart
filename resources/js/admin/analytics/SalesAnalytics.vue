@@ -1,6 +1,6 @@
 <template>
-  <v-container>
-    <v-row class="mb-2" align="center">
+  <div>
+    <v-row class="mt-4" align="center">
       <v-col cols="12" md="6"><h2 class="text-h5 font-weight-bold">Sales</h2></v-col>
       <v-col cols="12" md="6" class="d-flex justify-end">
         <v-text-field v-model="from" type="date" label="From" density="compact" variant="outlined" hide-details style="max-width:160px" class="mr-2" @update:model-value="fetchAll" />
@@ -61,7 +61,7 @@
     </v-row>
 
     <!-- Channel donut, AOV, sales by product -->
-    <v-row class="mt-2">
+    <v-row class="mt-2" align="stretch">
       <v-col cols="12" md="3">
         <v-card elevation="1" rounded="lg" class="pa-4">
           <div class="text-subtitle-2 text-decoration-underline mb-2">Total sales by sales channel</div>
@@ -82,13 +82,13 @@
       </v-col>
 
       <v-col cols="12" md="5">
-        <v-card elevation="1" rounded="lg" class="pa-4">
+        <v-card elevation="1" rounded="lg" class="pa-4 h-100">
           <div class="text-subtitle-2 text-decoration-underline mb-2">Total sales by product</div>
           <dual-bar-comparison-list :items="productItems" value-format="currency" />
         </v-card>
       </v-col>
     </v-row>
-  </v-container>
+  </div>
 </template>
 
 <script>

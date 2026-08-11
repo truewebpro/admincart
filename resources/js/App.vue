@@ -69,12 +69,11 @@
                             </template>
                         </v-list-item>
                     </template>
-                    <v-list-item link :to="{name:'AnalyticsTraffic'}" prepend-icon="mdi-chart-timeline" title="Traffic"></v-list-item>
-                    <v-list-item link :to="{name:'SalesAnalytics'}" prepend-icon="mdi-chart-bell-curve" title="Sales"></v-list-item>
-                    <v-list-item link :to="{name:'SessionsAnalytics'}" prepend-icon="mdi-chart-timeline-variant-shimmer" title="Sessions"></v-list-item>
-                    <v-list-item link :to="{name:'ShopifyStyleOverview'}" prepend-icon="mdi-chart-bar-stacked"  title="Overview"></v-list-item>
-                    <v-list-item link :to="{name:'ReferrerProductAnalytics'}" prepend-icon="mdi-chart-box-outline"  title="Products"></v-list-item>
                     <v-list-item link :to="{name:'LiveViewPage'}" prepend-icon="mdi-timer-marker-outline"  title="Live View"></v-list-item>
+                    <v-list-item link :to="{name:'AnalyticsTraffic'}" prepend-icon="mdi-chart-timeline" title="Traffic & Cart"></v-list-item>
+                    <v-list-item link :to="{name:'SessionsAnalytics'}" prepend-icon="mdi-chart-timeline-variant-shimmer" title="Sessions"></v-list-item>
+                    <v-list-item link :to="{name:'ReferrerProductAnalytics'}" prepend-icon="mdi-chart-box-outline"  title="Referrers"></v-list-item>
+
                     <v-list-item link :to="{name:'AnalyticsOrders'}" color="primary" prepend-icon="mdi-finance" title="Customers"></v-list-item>
                 </v-list-group>
                 <v-list-group value="themes">

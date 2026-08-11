@@ -75,6 +75,7 @@
                 </v-card>
             </v-col>
         </v-row>
+        <CartConversionFunnel :to="to" :from="from"/>
     </v-container>
 </template>
 
@@ -82,10 +83,11 @@
 
 import LiveNowWidget from "@/admin/analytics/LiveNowWidget.vue";
 import TrafficBreakdownDonut from "@/admin/analytics/TrafficBreakdownDonut.vue";
+import CartConversionFunnel from "@/admin/analytics/CartConversionFunnel.vue";
 
 export default {
     name: 'AnalyticsTraffic',
-    components: {TrafficBreakdownDonut, LiveNowWidget },
+    components: {CartConversionFunnel, TrafficBreakdownDonut, LiveNowWidget },
     data() {
         const today = new Date();
         const thirtyDaysAgo = new Date();

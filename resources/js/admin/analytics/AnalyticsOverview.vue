@@ -5,30 +5,30 @@
                 <h2 class="text-h4 font-weight-bold">Dashboard</h2>
             </v-col>
             <v-col cols="12" md="6" class="d-flex ga-2 justify-start justify-lg-end">
-                <v-date-input
-                    v-model="from"
-                    label="From"
-                    density="compact"
-                    variant="underlined"
-                    hide-details
-                    max-width="220"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    input-format="dd-mm-yyyy"
-                    @update:model-value="fetchAll"
-                />
-                <v-date-input
-                    v-model="to"
-                    label="To"
-                    density="compact"
-                    variant="underlined"
-                    hide-details
-                    max-width="220"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    input-format="dd-mm-yyyy"
-                    @update:model-value="fetchAll"
-                />
+<!--                <v-date-input-->
+<!--                    v-model="from"-->
+<!--                    label="From"-->
+<!--                    density="compact"-->
+<!--                    variant="underlined"-->
+<!--                    hide-details-->
+<!--                    max-width="220"-->
+<!--                    prepend-icon=""-->
+<!--                    prepend-inner-icon="mdi-calendar"-->
+<!--                    input-format="dd-mm-yyyy"-->
+<!--                    @update:model-value="fetchAll"-->
+<!--                />-->
+<!--                <v-date-input-->
+<!--                    v-model="to"-->
+<!--                    label="To"-->
+<!--                    density="compact"-->
+<!--                    variant="underlined"-->
+<!--                    hide-details-->
+<!--                    max-width="220"-->
+<!--                    prepend-icon=""-->
+<!--                    prepend-inner-icon="mdi-calendar"-->
+<!--                    input-format="dd-mm-yyyy"-->
+<!--                    @update:model-value="fetchAll"-->
+<!--                />-->
             </v-col>
         </v-row>
         <v-row align="end">
@@ -85,140 +85,146 @@
             </v-col>
         </v-row>
         <v-row>
-            <v-col cols="12" sm="4">
-                <v-card :loading="loadingOverview" elevation="2" rounded="lg">
-                    <v-card-item
-                        title="Revenue"
-                        append-icon="mdi-chart-bar">
-                    </v-card-item>
-                    <v-card-text>
-                        <div class="text-caption text-medium-emphasis">
-                            {{dayjs(from).format('D MMM, YYYY')}} to {{dayjs(to).format('D MMM, YYYY')}}
-                        </div>
-                        <div class="text-h5 font-weight-bold mt-1">
-                            {{ formatCurrency(overview?.current?.revenue) }}
-                        </div>
-                        <v-chip
-                            v-if="overview"
-                            :color="changeColor(overview.change.revenue)"
-                            size="small"
-                            class="mt-2"
-                            variant="elevated"
-                        >
-                            {{ formatChange(overview.change.revenue) }} vs previous period
-                        </v-chip>
-                    </v-card-text>
-                </v-card>
+            <v-col cols="12" md="12">
+                <ShopifyStyleOverview/>
             </v-col>
+        </v-row>
+        <SalesAnalytics/>
+<!--        <v-row>-->
+<!--            <v-col cols="12" sm="4">-->
+<!--                <v-card :loading="loadingOverview" elevation="2" rounded="lg">-->
+<!--                    <v-card-item-->
+<!--                        title="Revenue"-->
+<!--                        append-icon="mdi-chart-bar">-->
+<!--                    </v-card-item>-->
+<!--                    <v-card-text>-->
+<!--                        <div class="text-caption text-medium-emphasis">-->
+<!--                            {{dayjs(from).format('D MMM, YYYY')}} to {{dayjs(to).format('D MMM, YYYY')}}-->
+<!--                        </div>-->
+<!--                        <div class="text-h5 font-weight-bold mt-1">-->
+<!--                            {{ formatCurrency(overview?.current?.revenue) }}-->
+<!--                        </div>-->
+<!--                        <v-chip-->
+<!--                            v-if="overview"-->
+<!--                            :color="changeColor(overview.change.revenue)"-->
+<!--                            size="small"-->
+<!--                            class="mt-2"-->
+<!--                            variant="elevated"-->
+<!--                        >-->
+<!--                            {{ formatChange(overview.change.revenue) }} vs previous period-->
+<!--                        </v-chip>-->
+<!--                    </v-card-text>-->
+<!--                </v-card>-->
+<!--            </v-col>-->
 
-            <v-col cols="12" sm="4">
-                <v-card :loading="loadingOverview" elevation="2" rounded="lg">
-                    <v-card-item
-                        title="Orders"
-                        append-icon="mdi-truck-fast-outline">
-                    </v-card-item>
-                    <v-card-text>
-                        <div class="text-caption text-medium-emphasis">
-                            {{dayjs(from).format('D MMM, YYYY')}} to {{dayjs(to).format('D MMM, YYYY')}}
-                        </div>
-                        <div class="text-h5 font-weight-bold mt-1">
-                            {{ overview?.current?.order_count ?? '—' }}
-                        </div>
-                        <v-chip
-                            v-if="overview"
-                            :color="changeColor(overview.change.orders)"
-                            size="small"
-                            class="mt-2"
-                            variant="elevated"
-                        >
-                            {{ formatChange(overview.change.orders) }} vs previous period
-                        </v-chip>
-                    </v-card-text>
-                </v-card>
-            </v-col>
+<!--            <v-col cols="12" sm="4">-->
+<!--                <v-card :loading="loadingOverview" elevation="2" rounded="lg">-->
+<!--                    <v-card-item-->
+<!--                        title="Orders"-->
+<!--                        append-icon="mdi-truck-fast-outline">-->
+<!--                    </v-card-item>-->
+<!--                    <v-card-text>-->
+<!--                        <div class="text-caption text-medium-emphasis">-->
+<!--                            {{dayjs(from).format('D MMM, YYYY')}} to {{dayjs(to).format('D MMM, YYYY')}}-->
+<!--                        </div>-->
+<!--                        <div class="text-h5 font-weight-bold mt-1">-->
+<!--                            {{ overview?.current?.order_count ?? '—' }}-->
+<!--                        </div>-->
+<!--                        <v-chip-->
+<!--                            v-if="overview"-->
+<!--                            :color="changeColor(overview.change.orders)"-->
+<!--                            size="small"-->
+<!--                            class="mt-2"-->
+<!--                            variant="elevated"-->
+<!--                        >-->
+<!--                            {{ formatChange(overview.change.orders) }} vs previous period-->
+<!--                        </v-chip>-->
+<!--                    </v-card-text>-->
+<!--                </v-card>-->
+<!--            </v-col>-->
 
-            <v-col cols="12" sm="4">
-                <v-card :loading="loadingOverview" elevation="2" rounded="lg">
-                    <v-card-item
-                        title="Avg. Order Value"
-                        append-icon="mdi-sale-outline">
-                    </v-card-item>
-                    <v-card-text>
-                        <div class="text-caption text-medium-emphasis">
-                            {{dayjs(from).format('D MMM, YYYY')}} to {{dayjs(to).format('D MMM, YYYY')}}
-                        </div>
-                        <div class="text-h5 font-weight-bold mt-1">
-                            {{ formatCurrency(overview?.current?.avg_order_value) }}
-                        </div>
-                        <v-chip
-                            v-if="overview"
-                            :color="changeColor(overview.change.aov)"
-                            size="small"
-                            class="mt-2"
-                            variant="elevated"
-                        >
-                            {{ formatChange(overview.change.aov) }} vs previous period
-                        </v-chip>
-                    </v-card-text>
-                </v-card>
-            </v-col>
-        </v-row>
-        <v-row class="mt-2">
-            <v-col cols="12">
-                <v-card elevation="2" rounded="lg">
-                    <v-card-item
-                        title="Revenue trend"
-                        subtitle="Trend day basis as select"
-                        append-icon="mdi-finance">
-                    </v-card-item>
-                    <v-card-text>
-                        <v-progress-linear v-show="loadingTrend" indeterminate class="mb-3" />
-                        <apexchart
-                            v-show="!loadingTrend"
-                            type="area"
-                            height="300"
-                            :options="chartOptions"
-                            :series="chartSeries"
-                        />
-                    </v-card-text>
-                </v-card>
-            </v-col>
-        </v-row>
-        <v-row class="mt-2 mb-2">
-            <v-col cols="12">
-                <v-card elevation="2" rounded="lg">
-                    <v-card-item title="Top Products">
-                        <template #append>
-                            <v-btn-toggle color="success" v-model="topProductsSort" density="compact" mandatory @update:model-value="fetchTopProducts">
-                                <v-btn value="revenue" size="small">By Revenue</v-btn>
-                                <v-btn value="quantity" size="small">By Quantity</v-btn>
-                            </v-btn-toggle>
-                        </template>
-                    </v-card-item>
-                    <v-data-table
-                        :headers="topProductsHeaders"
-                        :items="topProducts"
-                        :loading="loadingTopProducts"
-                        :items-per-page="10"
-                        density="default"
-                    >
-                        <template #item.total_revenue="{ item }">
-                            {{ formatCurrency(item.total_revenue) }}
-                        </template>
-                    </v-data-table>
-                </v-card>
-            </v-col>
-        </v-row>
-        <CartConversionFunnel :to="to" :from="from"/>
+<!--            <v-col cols="12" sm="4">-->
+<!--                <v-card :loading="loadingOverview" elevation="2" rounded="lg">-->
+<!--                    <v-card-item-->
+<!--                        title="Avg. Order Value"-->
+<!--                        append-icon="mdi-sale-outline">-->
+<!--                    </v-card-item>-->
+<!--                    <v-card-text>-->
+<!--                        <div class="text-caption text-medium-emphasis">-->
+<!--                            {{dayjs(from).format('D MMM, YYYY')}} to {{dayjs(to).format('D MMM, YYYY')}}-->
+<!--                        </div>-->
+<!--                        <div class="text-h5 font-weight-bold mt-1">-->
+<!--                            {{ formatCurrency(overview?.current?.avg_order_value) }}-->
+<!--                        </div>-->
+<!--                        <v-chip-->
+<!--                            v-if="overview"-->
+<!--                            :color="changeColor(overview.change.aov)"-->
+<!--                            size="small"-->
+<!--                            class="mt-2"-->
+<!--                            variant="elevated"-->
+<!--                        >-->
+<!--                            {{ formatChange(overview.change.aov) }} vs previous period-->
+<!--                        </v-chip>-->
+<!--                    </v-card-text>-->
+<!--                </v-card>-->
+<!--            </v-col>-->
+<!--        </v-row>-->
+<!--        <v-row class="mt-2">-->
+<!--            <v-col cols="12">-->
+<!--                <v-card elevation="2" rounded="lg">-->
+<!--                    <v-card-item-->
+<!--                        title="Revenue trend"-->
+<!--                        subtitle="Trend day basis as select"-->
+<!--                        append-icon="mdi-finance">-->
+<!--                    </v-card-item>-->
+<!--                    <v-card-text>-->
+<!--                        <v-progress-linear v-show="loadingTrend" indeterminate class="mb-3" />-->
+<!--                        <apexchart-->
+<!--                            v-show="!loadingTrend"-->
+<!--                            type="area"-->
+<!--                            height="300"-->
+<!--                            :options="chartOptions"-->
+<!--                            :series="chartSeries"-->
+<!--                        />-->
+<!--                    </v-card-text>-->
+<!--                </v-card>-->
+<!--            </v-col>-->
+<!--        </v-row>-->
+<!--        <v-row class="mt-2 mb-2">-->
+<!--            <v-col cols="12">-->
+<!--                <v-card elevation="2" rounded="lg">-->
+<!--                    <v-card-item title="Top Products">-->
+<!--                        <template #append>-->
+<!--                            <v-btn-toggle color="success" v-model="topProductsSort" density="compact" mandatory @update:model-value="fetchTopProducts">-->
+<!--                                <v-btn value="revenue" size="small">By Revenue</v-btn>-->
+<!--                                <v-btn value="quantity" size="small">By Quantity</v-btn>-->
+<!--                            </v-btn-toggle>-->
+<!--                        </template>-->
+<!--                    </v-card-item>-->
+<!--                    <v-data-table-->
+<!--                        :headers="topProductsHeaders"-->
+<!--                        :items="topProducts"-->
+<!--                        :loading="loadingTopProducts"-->
+<!--                        :items-per-page="10"-->
+<!--                        density="default"-->
+<!--                    >-->
+<!--                        <template #item.total_revenue="{ item }">-->
+<!--                            {{ formatCurrency(item.total_revenue) }}-->
+<!--                        </template>-->
+<!--                    </v-data-table>-->
+<!--                </v-card>-->
+<!--            </v-col>-->
+<!--        </v-row>-->
     </v-container>
 </template>
 <script>
 import {VDateInput} from "vuetify/labs/VDateInput";
 import dayjs from "dayjs";
-import CartConversionFunnel from "@/admin/analytics/CartConversionFunnel.vue";
+import ShopifyStyleOverview from "@/admin/analytics/ShopifyStyleOverview.vue";
+import SalesAnalytics from "@/admin/analytics/SalesAnalytics.vue";
 export default {
     name: "AnalyticsOverview",
-    components: {CartConversionFunnel, VDateInput},
+    components: {SalesAnalytics, ShopifyStyleOverview, VDateInput},
     data() {
         const today = new Date();
         const thirtyDaysAgo = new Date();

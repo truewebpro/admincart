@@ -1,109 +1,107 @@
 <template>
-  <v-container>
-      <v-row>
-          <v-col cols="12" md="9">
-              <v-card elevation="1" rounded="lg" class="pa-4">
-                  <!-- Stat pill row -->
-                  <v-row class="d-flex align-center flex-wrap mb-6">
-                      <v-col cols="6" md="3"
-                          v-for="stat in statPills"
-                          :key="stat.key"
-                          class="stat-pill"
-                          :class="{ 'stat-pill--active': activeStat === stat.key }"
-                          @click="activeStat = stat.key"
-                      >
-                          <div class="text-caption text-medium-emphasis">{{ stat.label }}</div>
-                          <div class="d-flex align-center ga-2 mt-1">
-                              <span class="text-h6 font-weight-bold">{{ stat.formattedValue }}</span>
-                              <v-chip
-                                  v-if="stat.change !== null"
-                                  :color="stat.change >= 0 ? 'success' : 'error'"
-                                  size="x-small"
-                                  variant="flat"
-                                  class="font-weight-bold"
-                              >
-                                  <v-icon
-                                      :icon="stat.change >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'"
-                                      size="12"
-                                      class="mr-1"
-                                  />
-                                  {{ stat.change >= 0 ? '+' : '' }}{{ stat.change }}%
-                              </v-chip>
-                          </div>
-                      </v-col>
-                  </v-row>
+    <v-row>
+        <v-col cols="12" md="9">
+            <v-card elevation="1" rounded="lg" class="pa-4">
+                <!-- Stat pill row -->
+                <v-row class="d-flex align-center flex-wrap mb-6">
+                    <v-col cols="6" md="3"
+                           v-for="stat in statPills"
+                           :key="stat.key"
+                           class="stat-pill"
+                           :class="{ 'stat-pill--active': activeStat === stat.key }"
+                           @click="activeStat = stat.key"
+                    >
+                        <div class="text-caption text-medium-emphasis">{{ stat.label }}</div>
+                        <div class="d-flex align-center ga-2 mt-1">
+                            <span class="text-h6 font-weight-bold">{{ stat.formattedValue }}</span>
+                            <v-chip
+                                v-if="stat.change !== null"
+                                :color="stat.change >= 0 ? 'success' : 'error'"
+                                size="x-small"
+                                variant="flat"
+                                class="font-weight-bold"
+                            >
+                                <v-icon
+                                    :icon="stat.change >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'"
+                                    size="12"
+                                    class="mr-1"
+                                />
+                                {{ stat.change >= 0 ? '+' : '' }}{{ stat.change }}%
+                            </v-chip>
+                        </div>
+                    </v-col>
+                </v-row>
 
-                  <!-- Chart -->
-                  <div class="text-body-2 text-medium-emphasis mb-1">
-                      {{ activeStatLabel }} over time
-                  </div>
-                  <div class="d-flex align-center ga-2 mb-2">
-                      <span class="text-h4 font-weight-bold">{{ activePillValue }}</span>
-                      <v-chip
-                          v-if="activePillChange !== null"
-                          :color="activePillChange >= 0 ? 'success' : 'error'"
-                          size="small"
-                          variant="text"
-                          class="font-weight-bold pa-0"
-                      >
-                          {{ activePillChange >= 0 ? '↗' : '↘' }} {{ Math.abs(activePillChange) }}%
-                      </v-chip>
-                  </div>
+                <!-- Chart -->
+                <div class="text-body-2 text-medium-emphasis mb-1">
+                    {{ activeStatLabel }} over time
+                </div>
+                <div class="d-flex align-center ga-2 mb-2">
+                    <span class="text-h4 font-weight-bold">{{ activePillValue }}</span>
+                    <v-chip
+                        v-if="activePillChange !== null"
+                        :color="activePillChange >= 0 ? 'success' : 'error'"
+                        size="small"
+                        variant="text"
+                        class="font-weight-bold pa-0"
+                    >
+                        {{ activePillChange >= 0 ? '↗' : '↘' }} {{ Math.abs(activePillChange) }}%
+                    </v-chip>
+                </div>
 
-                  <v-progress-linear v-show="loadingChart" indeterminate class="mb-4" />
-                  <apexchart
-                      v-show="!loadingChart"
-                      type="line"
-                      height="280"
-                      :options="chartOptions"
-                      :series="chartSeries"
-                  />
-              </v-card>
-          </v-col>
+                <v-progress-linear v-show="loadingChart" indeterminate class="mb-4" />
+                <apexchart
+                    v-show="!loadingChart"
+                    type="line"
+                    height="280"
+                    :options="chartOptions"
+                    :series="chartSeries"
+                />
+            </v-card>
+        </v-col>
 
-          <!-- Live visitors panel -->
-          <v-col cols="12" md="3">
-              <v-card elevation="1" rounded="lg" class="pa-4 h-100">
-                  <div class="d-flex align-center justify-space-between mb-4">
-                      <span class="text-body-2 font-weight-medium">Live visitors</span>
-                      <div class="d-flex align-center ga-2">
-                          <span class="text-h6 font-weight-bold">{{ liveCount }}</span>
-                          <v-icon icon="mdi-circle" :color="liveCount > 0 ? 'success' : 'grey'" size="10" />
-                      </div>
-                  </div>
+        <!-- Live visitors panel -->
+        <v-col cols="12" md="3">
+            <v-card elevation="1" rounded="lg" class="pa-4 h-100">
+                <div class="d-flex align-center justify-space-between mb-4">
+                    <span class="text-body-2 font-weight-medium">Live visitors</span>
+                    <div class="d-flex align-center ga-2">
+                        <span class="text-h6 font-weight-bold">{{ liveCount }}</span>
+                        <v-icon icon="mdi-circle" :color="liveCount > 0 ? 'success' : 'grey'" size="10" />
+                    </div>
+                </div>
 
-                  <v-list density="compact" lines="two" class="pa-0">
-                      <v-list-item
-                          v-for="visitor in recentVisitors"
-                          :key="visitor.session_id"
-                          class="px-0"
-                      >
-                          <template #prepend>
-                              <v-icon icon="mdi-circle" color="success" size="8" class="mr-2" />
-                          </template>
-                          <v-list-item-title class="text-body-2">
-                              {{ visitor.current_path || 'Unknown page' }}
-                          </v-list-item-title>
-                          <v-list-item-subtitle class="text-caption">
-                              Page view · {{ formatTime(visitor.last_seen_at) }}
-                          </v-list-item-subtitle>
-                      </v-list-item>
+                <v-list density="compact" lines="two" class="pa-0">
+                    <v-list-item
+                        v-for="visitor in recentVisitors"
+                        :key="visitor.session_id"
+                        class="px-0"
+                    >
+                        <template #prepend>
+                            <v-icon icon="mdi-circle" color="success" size="8" class="mr-2" />
+                        </template>
+                        <v-list-item-title class="text-body-2">
+                            {{ visitor.current_path || 'Unknown page' }}
+                        </v-list-item-title>
+                        <v-list-item-subtitle class="text-caption">
+                            Page view · {{ formatTime(visitor.last_seen_at) }}
+                        </v-list-item-subtitle>
+                    </v-list-item>
 
-                      <v-list-item v-if="!recentVisitors.length" class="px-0">
-                          <v-list-item-title class="text-body-2 text-medium-emphasis">
-                              No live visitors right now
-                          </v-list-item-title>
-                      </v-list-item>
-                  </v-list>
+                    <v-list-item v-if="!recentVisitors.length" class="px-0">
+                        <v-list-item-title class="text-body-2 text-medium-emphasis">
+                            No live visitors right now
+                        </v-list-item-title>
+                    </v-list-item>
+                </v-list>
 
-                  <div class="text-caption text-medium-emphasis mt-2">
-                      City-level location requires IP geolocation — not wired up yet.
-                      This list shows page + time only for now.
-                  </div>
-              </v-card>
-          </v-col>
-      </v-row>
-  </v-container>
+                <div class="text-caption text-medium-emphasis mt-2">
+                    City-level location requires IP geolocation — not wired up yet.
+                    This list shows page + time only for now.
+                </div>
+            </v-card>
+        </v-col>
+    </v-row>
 </template>
 
 <script>
