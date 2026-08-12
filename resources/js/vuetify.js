@@ -18,6 +18,7 @@ export default createVuetify({
                     navy:'#1B2A41',
                     teal:'#00bfa6',
                     mint:'#f1fffc',
+                    lblue:'#dde7f2'
                 }
             }
         }

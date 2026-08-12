@@ -4,19 +4,19 @@
             <v-col cols="12" md="6">
                 <span class="text-h6">Orders</span></v-col>
             <v-col cols="12" md="6" class="text-end">
-                <v-btn class="text-none me-1" size="small" variant="outlined" color="grey-darken-4">Export</v-btn>
-                <v-btn class="text-none" size="small" variant="outlined" color="grey-darken-4">More Actions</v-btn>
+<!--                <v-btn class="text-none me-1" size="small" variant="outlined" color="grey-darken-4">Export</v-btn>-->
+<!--                <v-btn class="text-none" size="small" variant="outlined" color="grey-darken-4">More Actions</v-btn>-->
             </v-col>
             <v-col cols="12">
+                <v-tabs v-model="status" color="primary" selectedClass="bg-lblue"
+                        density="compact" bgColor="grey-lighten-5" sliderColor="primary"
+                        slider-transition="fade" show-arrows class="w-100">
+                    <v-tab v-for="(stat, index) in ostatuses" :key="index" :value="stat.value"
+                           class="text-capitalize text-body-1" :color="stat.color" backgroundColor="red">
+                        {{ stat.title }}
+                    </v-tab>
+                </v-tabs>
                 <v-card flat class="border">
-                    <v-toolbar density="default" height="44" color="white">
-                        <v-tabs v-model="status" color="primary" density="compact" show-arrows class="w-100">
-                            <v-tab v-for="(stat, index) in ostatuses" :key="index" :value="stat.value"
-                                   class="text-capitalize text-body-1" :color="stat.color" backgroundColor="red">
-                                {{ stat.title }}
-                            </v-tab>
-                        </v-tabs>
-                    </v-toolbar>
                     <div class="px-2 py-2 d-flex">
                         <v-text-field v-model="osearch" class="w-50 me-2" variant="outlined" density="compact"
                                       clearable hide-details

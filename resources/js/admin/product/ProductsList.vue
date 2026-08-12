@@ -5,15 +5,17 @@
                 <span class="text-h6">Products</span>
             </v-col>
             <v-col cols="9" md="6" class="text-end">
-                <v-btn @click="uploadDialog = true" class="text-none" size="small" color="grey-darken-4 me-2">Import</v-btn>
-                <v-btn @click="exportProducts" class="text-none" size="small" color="grey-darken-4 me-2">Export</v-btn>
-                <v-btn link to="/products/new" class="text-none" size="small" color="grey-darken-4">Add Product</v-btn>
+                <v-btn @click="uploadDialog = true" variant="tonal" class="text-none" size="small" color="success me-2">Import</v-btn>
+                <v-btn @click="exportProducts" variant="tonal" class="text-none" size="small" color="primary me-2">Export</v-btn>
+                <v-btn link to="/products/new" variant="tonal" class="text-none" size="small" color="primary">Add Product</v-btn>
             </v-col>
             <v-col cols="12">
                 <v-card flat class="border">
                     <v-row dense class="px-2 py-1">
                         <v-col cols="10" md="10">
-                            <v-tabs v-model="status" color="primary" density="compact" show-arrows>
+                            <v-tabs v-model="status" color="primary" selectedClass="bg-lblue"
+                                    density="compact" bgColor="white" sliderColor="primary"
+                                    slider-transition="fade" spaced="both" show-arrows>
                                 <v-tab v-for="(stat, index) in prostatus" :key="index" :value="stat" class="text-none">
                                     {{ stat }}
                                 </v-tab>

@@ -12,12 +12,12 @@
             </v-col>
             <v-col cols="12" md="6" class="text-end d-flex ga-2 flex-wrap justify-center">
                 <v-btn :href="domain+'products/'+pro.handle" target="_blank" variant="tonal" class="text-none"
-                       density="compact" title="Preview" color="grey-darken-1">Preview</v-btn>
-                <v-btn variant="outlined" @click="disCard" class="text-none me-2" density="compact" color="grey-darken-4">Discard</v-btn>
+                       density="compact" title="Preview" color="primary">Preview</v-btn>
+                <v-btn variant="tonal" @click="disCard" class="text-none me-2" density="compact" color="red">Discard</v-btn>
                 <v-menu>
                     <template v-slot:activator="{props}">
-                        <v-btn v-bind="props" variant="outlined" class="text-none" append-icon="mdi-chevron-down"
-                               density="compact">More Actions</v-btn>
+                        <v-btn v-bind="props" variant="tonal" class="text-none" append-icon="mdi-chevron-down"
+                               density="compact" color="success">More Actions</v-btn>
                     </template>
                     <v-list nav density="compact">
                         <v-list-item base-color="dark" v-if="pro.archived" @click="restoreProduct">
@@ -31,12 +31,12 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <v-btn @click="editProductById" :loading="isLoading" :disabled="pro.archived || isLoading" color="grey-darken-4" density="compact" class="text-none" >Save</v-btn>
+                <v-btn variant="tonal" @click="editProductById" :loading="isLoading" :disabled="pro.archived || isLoading" color="success" density="compact" class="text-none" >Save</v-btn>
             </v-col>
         </v-row>
-        <v-tabs v-model="ptab" density="compact" color="primary" selectedClass="bg-grey-lighten-3"
-                bgColor="white" sliderColor="red"
-                class="my-2">
+        <v-tabs v-model="ptab" density="compact" color="primary" selectedClass="bg-lblue"
+                bgColor="grey-lighten-5" sliderColor="primary"
+                class="my-2" slider-transition="fade" spaced="both">
             <v-tab value="general">
                 Product
             </v-tab>
@@ -423,7 +423,7 @@
                         <v-card class="border-sm">
                             <v-card-title>Reviews</v-card-title>
                             <v-card-text>
-                                <v-btn color="yellow" @click="reviewDialog = true" density="comfortable">Add Review</v-btn>
+                                <v-btn variant="tonal" color="primary" @click="reviewDialog = true" density="comfortable">Add Review</v-btn>
                             </v-card-text>
                             <v-card-title>Status</v-card-title>
                             <v-card-text>
