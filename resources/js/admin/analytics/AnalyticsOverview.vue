@@ -46,12 +46,12 @@
                                 </p>
                             </div>
                             <div class="position-absolute bottom-0 right-0">
-                                <v-img
-                                    v-if="this.$store.state.shop.shop_slug"
-                                    class="spin"
-                                    width="100"
-                                    :src="cdn+this.$store.state.shop.shop_slug+'/favicon.ico'"></v-img>
-                                <v-img v-else width="225"
+<!--                                <v-img-->
+<!--                                    v-if="this.$store.state.shop.shop_slug"-->
+<!--                                    class="spin"-->
+<!--                                    width="100"-->
+<!--                                    :src="cdn+this.$store.state.shop.shop_slug+'/logo.png'"></v-img>-->
+                                <v-img width="225"
                                        src="https://demos.themeselection.com/materio-vuetify-vuejs-admin-template/demo-1/assets/illustration-john-2-DCqPs8R_.png"/>
                             </div>
                         </div>
