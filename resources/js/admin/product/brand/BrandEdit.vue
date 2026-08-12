@@ -11,14 +11,15 @@
             </v-col>
             <v-col cols="12" md="6" class="text-end">
                 <v-btn :href="domain+'brands/'+brand.brand_slug" target="_blank" variant="tonal" class="text-none me-2"
-                       density="compact" title="Preview" color="grey-darken-1">Preview</v-btn>
-                <v-btn variant="outlined" @click="disCard" class="text-none me-2" density="compact" color="grey-darken-4">Discard</v-btn>
-                <v-btn @click="editBrand" :loading="upLoading" :disabled="upLoading" color="grey-darken-4" density="compact" class="text-none" >Save</v-btn>
+                       density="compact" title="Preview" color="primary">Preview</v-btn>
+                <v-btn variant="tonal" @click="disCard" class="text-none me-2" density="compact" color="red">Discard</v-btn>
+                <v-btn @click="editBrand" :loading="upLoading" :disabled="upLoading" variant="tonal" color="success" density="compact" class="text-none" >Save</v-btn>
             </v-col>
         </v-row>
-        <v-tabs v-model="btab" density="compact" color="primary" selectedClass="bg-grey-lighten-3"
-                bgColor="white" sliderColor="red"
-                class="my-2">
+        <v-tabs v-model="btab" color="primary" selectedClass="bg-lblue"
+                density="compact" bgColor="grey-lighten-5" sliderColor="primary"
+                slider-transition="fade"
+                class="mt-4">
             <v-tab value="general">Brand</v-tab>
             <v-tab value="content">Sections</v-tab>
             <v-tab value="faqs">FAQ's</v-tab>

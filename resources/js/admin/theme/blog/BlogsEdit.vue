@@ -12,12 +12,13 @@
                     </h2>
                 </v-col>
                 <v-col cols="12" md="6" class="text-end">
-                    <v-btn type="submit" :disabled="!bavalid || baLoading" color="grey-darken-3" density="compact" class="text-none">Save</v-btn>
+                    <v-btn type="submit" :disabled="!bavalid || baLoading" variant="tonal" color="success" density="comfortable" class="text-none">Save</v-btn>
                 </v-col>
             </v-row>
-            <v-tabs v-model="btab" density="compact" color="primary" selectedClass="bg-grey-lighten-3"
-                    bgColor="white" sliderColor="red"
-                    class="my-2">
+            <v-tabs v-model="btab" color="primary" selectedClass="bg-lblue"
+                    density="compact" bgColor="greay-lighten-5" sliderColor="primary"
+                    slider-transition="fade"
+                    class="mt-4">
                 <v-tab value="general">
                     Blog
                 </v-tab>

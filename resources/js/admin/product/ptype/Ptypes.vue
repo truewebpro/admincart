@@ -4,7 +4,7 @@
             <v-col cols="12" md="6">
                 <span class="text-h6">Product Types</span></v-col>
             <v-col cols="12" md="6" class="text-end">
-                <v-btn class="text-none" size="small" color="grey-darken-4" @click="addDialog = true">Add Type</v-btn>
+                <v-btn class="text-none" variant="tonal" density="compact" color="success" @click="addDialog = true">Add Type</v-btn>
             </v-col>
             <v-col cols="12">
                 <v-card flat class="border">
@@ -56,8 +56,8 @@
                             <v-chip size="small" v-else>{{item.product_type_status}}</v-chip>
                         </template>
                         <template v-slot:item.actions="{item}">
-                            <v-btn variant="outlined" color="info" density="compact" @click="editItem(item)">Edit</v-btn>
-                            <v-btn variant="outlined" color="red" density="compact"
+                            <v-btn variant="tonal" color="primary" density="compact" @click="editItem(item)">Edit</v-btn>
+                            <v-btn variant="tonal" color="red" density="compact"
                                    @click="deleteItem(item)" class="ms-2">Delete</v-btn>
                         </template>
                     </v-data-table-server>

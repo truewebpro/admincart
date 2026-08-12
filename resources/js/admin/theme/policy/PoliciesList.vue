@@ -3,7 +3,7 @@
         <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
             <v-col cols="12" md="6">
                 <h2 class="text-h6">
-                    <v-btn icon variant="tonal" density="compact">
+                    <v-btn icon variant="tonal" density="compact" color="primary">
                         <v-icon size="small">mdi-file-document-check-outline</v-icon>
                     </v-btn>
                     Policies
@@ -38,7 +38,7 @@
                             <v-btn v-else color="red" variant="tonal" density="compact" class="rounded-pill text-capitalize">{{item.policy_status}}</v-btn>
                         </template>
                         <template v-slot:item.actions="{item}">
-                            <v-btn :to="'/theme/policies/'+item.policy_id" variant="outlined" density="compact" color="info">Edit</v-btn>
+                            <v-btn :to="'/theme/policies/'+item.policy_id" variant="tonal" density="compact" color="info">Edit</v-btn>
                         </template>
                     </v-data-table>
                 </v-card>

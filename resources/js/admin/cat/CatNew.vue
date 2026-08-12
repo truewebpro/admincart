@@ -4,15 +4,15 @@
             <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 1020">
                 <v-col cols="12" md="6">
                     <h2 class="text-h6">
-                        <v-btn link to="/categories" icon variant="tonal" density="compact">
+                        <v-btn link to="/categories" icon variant="tonal" color="primary" density="compact">
                             <v-icon>mdi-arrow-left</v-icon>
                         </v-btn>
                         Create Category
                     </h2>
                 </v-col>
                 <v-col cols="12" md="6" class="text-end">
-                    <v-btn @click="resetForm" variant="tonal" color="error" density="compact" class="text-none me-2">Discard</v-btn>
-                    <v-btn variant="elevated" :disabled="!acatValid || isSaveDisabled || cisLoading" type="submit" color="grey-darken-4" density="compact" class="text-none">Save</v-btn>
+                    <v-btn @click="resetForm" variant="tonal" color="red" density="compact" class="text-none me-2">Discard</v-btn>
+                    <v-btn variant="tonal" :disabled="!acatValid || isSaveDisabled || cisLoading" type="submit" color="success" density="compact" class="text-none">Save</v-btn>
                 </v-col>
             </v-row>
             <v-row>

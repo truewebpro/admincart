@@ -4,23 +4,23 @@
             <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
                 <v-col cols="12" md="6">
                     <h2 class="text-h6">
-                        <v-btn link :to="{name:'PagesList'}" icon variant="tonal" density="compact">
+                        <v-btn link :to="{name:'PagesList'}" icon variant="tonal" density="compact" color="primary">
                             <v-icon>mdi-arrow-left</v-icon>
                         </v-btn>
                         Edit {{ page.page_title }}
                     </h2>
                 </v-col>
                 <v-col cols="12" md="6" class="text-end">
-                    <v-btn type="submit" variant="elevated" color="grey-darken-4" density="compact"
+                    <v-btn type="submit" variant="tonal" color="primary" density="compact"
                            class="text-none" :loading="paLoading" :disabled="!pavalid || paLoading">
                         Update
                     </v-btn>
                     <v-btn :href="'https://'+domain+'/pages/'+page.page_slug" target="_blank"
-                           variant="outlined" color="grey-darken-4" density="compact" class="mx-1 text-none"
+                           variant="tonal" color="primary" density="compact" class="mx-1 text-none"
                            prepend-icon="mdi-eye">View Page</v-btn>
                     <v-menu>
                         <template v-slot:activator="{props}">
-                            <v-btn v-bind="props" variant="outlined" class="text-none me-2" append-icon="mdi-chevron-down"
+                            <v-btn v-bind="props" variant="tonal" color="primary" class="text-none me-2" append-icon="mdi-chevron-down"
                                    density="compact">More Actions</v-btn>
                         </template>
                         <v-list nav density="compact">
@@ -31,9 +31,10 @@
                     </v-menu>
                 </v-col>
             </v-row>
-            <v-tabs v-model="ptab" density="compact" color="primary" selectedClass="bg-grey-lighten-3"
-                    bgColor="white" sliderColor="red"
-                    class="my-2">
+            <v-tabs v-model="ptab" color="primary" selectedClass="bg-lblue"
+                    density="compact" bgColor="grey-lighten-5" sliderColor="primary"
+                    slider-transition="fade"
+                    class="mt-4">
                 <v-tab value="general">Page</v-tab>
                 <v-tab value="content">Sections</v-tab>
                 <v-tab value="faqs">FAQ's</v-tab>

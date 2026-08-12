@@ -6,7 +6,7 @@
                 <div class="muted">Showing latest {{ items.length }} draft orders</div>
             </v-col>
             <v-col cols="12" md="4" class="text-lg-end">
-                <v-btn color="black" size="small" @click="goToCreate" prependIcon="mdi-plus">
+                <v-btn color="primary" variant="tonal" size="small" @click="goToCreate" prependIcon="mdi-plus">
                     Create draft order
                 </v-btn>
             </v-col>

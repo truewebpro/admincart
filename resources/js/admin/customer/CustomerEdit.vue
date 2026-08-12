@@ -2,7 +2,7 @@
     <v-container>
         <v-row dense>
             <v-col cols="12" md="6">
-                <v-btn link to="/customers" icon variant="tonal" density="compact" class="me-2">
+                <v-btn link to="/customers" icon variant="tonal" color="primary" density="compact" class="me-2">
                     <v-icon>mdi-chevron-left</v-icon>
                 </v-btn>
                 <span class="text-h6"><v-icon>mdi-account-outline</v-icon> {{ customer.fname }} {{ customer.lname}}</span>
@@ -10,7 +10,7 @@
             <v-col cols="12" md="6" class="text-end">
                 <v-menu>
                     <template v-slot:activator="{props}">
-                        <v-btn v-bind="props" variant="outlined" class="text-none me-2" append-icon="mdi-chevron-down"
+                        <v-btn v-bind="props" variant="tonal" color="primary" class="text-none me-2" append-icon="mdi-chevron-down"
                                density="compact">More Actions</v-btn>
                     </template>
                     <v-list nav density="compact">
@@ -44,8 +44,9 @@
                 </div>
             </v-col>
         </v-row>
-        <v-tabs v-model="ctab" density="compact" color="primary" class="mb-2"
-                selectedClass="bg-grey-lighten-3" sliderColor="red">
+        <v-tabs v-model="ctab" density="compact" color="primary" selectedClass="bg-lblue"
+                bgColor="white" sliderColor="primary"
+                slider-transition="fade" class="mb-2">
             <v-tab value="last">Last Order</v-tab>
             <v-tab value="past">Past Order</v-tab>
             <v-tab value="credit">Store Credit</v-tab>

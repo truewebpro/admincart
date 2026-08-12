@@ -3,21 +3,21 @@
         <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
             <v-col cols="12" md="6">
                 <h2 class="text-h6">
-                    <v-btn icon variant="tonal" density="compact">
+                    <v-btn icon variant="tonal" density="compact" color="primary">
                         <v-icon>mdi-arrow-left</v-icon>
                     </v-btn>
                     Themes
                 </h2>
             </v-col>
             <v-col cols="12" md="6" class="text-end">
-                <v-btn variant="elevated" color="grey-lighten-2" density="compact" class="text-none"
+                <v-btn variant="tonal" color="primary" density="compact" class="text-none"
                        prepend-icon="mdi-eye" :href="'https://'+this.$store.state.shop.subdomain" target="_blank">View Your Store</v-btn>
             </v-col>
         </v-row>
         <v-row class="mt-0">
             <v-col cols="12" md="12">
                 <v-tabs v-model="ttab" align-tabs="center" height="32" slider-color="primary"
-                        selected-class="bg-primary" bg-color="grey-lighten-2">
+                        selected-class="bg-primary" bg-color="grey-lighten-5">
                     <v-tab>Preferences</v-tab>
                     <v-tab>Social Media</v-tab>
                 </v-tabs>
@@ -69,7 +69,7 @@
                                             </div>
                                             <div class="mt-2">
                                                 <v-btn type="submit" :loading="isLoading" :disabled="!pvalid || isLoading"
-                                                       variant="elevated" density="comfortable" color="grey-darken-3"
+                                                       variant="tonal" density="comfortable" color="success"
                                                        class="w-25">Save</v-btn>
                                             </div>
                                         </v-col>
@@ -105,7 +105,7 @@
                                                               :prefix="smo.prefix" :prepend-inner-icon="smo.icon"></v-text-field>
                                             </div>
                                             <div class="mt-2">
-                                            <v-btn type="submit" :disabled="!svalid" variant="elevated" density="comfortable" color="grey-darken-3" class="w-25">Save</v-btn>
+                                            <v-btn type="submit" :disabled="!svalid" variant="tonal" density="comfortable" color="success" class="w-25">Save</v-btn>
                                             </div>
                                         </v-form>
                                     </v-col>

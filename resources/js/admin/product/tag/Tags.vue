@@ -4,7 +4,7 @@
             <v-col cols="6" md="6">
                 <span class="text-h6">Tags</span></v-col>
             <v-col cols="6" md="6" class="text-end">
-                <v-btn class="text-none" size="small" color="grey-darken-4" @click="addDialog = true">Add Tag</v-btn>
+                <v-btn class="text-none" variant="tonal" density="compact" color="success" @click="addDialog = true">Add Tag</v-btn>
             </v-col>
             <v-col cols="12">
                 <v-card flat class="border">
@@ -60,8 +60,8 @@
                                 <v-chip size="small" v-else>{{item.tag_status}}</v-chip>
                             </template>
                             <template v-slot:item.actions="{item}">
-                                <v-btn variant="outlined" color="info" density="compact" @click="editItem(item)">Edit</v-btn>
-                                <v-btn variant="outlined" color="red" density="compact" @click="deleteItem(item)" class="ms-2">Delete</v-btn>
+                                <v-btn variant="tonal" color="info" density="compact" @click="editItem(item)">Edit</v-btn>
+                                <v-btn variant="tonal" color="red" density="compact" @click="deleteItem(item)" class="ms-2">Delete</v-btn>
                             </template>
                         </v-data-table-server>
                     </div>

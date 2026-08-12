@@ -4,19 +4,19 @@
             <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
                 <v-col cols="12" md="6">
                     <h2 class="text-h6">
-                        <v-btn link :to="{name:'PoliciesList'}" icon variant="tonal" density="compact">
+                        <v-btn link :to="{name:'PoliciesList'}" icon variant="tonal" density="compact" color="primary">
                             <v-icon>mdi-arrow-left</v-icon>
                         </v-btn>
                         Edit {{ spolicy.policy_name }}
                     </h2>
                 </v-col>
                 <v-col cols="12" md="6" class="text-end">
-                    <v-btn type="submit" variant="elevated" color="grey-darken-4" density="compact"
+                    <v-btn type="submit" variant="tonal" color="success" density="comfortable"
                            class="text-none" :loading="pcuLoading" :disabled="!pcuvalid || pcuLoading">
                         Update
                     </v-btn>
                     <v-btn :href="'https://'+domain+'/policies/'+spolicy.policy_slug" target="_blank"
-                           variant="outlined" color="grey-darken-4" density="compact" class="ms-1 text-none"
+                           variant="tonal" color="primary" density="comfortable" class="ms-1 text-none"
                            prepend-icon="mdi-eye">View Policy</v-btn>
                 </v-col>
             </v-row>

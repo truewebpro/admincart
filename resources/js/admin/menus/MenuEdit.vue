@@ -5,20 +5,20 @@
                 <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
                     <v-col cols="12" md="6">
                         <h2 class="text-h6">
-                            <v-btn :to="{name:'MenusList'}" icon variant="tonal" density="compact">
+                            <v-btn :to="{name:'MenusList'}" icon variant="tonal" color="primary" density="compact">
                                 <v-icon>mdi-menu</v-icon>
                             </v-btn>
                             Edit Menu {{menu_id}}
                         </h2>
                     </v-col>
                     <v-col cols="12" md="6" class="text-end">
-                        <v-btn color="black" variant="outlined" density="comfortable" class="me-2"
+                        <v-btn color="red" variant="tonal" density="comfortable" class="me-2"
                                @click="discardChanges">discard</v-btn>
-                        <v-btn type="submit" :disabled="isFormInvalid" color="green" variant="elevated" density="comfortable" class="me-2"
+                        <v-btn type="submit" :disabled="isFormInvalid" color="green" variant="tonal" density="comfortable" class="me-2"
                                @click="submitForm">Save</v-btn>
                         <v-menu>
                             <template v-slot:activator="{props}">
-                                <v-btn v-bind="props" variant="outlined" class="text-none me-2" append-icon="mdi-chevron-down"
+                                <v-btn v-bind="props" variant="tonal" color="primary" class="text-none me-2" append-icon="mdi-chevron-down"
                                        density="comfortable">
                                     More Actions
                                 </v-btn>

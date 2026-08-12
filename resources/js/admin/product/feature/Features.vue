@@ -4,7 +4,7 @@
             <v-col cols="6" md="6">
                 <span class="text-h6">Features List</span></v-col>
             <v-col cols="6" md="6" class="text-end">
-                <v-btn class="text-none" size="small" color="grey-darken-4" @click="addDialog = true">Add Feature</v-btn>
+                <v-btn class="text-none" variant="tonal" density="compact" color="success" @click="addDialog = true">Add Feature</v-btn>
             </v-col>
             <v-col cols="12" md="12">
                 <v-card flat class="border">
@@ -27,8 +27,8 @@
                                 <v-img v-else src="https://dummyimage.com/200x200/000/fff&text=No Image" alt="Feature" max-width="40"></v-img>
                             </template>
                             <template v-slot:item.actions="{item}">
-                                <v-btn variant="outlined" color="info" density="compact" @click="editItem(item)">Edit</v-btn>
-                                <v-btn variant="outlined" color="red" density="compact" @click="deleteItem(item)" class="ms-1">Delete</v-btn>
+                                <v-btn variant="tonal" color="info" density="compact" @click="editItem(item)">Edit</v-btn>
+                                <v-btn variant="tonal" color="red" density="compact" @click="deleteItem(item)" class="ms-1">Delete</v-btn>
                             </template>
                         </v-data-table>
                     </div>

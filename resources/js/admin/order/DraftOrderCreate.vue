@@ -9,7 +9,7 @@
                 </div>
             </v-col>
             <v-col cols="12" md="6" class="text-end">
-                <v-btn variant="outlined" size="small" class="mr-2" @click="saveDraft" :loading="saving">
+                <v-btn variant="tonal" color="primary" size="small" class="mr-2" @click="saveDraft" :loading="saving">
                     Save draft
                 </v-btn>
             </v-col>
@@ -34,7 +34,7 @@
                     <div class="card-header-row">
                         <span class="card-header-title">Products</span>
                         <div>
-                            <v-btn size="small" variant="outlined" class="mr-2" @click="openProductDialog">
+                            <v-btn size="small" variant="tonal" color="primary" class="mr-2" @click="openProductDialog">
                                 <v-icon size="15" class="mr-1">mdi-plus</v-icon> Add product
                             </v-btn>
 <!--                            <v-btn size="small" variant="text" :href="createProductUrl" target="_blank">-->
@@ -242,7 +242,7 @@
                     </div>
                     <v-card-actions>
                         <v-spacer/>
-                        <v-btn variant="outlined" size="small" @click="recordPaymentDialog = true" :disabled="isConfirmed || !draftOrder.id || !draftOrder.shipping_method">
+                        <v-btn variant="tonal" color="primary" size="small" @click="recordPaymentDialog = true" :disabled="isConfirmed || !draftOrder.id || !draftOrder.shipping_method">
                             Record payment
                         </v-btn>
                         <v-btn variant="elevated" size="small" color="success"
@@ -313,7 +313,7 @@
                                     ></v-list-item>
                                 </template>
                             </v-autocomplete>
-                            <v-btn variant="outlined" density="comfortable" size="small" class="mt-2" @click="customerCreateDialog = true">
+                            <v-btn variant="tonal" color="primary" density="comfortable" size="small" class="mt-2" @click="customerCreateDialog = true">
                                 <v-icon size="16" class="mr-1">mdi-plus</v-icon> Create new customer
                             </v-btn>
                         </div>
@@ -343,7 +343,7 @@
                                 <v-alert type="warning" variant="tonal" density="compact" class="mb-2">
                                     No delivery address set — required before this can be converted to a real order.
                                 </v-alert>
-                                <v-btn variant="tonal" size="small" @click="openAddressDialog">Add delivery address</v-btn>
+                                <v-btn variant="tonal" color="primary" size="small" @click="openAddressDialog">Add delivery address</v-btn>
                             </div>
                         </div>
                     </v-card-text>

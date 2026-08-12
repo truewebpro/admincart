@@ -4,10 +4,10 @@
            <v-col cols="12" md="6">
                <span class="text-h6"><v-icon>mdi-account-outline</v-icon> Customers</span> </v-col>
            <v-col cols="12" md="6" class="text-end">
-               <v-btn variant="outlined" class="text-none" color="grey-darken-4" density="compact" @click="exportToCSV">Export</v-btn>
-               <v-btn variant="outlined" class="text-none mx-1" color="grey-darken-4" density="compact">Import</v-btn>
+               <v-btn variant="tonal" class="text-none" color="primary" density="compact" @click="exportToCSV">Export</v-btn>
+               <v-btn variant="tonal" class="text-none mx-1" color="primary" density="compact">Import</v-btn>
                <AddCustomerDialog v-model="showAddCustomer" @created="handleCustomerCreated"/>
-               <v-btn @click="showAddCustomer = true" class="text-none" color="grey-darken-4" density="compact">Add Customer</v-btn>
+               <v-btn @click="showAddCustomer = true" class="text-none" variant="tonal" color="success" density="compact">Add Customer</v-btn>
            </v-col>
            <v-col cols="12" md="12">
                <v-card class="border-sm">

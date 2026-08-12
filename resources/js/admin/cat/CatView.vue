@@ -10,16 +10,17 @@
                 </h2>
             </v-col>
             <v-col cols="12" md="6" class="text-end">
-                <v-btn :href="domain+'collections/'+cat.cat_slug" target="_blank" variant="outlined" density="compact" class="text-none" prepend-icon="mdi-eye-outline">View</v-btn>
-                <v-btn v-if="cat.cat_type !== 'smart'" @click="updatemCat" variant="elevated" color="green" density="compact"
+                <v-btn :href="domain+'collections/'+cat.cat_slug" target="_blank" variant="tonal" color="primary" density="compact" class="text-none" prepend-icon="mdi-eye-outline">View</v-btn>
+                <v-btn v-if="cat.cat_type !== 'smart'" @click="updatemCat" variant="tonal" color="green" density="compact"
                        class="text-none mx-2">Update</v-btn>
-                <v-btn v-else :disabled="isSaveDisabled" @click="updatesCat" variant="elevated" color="green" density="compact" class="text-none mx-2">Update</v-btn>
-                <v-btn @click="delDialog = true" variant="outlined" color="red" density="compact" class="text-none">Delete</v-btn>
+                <v-btn v-else :disabled="isSaveDisabled" @click="updatesCat" variant="tonal" color="green" density="compact" class="text-none mx-2">Update</v-btn>
+                <v-btn @click="delDialog = true" variant="tonal" color="red" density="compact" class="text-none">Delete</v-btn>
             </v-col>
         </v-row>
-        <v-tabs v-model="ctab" density="compact" color="primary" selectedClass="bg-grey-lighten-3"
-                bgColor="white" sliderColor="red"
-                class="my-2">
+        <v-tabs v-model="ctab" color="primary" selectedClass="bg-lblue"
+                density="compact" bgColor="grey-lighten-5" sliderColor="primary"
+                slider-transition="fade"
+                class="mt-4">
             <v-tab value="general">Collection</v-tab>
             <v-tab value="content">Sections</v-tab>
             <v-tab value="faqs">FAQ's</v-tab>

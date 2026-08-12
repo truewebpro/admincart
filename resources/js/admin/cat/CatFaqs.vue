@@ -5,7 +5,7 @@
                 <h2>Frequently Asked Questions</h2>
             </v-col>
             <v-col cols="12" md="6">
-                <v-btn @click="showAddDialog" color="success" variant="elevated" density="comfortable">Add Faq</v-btn>
+                <v-btn @click="showAddDialog" color="success" variant="tonal" density="comfortable">Add Faq</v-btn>
             </v-col>
         </v-row>
         <v-row>

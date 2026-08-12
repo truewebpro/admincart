@@ -23,7 +23,7 @@
             <v-col cols="12" md="6" class="d-flex ga-2 justify-end">
                 <v-menu>
                     <template v-slot:activator="{props}">
-                        <v-btn v-bind="props" variant="outlined" class="text-none me-2" append-icon="mdi-chevron-down"
+                        <v-btn v-bind="props" variant="tonal" class="text-none me-2" color="primary" append-icon="mdi-chevron-down"
                                density="compact">More Actions</v-btn>
                     </template>
                     <v-list nav density="compact">
@@ -44,11 +44,11 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <v-btn icon variant="tonal" density="compact" :disabled="!previous_id"
+                <v-btn icon variant="tonal" density="compact" color="primary" :disabled="!previous_id"
                        @click="goToOrder(previous_id)">
                     <v-icon>mdi-arrow-down</v-icon>
                 </v-btn>
-                <v-btn icon variant="tonal" density="compact" class="ms-1"  :disabled="!next_id"
+                <v-btn icon variant="tonal" density="compact" color="primary" class="ms-1"  :disabled="!next_id"
                        @click="goToOrder(next_id)">
                     <v-icon>mdi-arrow-up</v-icon>
                 </v-btn>

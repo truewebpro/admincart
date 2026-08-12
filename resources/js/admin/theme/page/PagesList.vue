@@ -10,7 +10,7 @@
                 </h2>
             </v-col>
             <v-col cols="12" md="6" class="text-end">
-                <v-btn link :to="{name:'PagesNew'}" variant="elevated" color="grey-darken-4" density="compact" class="text-none"
+                <v-btn link :to="{name:'PagesNew'}" variant="tonal" color="success" density="comfortable" class="text-none"
                        prepend-icon="mdi-plus">Add Page</v-btn>
             </v-col>
         </v-row>

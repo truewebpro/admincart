@@ -46,16 +46,11 @@
                     <v-list-item link :to="{name:'DraftOrdersList'}" color="primary" prepend-icon="mdi-cart-plus" title="Drafts"></v-list-item>
                     <v-list-item link :to="{name:'AbandonedCarts'}" color="primary" prepend-icon="mdi-cart-arrow-down" title="Abandoned Carts"></v-list-item>
                 </v-list-group>
-                <v-list-item link :to="{name:'products'}" color="primary" prepend-icon="mdi-tag-outline" title="Products"></v-list-item>
-                <v-list-item link :to="{name:'InventoryList'}" color="primary" prepend-icon="mdi-format-list-numbered"
-                             title="Inventory" subtitle="All Products">
-                </v-list-item>
-                <v-list-item link :to="{name:'customers'}" color="primary" prepend-icon="mdi-account" title="Customers">
-                </v-list-item>
                 <v-list-group value="pros">
                     <template v-slot:activator="{ props }">
-                        <v-list-item v-bind="props" prepend-icon="mdi-tag-multiple-outline" title="Product Settings" />
+                        <v-list-item v-bind="props" prepend-icon="mdi-tag-multiple-outline" title="Products" />
                     </template>
+                    <v-list-item link :to="{name:'products'}" color="primary" prepend-icon="mdi-tag-outline" title="Products List"></v-list-item>
                     <v-list-item :to="{name:'cats'}" color="primary" prepend-icon="mdi-format-list-text" title="Categories"/>
                     <v-list-item :to="{name:'ptypes'}" color="primary" title="Types" prepend-icon="mdi-list-status" link/>
                     <v-list-item :to="{name:'brands'}" color="primary" title="Brands" prepend-icon="mdi-shield-star" link/>
@@ -63,11 +58,16 @@
                     <v-list-item :to="{name:'poptions'}" color="primary" title="Options" prepend-icon="mdi-filter-variant" link/>
                     <v-list-item :to="{name:'Features'}" color="primary" title="Features" prepend-icon="mdi-feature-search-outline" link/>
                 </v-list-group>
+                <v-list-item link :to="{name:'InventoryList'}" color="primary" prepend-icon="mdi-format-list-numbered"
+                             title="Inventory" subtitle="All Products">
+                </v-list-item>
+                <v-list-item link :to="{name:'customers'}" color="primary" prepend-icon="mdi-account" title="Customers">
+                </v-list-item>
                 <v-list-group value="analytic">
                     <template v-slot:activator="{ props }">
                         <v-list-item v-bind="props" prepend-icon="mdi-google-analytics">
                             <template #title>
-                                Analytic
+                                Analytics
                             </template>
                         </v-list-item>
                     </template>

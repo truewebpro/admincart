@@ -52,7 +52,7 @@
             </v-card>
         </v-dialog>
         <div class="d-flex justify-center my-3">
-            <v-btn @click="addNewDialog = true" color="primary" prepend-icon="mdi-plus">Add New Section</v-btn>
+            <v-btn @click="addNewDialog = true" variant="tonal" color="success" prepend-icon="mdi-plus">Add New Section</v-btn>
         </div>
         <v-dialog max-width="400" v-model="addNewDialog">
             <v-card>

@@ -3,7 +3,7 @@
         <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
             <v-col cols="12" md="6">
                 <h2 class="text-h6">
-                    <v-btn link to="/abandoned/carts" icon variant="tonal" density="compact" class="me-2">
+                    <v-btn link to="/abandoned/carts" icon variant="tonal" color="primary" density="compact" class="me-2">
                         <v-icon>mdi-arrow-left</v-icon>
                     </v-btn>
                     <span class="me-2">#D{{cartDetail.acart_id}}</span>
@@ -18,10 +18,10 @@
                 <div class="text-body-2">{{dayjs(cartDetail.placed_at).format('D MMMM [at] h:mm a')}}</div>
             </v-col>
             <v-col cols="12" md="6" class="d-flex ga-2 justify-end">
-                <v-btn icon variant="tonal" density="compact">
+                <v-btn icon variant="tonal" color="primary" density="compact">
                     <v-icon>mdi-arrow-up</v-icon>
                 </v-btn>
-                <v-btn icon variant="tonal" density="compact" class="ms-1">
+                <v-btn icon variant="tonal" color="primary" density="compact" class="ms-1">
                     <v-icon>mdi-arrow-down</v-icon>
                 </v-btn>
             </v-col>

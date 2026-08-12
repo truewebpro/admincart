@@ -4,7 +4,7 @@
             <v-col cols="12" md="6">
                 <span class="text-h6">Categories</span></v-col>
             <v-col cols="12" md="6" class="text-end">
-                <v-btn link :to="{name:'catnew'}" class="text-none" size="small" color="grey-darken-4">Add Category</v-btn>
+                <v-btn link :to="{name:'catnew'}" class="text-none" variant="tonal" size="small" color="primary">Add Category</v-btn>
             </v-col>
             <v-col cols="12">
                 <v-card flat class="border">
@@ -35,13 +35,13 @@
                     </div>
                     <v-toolbar v-if="selectedCats.length > 0" density="compact" height="44" color="white">
                             <v-btn variant="text" density="compact" class="font-weight-bold text-none">{{selectedCats.length}} Selected</v-btn>
-                            <v-btn @click="selectedCats = []" variant="outlined" density="compact" class="text-none">Unselect All</v-btn>
+                            <v-btn @click="selectedCats = []" variant="tonal" color="red" density="compact" class="text-none">Unselect All</v-btn>
                             <v-spacer/>
                             <v-menu>
                                 <template v-slot:activator="{ props: menu }">
                                     <v-tooltip location="top">
                                         <template v-slot:activator="{ props: tooltip }">
-                                            <v-btn variant="outlined" class="text-none me-5" v-bind="mergeProps(menu, tooltip)"
+                                            <v-btn variant="tonal" color="primary" class="text-none me-5" v-bind="mergeProps(menu, tooltip)"
                                                    density="compact" append-icon="mdi-chevron-down">
                                                 More Actions
                                             </v-btn>
@@ -76,7 +76,7 @@
                                 </div>
                             </template>
                             <template v-slot:item.actions="{item}">
-                                <v-btn link :to="'/categories/'+item.cat_id" density="compact" variant="outlined" color="info">Edit</v-btn>
+                                <v-btn link :to="'/categories/'+item.cat_id" density="compact" variant="tonal" color="primary">Edit</v-btn>
                             </template>
                         </v-data-table>
                     </div>

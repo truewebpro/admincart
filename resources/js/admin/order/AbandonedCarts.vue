@@ -5,20 +5,19 @@
                 <span class="text-h6">Abandoned Carts</span>
             </v-col>
             <v-col cols="12" md="6" class="text-end">
-                <v-btn class="text-none me-1" size="small" variant="outlined" color="grey-darken-4">Export</v-btn>
             </v-col>
             <v-col cols="12">
+                <v-tabs v-model="status" color="primary" selectedClass="bg-lblue"
+                        density="compact" bgColor="grey-lighten-5" sliderColor="primary"
+                        slider-transition="fade" show-arrows class="w-100">
+                    <v-tab v-for="(stat, index) in cartstatus" :key="index" :value="stat" class="text-capitalize">
+                        {{ stat }}
+                        <v-chip size="small" class="ms-2 font-weight-medium" density="comfortable">
+                            {{ stat === 'All' ? Object.values(statusCounts).reduce((a, b) => a + b, 0) : statusCounts[stat] }}
+                        </v-chip>
+                    </v-tab>
+                </v-tabs>
                 <v-card flat class="border">
-                    <v-toolbar density="default" height="44" color="white">
-                        <v-tabs v-model="status" color="primary" density="compact" show-arrows class="w-100">
-                            <v-tab v-for="(stat, index) in cartstatus" :key="index" :value="stat" class="text-capitalize">
-                                {{ stat }}
-                                <v-chip size="small" class="ms-2 font-weight-medium" density="comfortable">
-                                    {{ stat === 'All' ? Object.values(statusCounts).reduce((a, b) => a + b, 0) : statusCounts[stat] }}
-                                </v-chip>
-                            </v-tab>
-                        </v-tabs>
-                    </v-toolbar>
                     <div class="px-2 py-2 d-flex">
                         <v-text-field v-model="asearch" class="w-50 me-2" variant="outlined" density="compact"
                                       clearable hide-details
