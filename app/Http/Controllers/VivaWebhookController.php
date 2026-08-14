@@ -310,6 +310,11 @@ class VivaWebhookController extends Controller
                 $apiKey = 'Kh0Nw4n5os5tfP3238kR189UWR067Z';
             }
 
+            if($request->shopname === "immyz"){
+                $merchantId = '67253cb2-657e-42f0-949c-94abd6c6cc19';
+                $apiKey = '56X6iTH31YkN753H053qzyh1Uc38nO';
+            }
+
             $vportmerchantId = 'c104ea18-8667-42b8-86d3-cdfe6e56760b';
             $vportapiKey = 'hxX009b2H2cf1B2G9mB165Ao87aR9C';
             $tokenUrl = 'https://www.vivapayments.com';
@@ -377,6 +382,11 @@ class VivaWebhookController extends Controller
             if($request->shopname === "vapestorehub"){
                 $merchantId = '559234ae-7558-4b15-8038-3cd946cacbaf';
                 $apiKey = 'Kh0Nw4n5os5tfP3238kR189UWR067Z';
+            }
+
+            if($request->shopname === "immyz"){
+                $merchantId = '67253cb2-657e-42f0-949c-94abd6c6cc19';
+                $apiKey = '56X6iTH31YkN753H053qzyh1Uc38nO';
             }
 
             $tokenUrl = 'https://www.vivapayments.com/api/messages/config/token';
