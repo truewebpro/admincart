@@ -227,6 +227,23 @@ class CartController extends Controller
                 ]);
                 return $this->vivaPaymentConfirm($cart, $request);
 
+            case "start_world_pay":
+                $this->startWorldPay($cart, $request);
+                $this->logEvent($cart,'start_world_pay',[
+                    'transactionReference' => $request->checkout_id,
+                    'checkout_id' => $request->checkout_id,
+                    'order_items' =>  $cart->items()->get()->toArray(),
+                    'cart_data' => $cart,
+                ]);
+                break;
+
+            case "world_pay_cancel":
+                $this->worldPayCancel($cart, $request);
+                $this->logEvent($cart,'world_pay_cancel',[
+                    'transactionReference' => $request->checkout_id,
+                ]);
+                break;
+
             case "pay_bank_transfer":
                 return $this->bankCheckout($cart, $request);
 
@@ -238,6 +255,12 @@ class CartController extends Controller
                     'orderCode' => $request->checkout_id,
                 ]);
                 return $this->payByVivaWallet($cart, $request);
+
+            case "world_pay_confirm":
+                $this->logEvent($cart,'world_pay_confirm',[
+                    'transactionReference' => $request->checkout_id,
+                ]);
+                return $this->worldPayConfirm($cart, $request);
 
             case "start_stripe_payment":
                 $this->startStripePayment($cart, $request);
@@ -432,6 +455,14 @@ class CartController extends Controller
         ]);
     }
 
+    private function startWorldPay($cart, $request)
+    {
+        $cart->update([
+            'checkout_id' => $request->checkout_id,
+            'cart_status' => 'start_world_pay',
+        ]);
+    }
+
     private function startStripePayment($cart, $request)
     {
         $cart->update([
@@ -444,6 +475,13 @@ class CartController extends Controller
     {
         $cart->update([
             'cart_status' => 'viva_cancel_payment'
+        ]);
+    }
+
+    private function worldPayCancel($cart, $request)
+    {
+        $cart->update([
+            'cart_status' => 'world_pay_cancel'
         ]);
     }
 
@@ -809,6 +847,47 @@ class CartController extends Controller
     }
 
     private function payByVivaWallet($cart, $request)
+    {
+        if($cart->order_id){
+            return response()->json([
+                'success'=>true,
+                'order_id'=>$cart->order_id
+            ]);
+        }
+        DB::beginTransaction();
+        try {
+            $order = $this->createOrderDetails(
+                $cart,
+                $request->checkout_id,
+                'paid',
+            );
+            $cart->update([
+                'order_id' => $order->order_id,
+                'checkout_id' => $request->checkout_id,
+                'cart_status' => 'converted',
+                'is_active'=>false,
+                'cart_token'=>$request->checkout_id,
+            ]);
+            $this->logEvent($cart, 'order_created', [
+                'order_id' => $order->order_id
+            ]);
+            DB::commit();
+            broadcast(new OrderCreated($order));
+            return response()->json([
+                'success'=>true,
+                'order_id'=>$order->order_id
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function worldPayConfirm($cart, $request)
     {
         if($cart->order_id){
             return response()->json([
