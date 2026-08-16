@@ -487,7 +487,7 @@ export default {
                         actions.push({
                             label: 'Create Label',
                             type: 'direct',
-                            handler: this.createLabel
+                            handler: this.sendToSendCloud
                         });
                     }
 
