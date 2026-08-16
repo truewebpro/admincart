@@ -38,8 +38,8 @@ use Illuminate\Support\Facades\Route;
 //    return $request->user();
 //});
 
-Route::post('/shop/vapecraze/sendcloud/webhook',[SendcloudWebhookController::class,'handleSendcloudWebhook']);
-Route::post('/shop/vapeportwholesale/sendcloud/webhook',[SendcloudWebhookController::class,'handleVapeportSendcloudWebhook']);
+//Route::post('/shop/vapecraze/sendcloud/webhook',[SendcloudWebhookController::class,'handleSendcloudWebhook']);
+//Route::post('/shop/vapeportwholesale/sendcloud/webhook',[SendcloudWebhookController::class,'handleVapeportSendcloudWebhook']);
 
 Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () {
     Route::get('/shop',[ShopController::class,'shopSetting']);

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sendcloud extends Model
 {
@@ -15,6 +16,8 @@ class Sendcloud extends Model
         'shop_id',
         'public_key',
         'secret_key',
+        'default_sender_address_id',
+        'api_version',
         'is_active',
     ];
 
@@ -25,5 +28,10 @@ class Sendcloud extends Model
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
+    }
+
+    public function shippingOptions():HasMany
+    {
+        return $this->hasMany(SendcloudShippingOption::class);
     }
 }

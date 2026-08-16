@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
@@ -88,7 +90,7 @@ class Order extends Model
         return $this->belongsTo(Coupon::class, 'coupon_id', 'coupon_id');
     }
 
-    public function draftOrder(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function draftOrder(): HasOne
     {
         return $this->hasOne(DraftOrder::class, 'converted_order_id', 'order_id');
     }
@@ -96,5 +98,11 @@ class Order extends Model
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
+    }
+
+    public function trackingEvents():HasMany
+    {
+        return $this->hasMany(OrderTrackingEvent::class, 'order_id', 'order_id')
+            ->orderBy('event_at','asc');
     }
 }

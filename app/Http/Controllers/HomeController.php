@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\OrderUpdated;
+use App\Exceptions\SendcloudApiException;
 use App\Exports\ProductsExport;
 use App\Exports\SelectedProductsExport;
 use App\Imports\ProductsImport;
@@ -62,6 +63,7 @@ use App\Models\Variant;
 use App\Models\VivaPayment;
 use App\Services\CacheKeys;
 use App\Services\MailtrapService;
+use App\Services\Sendcloud\SendcloudShippingOptionSyncer;
 use App\Services\SmartCategoryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -916,48 +918,109 @@ class HomeController extends Controller
     {
         $shopId = session('shop_id');
         $shop = Shop::where('shop_id','=',$shopId)->first();
-        $sendcloud = Sendcloud::where('shop_id','=',$shopId)->first();
+        if (!$shop) {
+            return response()->json(['success' => false, 'message' => 'Shop not found'], 404);
+        }
+        $sendcloud = Sendcloud::where('shop_id', $shopId)
+            ->where('is_active', true)
+            ->first();
 
-        $publicKey = $sendcloud->public_key ?? '1636f116-3e02-4da5-a455-492b573b9976';
-        $secretKey = $sendcloud->secret_key ?? '613b5889a7594244a1f4792d7cd62229';
+        if (!$sendcloud) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active Sendcloud integration configured for this shop',
+            ], 422);
+        }
 
         $payload = $request->input();
-        $response = Http::withBasicAuth($publicKey, $secretKey)
+
+        $response = Http::withBasicAuth($sendcloud->public_key, $sendcloud->secret_key)
             ->post('https://panel.sendcloud.sc/api/v2/parcels', $payload);
-        if($response->successful()){
-            $parcelData = $response->json();
-            $parcel = $parcelData['parcel'];
-            $order = Order::where('order_number','=', $parcel['order_number'])->first();
-            if($order){
-                $order->update([
-                    'parcel_id' => $parcel['id'],
-                    'tracking_number' => $parcel['tracking_number'] ?? null,
-                    'shipment_id' => $parcel['shipping_method'],
-                    'shipment_name' => $parcel['shipment']['name'] ?? null,
-                    'label_status' => 'pending',
-                ]);
-                broadcast(new OrderUpdated($order));
-                OrderLog::create([
-                    'order_id' => $order->order_id,
-                    'event' => 'status_updated',
-                    'description' => 'Order Label Staus updated in SendCloud Account',
-                    'meta' => [
-                        'from'=>'no_label',
-                        'to'=>'pending',
-                    ]
-                ]);
-                return $response->json([
-                    'success' => true,
-                    'message' => 'Order Created in send Cloud'
-                ]);
-            }
-        } else {
+
+        if (!$response->successful()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Sendcloud API error',
-                'error' => $response->body()
+                'error' => $response->body(),
             ], $response->status());
         }
+
+        $parcelData = $response->json();
+        $parcel = $parcelData['parcel'];
+        $order = Order::where('order_number', $parcel['order_number'])
+            ->where('shop_id', $shopId)
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Parcel created in Sendcloud but matching order not found',
+            ], 404);
+        }
+
+        $order->update([
+            'parcel_id' => $parcel['id'],
+            'tracking_number' => $parcel['tracking_number'] ?? null,
+            'shipment_id' => $parcel['shipping_method'],
+            'shipment_name' => $parcel['shipment']['name'] ?? null,
+            'label_status' => 'pending',
+        ]);
+
+        broadcast(new OrderUpdated($order));
+
+        OrderLog::create([
+            'order_id' => $order->order_id,
+            'event' => 'status_updated',
+            'description' => 'Order label status updated in SendCloud Account',
+            'meta' => ['from' => 'no_label', 'to' => 'pending'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order created in Sendcloud',
+            'parcel' => $parcel,
+        ]);
+
+//        $publicKey = $sendcloud->public_key ?? '1636f116-3e02-4da5-a455-492b573b9976';
+//        $secretKey = $sendcloud->secret_key ?? '613b5889a7594244a1f4792d7cd62229';
+
+//        $payload = $request->input();
+//        $response = Http::withBasicAuth($publicKey, $secretKey)
+//            ->post('https://panel.sendcloud.sc/api/v2/parcels', $payload);
+//        if($response->successful()){
+//            $parcelData = $response->json();
+//            $parcel = $parcelData['parcel'];
+//            $order = Order::where('order_number','=', $parcel['order_number'])->first();
+//            if($order){
+//                $order->update([
+//                    'parcel_id' => $parcel['id'],
+//                    'tracking_number' => $parcel['tracking_number'] ?? null,
+//                    'shipment_id' => $parcel['shipping_method'],
+//                    'shipment_name' => $parcel['shipment']['name'] ?? null,
+//                    'label_status' => 'pending',
+//                ]);
+//                broadcast(new OrderUpdated($order));
+//                OrderLog::create([
+//                    'order_id' => $order->order_id,
+//                    'event' => 'status_updated',
+//                    'description' => 'Order Label Staus updated in SendCloud Account',
+//                    'meta' => [
+//                        'from'=>'no_label',
+//                        'to'=>'pending',
+//                    ]
+//                ]);
+//                return $response->json([
+//                    'success' => true,
+//                    'message' => 'Order Created in send Cloud'
+//                ]);
+//            }
+//        } else {
+//            return response()->json([
+//                'success' => false,
+//                'message' => 'Sendcloud API error',
+//                'error' => $response->body()
+//            ], $response->status());
+//        }
     }
 
     public function allCarts(Request $request){
@@ -3311,20 +3374,66 @@ class HomeController extends Controller
 
     public function updateSendCloud(Request $request)
     {
+        $shopId = session('shop_id');
+
         $sendcloud = Sendcloud::updateOrCreate(
-            ['shop_id' => session('shop_id')],
+            ['shop_id' => $shopId],
             [
                 'public_key' => $request->public_key,
                 'secret_key' => $request->secret_key,
+                'api_version' => $request->api_version ?? 'v3',
                 'is_active' => $request->is_active,
             ]
         );
 
+        // Hard requirement — without shipping options, the shop can't create any labels at all.
+        try {
+            app(SendcloudShippingOptionSyncer::class)->sync($sendcloud);
+        } catch (SendcloudApiException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sendcloud credentials saved, but could not fetch shipping options — please verify your keys.',
+                'error' => $e->getErrorBody() ?? $e->getMessage(),
+            ], 422);
+        }
+
+        // Soft requirement — shop may not have finished configuring a sender address in
+        // their Sendcloud panel yet. Don't block the whole save over this; just warn.
+        $senderAddressWarning = null;
+        try {
+            $this->syncDefaultSenderAddress($sendcloud);
+        } catch (SendcloudApiException $e) {
+            Log::warning('Sendcloud sender address sync failed', [
+                'shop_id' => $shopId,
+                'sendcloud_id' => $sendcloud->id,
+                'error' => $e->getErrorBody() ?? $e->getMessage(),
+            ]);
+            $senderAddressWarning = 'Could not fetch a sender address from Sendcloud — please add one in your Sendcloud panel before creating labels.';
+        }
+
         return response()->json([
             'success' => true,
-            'message' => "updated Successfully",
-            'sendcloud' => $sendcloud,
+            'message' => 'Updated Successfully',
+            'sendcloud' => $sendcloud->fresh(),
+            'warning' => $senderAddressWarning,
         ]);
+    }
+
+    private function syncDefaultSenderAddress(Sendcloud $sendcloud): void
+    {
+        $response = Http::withBasicAuth($sendcloud->public_key, $sendcloud->secret_key)
+            ->get('https://panel.sendcloud.sc/api/v2/user/addresses/sender');
+
+        if (!$response->successful()) {
+            throw new SendcloudApiException('Failed to fetch sender addresses', $response->status(), $response->json());
+        }
+
+        $addresses = $response->json('sender_addresses', []);
+        $default = collect($addresses)->firstWhere('is_default', true) ?? $addresses[0] ?? null;
+
+        if ($default) {
+            $sendcloud->update(['default_sender_address_id' => $default['id']]);
+        }
     }
 
     public function updateOrAddAdminShipMethod(Request $request)

@@ -249,13 +249,16 @@
                 </v-card>
             </v-col>
         </v-row>
+        <SendcloudOptionSettings/>
     </v-container>
 </template>
 <script>
 import axios from "axios";
+import SendcloudOptionSettings from "@/admin/settings/SendcloudOptionSettings.vue";
 
 export default {
     name:"SettingsShipping",
+    components: {SendcloudOptionSettings},
     data(){
         return{
             cdn:this.$store.state.cdn,

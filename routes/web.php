@@ -14,6 +14,7 @@ use App\Http\Controllers\PageSettingController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromoController;
 use App\Http\Controllers\ScustController;
+use App\Http\Controllers\SendcloudController;
 use App\Http\Controllers\ShopifyController;
 use App\Http\Controllers\SproController;
 use App\Http\Controllers\SuperadminController;
@@ -152,6 +153,10 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/order/{order_id}',[HomeController::class,'getOrderById']);
         Route::post('/order/update',[HomeController::class,'updateAdminOrder']);
         Route::post('/order/sendtosendcloud/single',[HomeController::class,'sendToSendCloudSingle']);
+        Route::get('/order/sendcloud/shipping-options',[SendcloudController::class,'getShippingOptions']);
+        Route::get('/order/sendcloud/shipping-carriers',[SendcloudController::class,'getSendcloudCarriers']);
+        Route::post('/order/sendcloud/send-single-order',[SendcloudController::class,'sendToSendCloudSingle']);
+        Route::get('/order/{orderId}/sendcloud/label', [SendcloudController::class, 'printLabel']);
         Route::get('/order-invoice/{id}', [HomeController::class, 'invoice']);
         Route::get('/order-label/{id}', [HomeController::class, 'label']);
         Route::get('/all-products',[HomeController::class,'allProducts']);
@@ -219,6 +224,8 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/shops/theme',[HomeController::class,'themeSettings']);
         Route::get('/settings/shipping',[HomeController::class,'shippingSettings']);
         Route::post('/settings/update/sendcloud',[HomeController::class,'updateSendCloud']);
+        Route::get('/settings/sendcloud/shipping-options', [SendcloudController::class, 'getSendcloudOptionSettings']);
+        Route::post('/settings/sendcloud/shipping-options', [SendcloudController::class, 'updateSendcloudOptionSettings']);
         Route::post('/settings/shipping/update',[HomeController::class,'updateOrAddAdminShipMethod']);
         Route::post('/settings/shipping/delete',[HomeController::class,'deleteAdminShipMethod']);
         Route::get('/settings/payment/methods/list',[HomeController::class,'getAdminShopPaymentMethods']);

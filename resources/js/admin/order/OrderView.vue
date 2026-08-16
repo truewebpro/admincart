@@ -256,6 +256,9 @@
                         <div class="font-weight-medium">{{orderDetail.shipping_postcode}}</div>
                         <div class="font-weight-medium">{{orderDetail.shipping_country}}</div>
                         <div class="font-weight-medium">+44 {{orderDetail.shipping_phone}}</div>
+                        <div v-if="orderDetail.shipment_name" class="font-weight-medium">
+                            <b>Shipping via:</b> {{ orderDetail.shipment_name }}
+                        </div>
 
                     </v-card-text>
                 </v-card>
@@ -304,6 +307,38 @@
                     <v-spacer />
                     <v-btn @click="trackingDialog = false" color="red" variant="outlined" density="comfortable">Cancel</v-btn>
                     <v-btn @click="saveTracking" color="success" variant="elevated" density="comfortable">Save</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <v-dialog v-model="shippingOptionDialog" max-width="450">
+            <v-card>
+                <v-card-title>Select Shipping Service</v-card-title>
+                <v-card-text>
+                    <v-autocomplete
+                        v-model="selectedShippingOption"
+                        :items="groupedShippingItems"
+                        :loading="shippingOptionsLoading"
+                        item-title="title"
+                        item-value="value"
+                        return-object
+                        variant="outlined"
+                        density="compact"
+                        label="Search carrier or service (e.g. DPD, tracked)"
+                        no-data-text="No shipping options found"
+                    >
+                        <template v-slot:item="{ props, item }">
+                            <v-list-item
+                                v-bind="props"
+                                :title="item.raw.name"
+                                :subtitle="item.raw.suffix"
+                            />
+                        </template>
+                    </v-autocomplete>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn @click="shippingOptionDialog = false" variant="outlined" color="red" density="comfortable">Cancel</v-btn>
+                    <v-btn @click="confirmSendToSendCloud" variant="elevated" color="success" density="comfortable" :disabled="!selectedShippingOption">Send to Sendcloud</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -456,23 +491,6 @@ export default {
                         });
                     }
 
-                    if (this.lstatus === 'created') {
-                        actions.push({
-                            label: 'Print Label',
-                            type: 'direct',
-                            handler: this.printLabel
-                        });
-                    }
-
-                    if (this.lstatus === 'printed') {
-                        actions.push({
-                            label: 'Re-print Label',
-                            type: 'direct',
-                            handler: this.printLabel,
-                            variant: 'text'
-                        });
-                    }
-
                     if (!this.orderDetail.tracking_number && this.lstatus !== 'created') {
                         actions.push({
                             label: 'Add Tracking',
@@ -489,6 +507,24 @@ export default {
                         handler: () => this.updateOrder('completed')
                     });
                     break;
+            }
+
+            // Label print/reprint — independent of currentStep, since a label existing
+            // (lstatus) and the order's fulfillment step can diverge once created.
+            if (this.lstatus === 'created') {
+                actions.push({
+                    label: 'Print Label',
+                    type: 'direct',
+                    handler: this.printLabel
+                });
+            }
+            if (this.lstatus === 'printed') {
+                actions.push({
+                    label: 'Re-print Label',
+                    type: 'direct',
+                    handler: this.printLabel,
+                    variant: 'text'
+                });
             }
 
             if (
@@ -509,7 +545,29 @@ export default {
         },
         canEditAddress() {
             return !['fulfilled','completed'].includes(this.currentStep);
-        }
+        },
+        groupedShippingItems() {
+            const groups = {};
+            for (const opt of this.shippingOptions) {
+                (groups[opt.carrier] ||= []).push(opt);
+            }
+
+            const items = [];
+            Object.keys(groups).sort().forEach((carrier) => {
+                items.push({ type: 'subheader', title: carrier });
+                groups[carrier].forEach((opt) => {
+                    const suffix = this.extractServiceSuffix(opt.shipping_option_code);
+                    items.push({
+                        title: opt.name,
+                        value: opt.shipping_option_code,
+                        name: opt.name,       // flat, no extra nesting
+                        carrier: opt.carrier,
+                        suffix,
+                    });
+                });
+            });
+            return items;
+        },
     },
     data(){
         return{
@@ -547,6 +605,10 @@ export default {
             latest_id: null,
             hasNewOrder: false,
             poller: null,
+            shippingOptionDialog: false,
+            shippingOptions: [],
+            shippingOptionsLoading: false,
+            selectedShippingOption: null,
         }
     },
     watch: {
@@ -566,6 +628,9 @@ export default {
     },
     beforeUnmount() {
         Echo.leave('orders');
+    },
+    created() {
+        this.getShippingOptions();
     },
     methods:{
         dayjs,
@@ -650,7 +715,31 @@ export default {
                     this.getOrderDetail();
                 })
         },
+        getShippingOptions(){
+            this.shippingOptionsLoading = true;
+            axios.get('/sadmin/order/sendcloud/shipping-options')
+                .then((resp)=>{
+                    this.shippingOptions = resp.data.data;
+                })
+                .finally(()=>{
+                    this.shippingOptionsLoading = false;
+                });
+        },
+        extractServiceSuffix(code) {
+            if (!code) return null;
+            const idx = code.indexOf(':');
+            return idx >= 0 ? code.slice(idx + 1) : null;
+        },
         sendToSendCloud(){
+            this.selectedShippingOption = null;
+            this.shippingOptionDialog = true;
+        },
+        confirmSendToSendCloud(){
+            if (!this.selectedShippingOption) {
+                window.Toast.error('Please select a shipping service');
+                return;
+            }
+
             const parcel_items = this.oitems.map(item => ({
                 description: item.title,
                 quantity: item.quantity,
@@ -661,33 +750,31 @@ export default {
                 item_id: item.variant_id,
                 properties: item.variant.option_values || "default",
             }));
-                axios.post('/sadmin/order/sendtosendcloud/single', {
-                    "parcel": {
-                        "carrier": "royal_mailv2",
-                        "shipping_method": 29632,
-                        "order_number": this.orderDetail.order_number,
-                        "name": this.orderDetail.shipping_name,
-                        "company_name": "",
-                        "address": this.orderDetail.shipping_address_line1,
-                        "address_2": this.orderDetail.shipping_address_line2,
-                        "city": this.orderDetail.shipping_city,
-                        "postal_code": this.orderDetail.shipping_postcode,
-                        "country": 'GB',
-                        "email": this.customer.email,
-                        "telephone": this.orderDetail.shipping_phone,
-                        "total_order_value": this.orderDetail.order_total,
-                        "total_order_value_currency": this.orderDetail.currency_code,
-                        parcel_items,
-                    },
-                    "request_label": true
-                })
-                    .then((resp)=>{
+            axios.post('/sadmin/order/sendcloud/send-single-order', {
+                order_number: this.orderDetail.order_number,
+                shipping_option_code: this.selectedShippingOption.value,
+                name: this.orderDetail.shipping_name,
+                company_name: "",
+                address: this.orderDetail.shipping_address_line1,
+                address_2: this.orderDetail.shipping_address_line2,
+                city: this.orderDetail.shipping_city,
+                postal_code: this.orderDetail.shipping_postcode,
+                country: 'GB',
+                email: this.customer.email,
+                telephone: this.orderDetail.shipping_phone,
+                total_order_value: this.orderDetail.order_total,
+                total_order_value_currency: this.orderDetail.currency_code,
+                request_label: true,
+                parcel_items,
+            })
+                .then(()=>{
                     this.getOrderDetail();
-                    window.Toast.success('order send to SendCloud')
+                    this.shippingOptionDialog = false;
+                    window.Toast.success('Order sent to Sendcloud');
                 })
-                    .catch((err)=>{
-                        window.Toast.error(err.message);
-                    })
+                .catch((err)=>{
+                    window.Toast.error(err.response?.data?.message || err.message);
+                });
         },
         runAction(action) {
             if (action.type === 'dialog') {
@@ -720,7 +807,7 @@ export default {
             }).then(() => this.getOrderDetail());
         },
         printLabel() {
-            // later
+            window.open(`/sadmin/order/${this.order_id}/sendcloud/label`, '_blank');
         },
         openAddressDialog() {
             this.addressForm = {
