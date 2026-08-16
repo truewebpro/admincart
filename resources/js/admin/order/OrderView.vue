@@ -743,7 +743,7 @@ export default {
             const parcel_items = this.oitems.map(item => ({
                 description: item.title,
                 quantity: item.quantity,
-                weight: item.variant.weight || 0.5,
+                weight: item.variant.weight || 0.1,
                 value: Number(Number(item.price).toFixed(2)),
                 sku: item.variant.sku,
                 product_id: item.product_id,
