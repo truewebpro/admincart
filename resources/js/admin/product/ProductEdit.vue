@@ -40,6 +40,7 @@
             <v-tab value="general">
                 Product
             </v-tab>
+            <v-tab value="features">Features</v-tab>
             <v-tab value="specifics">Specifics</v-tab>
             <v-tab value="content">Sections</v-tab>
             <v-tab value="tiers">Tier Pricing</v-tab>
@@ -471,13 +472,6 @@
                                 </v-autocomplete>
                             </v-card-text>
                         </v-card>
-                        <ProductHighlights
-                            :product_id="product_id"
-                            :highs="highs"
-                            :features="features"
-                            :cdn="cdn"
-                            @refresh="getProductByID"
-                        />
                         <v-card class="mt-4 border-sm">
                             <v-card-title>Rating overview</v-card-title>
                             <v-card-text class="px-1">
@@ -543,6 +537,15 @@
                         </v-card>
                     </v-col>
                 </v-row>
+            </v-window-item>
+            <v-window-item value="features">
+                <ProductHighlights
+                    :product_id="product_id"
+                    :highs="highs"
+                    :features="features"
+                    :cdn="cdn"
+                    @refresh="getProductByID"
+                />
             </v-window-item>
             <v-window-item value="specifics">
                 <ProductSpecifics

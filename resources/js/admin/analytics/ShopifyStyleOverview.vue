@@ -11,7 +11,7 @@
                            :class="{ 'stat-pill--active': activeStat === stat.key }"
                            @click="activeStat = stat.key"
                     >
-                        <div class="text-caption text-medium-emphasis">{{ stat.label }}</div>
+                        <div class="text-caption text-medium-emphasis">Today {{ stat.label }}</div>
                         <div class="d-flex align-center ga-2 mt-1">
                             <span class="text-h6 font-weight-bold">{{ stat.formattedValue }}</span>
                             <v-chip

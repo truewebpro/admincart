@@ -61,7 +61,7 @@
             <v-col cols="12" md="4">
                 <v-card :loading="loadingOverview" elevation="2" rounded="lg" class="section-card">
                     <v-card-item
-                        title="Products & Users"
+                        title="Customers & Products"
                         subtitle="Total Growth 😎 this store "
                         append-icon="mdi-credit-card-wireless-outline"></v-card-item>
                     <v-card-text>
