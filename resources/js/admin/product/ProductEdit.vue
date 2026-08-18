@@ -1,23 +1,23 @@
 <template>
     <v-container class="propage pa-2">
-        <v-row dense class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
+        <v-row dense class="position-sticky top-0 bg-grey-lighten-3" style="z-index: 99">
             <v-col cols="12" md="6">
                 <h2 class="text-h6">
                     <v-btn link to="/products" icon variant="tonal" density="compact">
                         <v-icon>mdi-arrow-left</v-icon>
                     </v-btn>
-                    Edit {{productname}} <v-chip v-if="pro.archived" color="red" variant="outlined" density="compact" >Archived</v-chip>
+                    Edit {{productname}} <v-chip v-if="pro.archived" color="red" variant="tonal" density="compact" >Archived</v-chip>
                 </h2>
 <!--                <v-btn @click="generateAiContent" color="success" density="compact">Generate Content</v-btn>-->
             </v-col>
-            <v-col cols="12" md="6" class="text-end d-flex ga-2 flex-wrap justify-center">
-                <v-btn :href="domain+'products/'+pro.handle" target="_blank" variant="tonal" class="text-none"
-                       density="compact" title="Preview" color="primary">Preview</v-btn>
-                <v-btn variant="tonal" @click="disCard" class="text-none me-2" density="compact" color="red">Discard</v-btn>
+            <v-col cols="12" md="6" class="text-end d-flex ga-2 flex-wrap justify-end">
+                <v-btn :href="domain+'products/'+pro.handle" target="_blank" class="text-none"
+                       title="Preview" color="primary">Preview</v-btn>
+                <v-btn variant="tonal" @click="disCard" class="text-none me-2" density="comfortable" color="red">Discard</v-btn>
                 <v-menu>
                     <template v-slot:activator="{props}">
                         <v-btn v-bind="props" variant="tonal" class="text-none" append-icon="mdi-chevron-down"
-                               density="compact" color="success">More Actions</v-btn>
+                               density="comfortable" color="success">More Actions</v-btn>
                     </template>
                     <v-list nav density="compact">
                         <v-list-item base-color="dark" v-if="pro.archived" @click="restoreProduct">
@@ -31,20 +31,23 @@
                         </v-list-item>
                     </v-list>
                 </v-menu>
-                <v-btn variant="tonal" @click="editProductById" :loading="isLoading" :disabled="pro.archived || isLoading" color="success" density="compact" class="text-none" >Save</v-btn>
+                <v-btn variant="tonal" @click="editProductById" :loading="isLoading" :disabled="pro.archived || isLoading" color="success" density="comfortable" class="text-none" >Save</v-btn>
             </v-col>
         </v-row>
-        <v-tabs v-model="ptab" density="compact" color="primary" selectedClass="bg-lblue"
-                bgColor="grey-lighten-5" sliderColor="primary"
+        <v-tabs v-model="ptab" density="default" color="primary" selectedClass="bg-lblue"
+                bgColor="grey-lighten-3" sliderColor="primary"
                 class="my-2" slider-transition="fade" spaced="both">
-            <v-tab value="general">
-                Product
+            <v-tab value="general" prepend-icon="mdi-package-variant" class="bg-white">
+                <div>
+                    Product
+                </div>
+                 <div class="text-body-2 opacity-70">Title & Summary</div>
             </v-tab>
-            <v-tab value="features">Features</v-tab>
-            <v-tab value="specifics">Specifics</v-tab>
-            <v-tab value="content">Sections</v-tab>
-            <v-tab value="tiers">Tier Pricing</v-tab>
-            <v-tab value="faqs">FAQ's</v-tab>
+            <v-tab value="features" prepend-icon="mdi-star" class="bg-white">Features</v-tab>
+            <v-tab value="specifics" prepend-icon="mdi-format-list-text" class="bg-white" >Specifics</v-tab>
+            <v-tab value="content" prepend-icon="mdi-view-dashboard-outline" class="bg-white">Sections</v-tab>
+            <v-tab value="tiers" prepend-icon="mdi-tag-text-outline" class="bg-white">Tier Pricing</v-tab>
+            <v-tab value="faqs" prepend-icon="mdi-help-circle" class="bg-white">FAQ's</v-tab>
         </v-tabs>
         <v-window v-model="ptab">
             <v-window-item value="general">

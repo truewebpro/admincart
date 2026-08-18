@@ -21,6 +21,43 @@ export default createVuetify({
                     lblue:'#dde7f2'
                 }
             }
-        }
+        },
     },
+    defaults:{
+        VBtn: {
+            density: 'comfortable',
+            variant:'tonal',
+        },
+        VTextField: {
+            density: 'compact',
+        },
+
+        VSelect: {
+            density: 'compact',
+        },
+
+        VAutocomplete: {
+            density: 'compact',
+        },
+
+        VTextarea: {
+            density: 'compact',
+        },
+
+        VCombobox: {
+            density: 'compact',
+        },
+
+        VList: {
+            density: 'compact',
+        },
+
+        VListItem: {
+            density: 'compact',
+        },
+
+        VChip: {
+            density: 'comfortable',
+        },
+    }
 })

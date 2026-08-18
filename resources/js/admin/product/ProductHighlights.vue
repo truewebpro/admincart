@@ -1,8 +1,22 @@
 <template>
-    <v-container>
+    <div>
         <v-card class="border-sm">
             <v-card-title>Product Features</v-card-title>
-            <v-data-table :items="highs" :headers="highHeaders" density="compact" id="hid" items-per-page="20" hide-default-footer>
+            <v-card v-if="!highs.length">
+                <v-empty-state
+                    icon="mdi-star"
+                    title="No Product Features added yet"
+                    text="Highlight what makes this product stand out with icon-based feature callouts."
+                >
+                    <template #actions>
+                        <v-btn @click="addHighDialog = true"
+                               color="success"
+                               variant="tonal"
+                               density="default">Add Highlight</v-btn>
+                    </template>
+                </v-empty-state>
+            </v-card>
+            <v-data-table v-if="highs.length" :items="highs" :headers="highHeaders" density="compact" id="hid" items-per-page="20" hide-default-footer>
                 <template v-slot:item.fimage="{item}">
                     <v-img :src="cdn+item.fimage" max-width="48" rounded contain class="my-2"/>
                 </template>
@@ -47,8 +61,8 @@
                     </v-card-text>
                 </v-card>
             </v-dialog>
-            <v-card-text>
-                <v-btn @click="addHighDialog = true" color="primary" density="comfortable">Add Highlight</v-btn>
+            <v-card-text v-if="highs.length">
+                <v-btn @click="addHighDialog = true" variant="tonal" color="success" density="default">Add Highlight</v-btn>
                 <v-dialog v-model="addHighDialog" max-width="400">
                     <v-card>
                         <v-card-title class="d-flex justify-space-between">
@@ -87,7 +101,7 @@
                 </v-dialog>
             </v-card-text>
         </v-card>
-    </v-container>
+    </div>
 </template>
 
 <script>

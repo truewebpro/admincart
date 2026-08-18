@@ -1,5 +1,6 @@
 import './bootstrap.js';
 import "vuetify/dist/vuetify.min.css";
+// import "../css/tailwind.css";
 import { createApp} from "vue";
 import App from "./App.vue";
 import vuetify from "./vuetify.js";

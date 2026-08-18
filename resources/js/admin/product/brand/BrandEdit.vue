@@ -1,6 +1,6 @@
 <template>
     <v-container>
-        <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
+        <v-row class="position-sticky top-0 bg-grey-lighten-3" style="z-index: 99">
             <v-col cols="12" md="6">
                 <h2 class="text-h6">
                     <v-btn link to="/pros/brands" icon variant="tonal" density="compact">
@@ -17,7 +17,7 @@
             </v-col>
         </v-row>
         <v-tabs v-model="btab" color="primary" selectedClass="bg-lblue"
-                density="compact" bgColor="grey-lighten-5" sliderColor="primary"
+                density="compact" bgColor="grey-lighten-3" sliderColor="primary"
                 slider-transition="fade"
                 class="mt-4">
             <v-tab value="general">Brand</v-tab>

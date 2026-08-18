@@ -2,7 +2,7 @@
     <div>
         <v-form v-model="mavalid" @submit.prevent="saveMenu">
             <v-container>
-                <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
+                <v-row class="position-sticky top-0 bg-grey-lighten-3" style="z-index: 99">
                     <v-col cols="12" md="6">
                         <h2 class="text-h6">
                             <v-btn :to="{name:'MenusList'}" icon variant="tonal" density="compact">

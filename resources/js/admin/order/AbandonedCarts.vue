@@ -8,7 +8,7 @@
             </v-col>
             <v-col cols="12">
                 <v-tabs v-model="status" color="primary" selectedClass="bg-lblue"
-                        density="compact" bgColor="grey-lighten-5" sliderColor="primary"
+                        density="compact" bgColor="grey-lighten-3" sliderColor="primary"
                         slider-transition="fade" show-arrows class="w-100">
                     <v-tab v-for="(stat, index) in cartstatus" :key="index" :value="stat" class="text-capitalize">
                         {{ stat }}

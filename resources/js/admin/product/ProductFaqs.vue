@@ -1,14 +1,28 @@
 <template>
     <div class="pt-2">
-        <v-row class="faqs">
-            <v-col cols="12" md="6">
-                <h2>Frequently Asked Questions</h2>
-            </v-col>
-            <v-col cols="12" md="6">
-                <v-btn @click="showAddDialog" color="success" variant="elevated" density="comfortable">Add Faq</v-btn>
-            </v-col>
-        </v-row>
+        <v-card class="mb-2">
+            <v-card-item>
+                <template #title>Frequently Asked Questions</template>
+                <template #append v-if="faqs.length"><v-btn @click="showAddDialog" color="success" variant="tonal" density="comfortable">Add Faq</v-btn></template>
+            </v-card-item>
+        </v-card>
         <v-row>
+            <v-col v-if="!faqs.length" cols="12">
+                <v-card>
+                    <v-empty-state
+                        icon="mdi-frequently-asked-questions"
+                        title="No Product FAQs added yet"
+                        text="Answer the questions customers ask most before they reach out to support"
+                    >
+                        <template #actions>
+                            <v-btn @click="showAddDialog"
+                                   color="success"
+                                   variant="tonal"
+                                   density="default">Add Faq</v-btn>
+                        </template>
+                    </v-empty-state>
+                </v-card>
+            </v-col>
             <v-col v-for="(faq) in faqs" :key="faq.id" cols="12" md="6">
                 <v-card class="mb-2">
                     <v-card-title class="bg-grey-lighten-3">{{faq.question}}</v-card-title>

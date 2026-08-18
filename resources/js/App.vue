@@ -1,8 +1,10 @@
 <template>
     <v-app>
         <v-navigation-drawer
+            color="grey-lighten-5"
             v-model="drawer"
-            :rail="isDesktop"
+            :permanent="isDesktop"
+            :width="225"
             :rail-width="50"
             expand-on-hover
             :temporary="!isDesktop"
@@ -118,7 +120,7 @@
                 </v-list-item>
             </v-list>
         </v-navigation-drawer>
-        <v-main class="py-1 bg-grey-lighten-5">
+        <v-main class="py-1 bg-grey-lighten-3">
             <v-container class="pa-0 mt-1 mb-1" v-if="isSuperAdmin">
                 <v-row dense>
                     <v-col cols="6" md="9">
@@ -243,11 +245,64 @@ export default {
 
 </script>
 
-<style>
-.section-card {
-    border: 1px solid #e1e3e6 !important;
-    box-shadow: 0 1px 2px rgba(16,24,40,0.04) !important;
-    border-radius: 8px !important;
+<style lang="scss">
+.v-application {
+    font-size: 14px;
+    body{
+        font-size: 14px;
+    }
+
+    .v-label {
+        font-size: 13px;
+    }
+    .v-data-table__td{
+        font-size: 13px;
+    }
+
+    .v-field {
+        font-size: 14px;
+    }
+
+    .v-btn {
+        //font-size: 13px;
+        border-radius: 8px;
+    }
+    .v-btn--variant-tonal {
+        border: 1px solid currentColor;
+        font-size: 13px;
+    }
+    .v-btn--density-compact.v-btn--size-small {
+        font-size: 10px;
+    }
+
+    .v-list-item-title {
+        font-size: 13px;
+    }
+
+    .v-list-item-subtitle {
+        font-size: 12px;
+    }
+
+    .v-card-title {
+        font-size: 16px;
+    }
+    .v-card {
+        border-radius: 8px;
+        border:1px solid #e1e3e6;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04) !important;
+    }
+    .v-card--variant-elevated {
+        box-shadow: 0 2px 1px -1px rgba(16, 24, 40, 0.04);
+    }
+
+    .v-card-text {
+        font-size: 14px;
+    }
+
+    .v-slide-group__content button.v-tab .v-btn__content {
+        align-items: start;
+        flex-direction: column;
+    }
 }
 .v-list-group__items {
     --indent-padding: -6px !important;

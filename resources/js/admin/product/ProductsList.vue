@@ -5,9 +5,9 @@
                 <span class="text-h6">Products</span>
             </v-col>
             <v-col cols="9" md="6" class="text-end">
-                <v-btn @click="uploadDialog = true" variant="tonal" class="text-none" size="small" color="success me-2">Import</v-btn>
-                <v-btn @click="exportProducts" variant="tonal" class="text-none" size="small" color="primary me-2">Export</v-btn>
-                <v-btn link to="/products/new" variant="tonal" class="text-none" size="small" color="primary">Add Product</v-btn>
+                <v-btn @click="uploadDialog = true" variant="tonal" class="text-none" color="success me-2">Import</v-btn>
+                <v-btn @click="exportProducts" variant="tonal" class="text-none" color="primary me-2">Export</v-btn>
+                <v-btn link to="/products/new" variant="tonal" class="text-none" color="primary">Add Product</v-btn>
             </v-col>
             <v-col cols="12">
                 <v-card flat class="border">

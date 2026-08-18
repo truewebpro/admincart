@@ -7,6 +7,19 @@
                 <v-card-text>
                     <div v-if="tiers.length === 0" class="text-grey">
                         No tier pricing applied. Product uses base price.
+                        <v-empty-state
+                            icon="mdi-tag-text-outline"
+                            title="No Product Tiers added yet"
+                            text="Answer the questions customers ask most before they reach out to support"
+                        >
+                            <template #actions>
+                                <div class="d-flex ga-2">
+                                    <v-btn @click="addTier" :disabled="tiers.some(t => !t.price || t.min_qty < 2)"
+                                           color="primary" density="compact" :class="tiers.length > 2 ? 'd-none' : ''">Add Tier</v-btn>
+                                    <v-btn type="submit" :disabled="!tierForm" color="success" density="compact">Save Tier</v-btn>
+                                </div>
+                            </template>
+                        </v-empty-state>
                     </div>
                     <v-form v-model="tierForm" @submit.prevent="saveTier">
                         <v-row dense v-for="(tier,index) in tiers" :key="index">
@@ -33,7 +46,7 @@
                                 />
                             </v-col>
                         </v-row>
-                        <div class="d-flex ga-2">
+                        <div v-if="tiers.length" class="d-flex ga-2">
                             <v-btn @click="addTier" :disabled="tiers.some(t => !t.price || t.min_qty < 2)"
                                    color="primary" density="compact" :class="tiers.length > 2 ? 'd-none' : ''">Add Tier</v-btn>
                             <v-btn type="submit" :disabled="!tierForm" color="success" density="compact">Save Tier</v-btn>

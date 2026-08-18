@@ -1,7 +1,7 @@
 <template>
     <v-container>
         <v-form ref="adcForm" v-model="acatValid" @submit.prevent="addNewCat">
-            <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 1020">
+            <v-row class="position-sticky top-0 bg-grey-lighten-3" style="z-index: 1020">
                 <v-col cols="12" md="6">
                     <h2 class="text-h6">
                         <v-btn link to="/categories" icon variant="tonal" color="primary" density="compact">

@@ -1,6 +1,6 @@
 <template>
     <v-container fluid class="theme-page pa-0">
-        <v-row dense class="position-sticky top-0 bg-grey-lighten-5" align="center" style="z-index: 99">
+        <v-row dense class="position-sticky top-0 bg-grey-lighten-3" align="center" style="z-index: 99">
             <v-col cols="12" md="4">
                 <h2 class="text-h6">
                     <v-btn icon variant="tonal" density="compact">

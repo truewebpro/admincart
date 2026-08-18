@@ -2,7 +2,7 @@
     <div>
         <v-container class="page-new">
             <v-form v-model="pavalid" @submit.prevent="addNewPage">
-                <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
+                <v-row class="position-sticky top-0 bg-grey-lighten-3" style="z-index: 99">
                     <v-col cols="12" md="6">
                         <h2 class="text-h6">
                             <v-btn link :to="{name:'PagesList'}" icon variant="tonal" density="compact">

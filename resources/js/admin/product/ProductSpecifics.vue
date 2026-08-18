@@ -6,8 +6,22 @@
                     <v-card-title>
                         Product Specifics
                     </v-card-title>
-                    <v-card-text>
-                        <v-btn density="compact" color="success" append-icon="mdi-plus" @click="addSpecDialog = true">Add Specifics</v-btn>
+                    <v-card v-if="!specifics.length">
+                        <v-empty-state
+                            icon="mdi-format-list-text"
+                            title="No Product Specifics added yet"
+                            text="List technical details like battery, capacity, or dimensions as attribute rows."
+                        >
+                            <template #actions>
+                                <v-btn @click="addSpecDialog"
+                                       color="success"
+                                       variant="tonal"
+                                       density="default">Add Specifics</v-btn>
+                            </template>
+                        </v-empty-state>
+                    </v-card>
+                    <v-card-text v-if="specifics.length" >
+                        <v-btn density="default" variant="tonal" color="success" prepend-icon="mdi-plus" @click="addSpecDialog = true">Add Specifics</v-btn>
                     </v-card-text>
                     <v-dialog v-model="addSpecDialog" max-width="400">
                         <v-card>

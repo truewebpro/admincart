@@ -1,6 +1,6 @@
 <template>
     <v-container class="theme-page">
-        <v-row class="position-sticky top-0 bg-grey-lighten-5" style="z-index: 99">
+        <v-row class="position-sticky top-0 bg-grey-lighten-3" style="z-index: 99">
             <v-col cols="12" md="6">
                 <h2 class="text-h6">
                     <v-btn icon variant="tonal" density="compact" color="primary">
@@ -17,7 +17,7 @@
         <v-row class="mt-0">
             <v-col cols="12" md="12">
                 <v-tabs v-model="ttab" align-tabs="center" height="32" slider-color="primary"
-                        selected-class="bg-primary" bg-color="grey-lighten-5">
+                        selected-class="bg-primary" bg-color="grey-lighten-3">
                     <v-tab>Preferences</v-tab>
                     <v-tab>Social Media</v-tab>
                 </v-tabs>
