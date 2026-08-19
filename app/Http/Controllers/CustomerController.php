@@ -398,8 +398,8 @@ class CustomerController extends Controller
             'postcode' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'phone' => 'required|string|max:255',
-            'is_default' => 'required',
         ]);
+
         DB::beginTransaction();
         try {
             $caddress = CustomerAddress::findOrFail($request->address_id)->update([
@@ -411,7 +411,6 @@ class CustomerController extends Controller
                 'postcode' => $request->postcode,
                 'country' => $request->country,
                 'phone' => $request->phone,
-                'is_default' => $request->is_default,
                 'customer_id' => $customer->customer_id,
             ]);
             if($caddress){
