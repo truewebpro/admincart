@@ -4371,10 +4371,10 @@ class HomeController extends Controller
     public function getShopAnnouncements()
     {
         $shopId = session('shop_id');
-        $announcements = Announcement::where('shop_id', $shopId)->get();
+        $announcement = Announcement::where('shop_id', $shopId)->first();
         return response()->json([
             'success' => true,
-            'announcements' => $announcements,
+            'announcement' => $announcement,
         ]);
     }
 

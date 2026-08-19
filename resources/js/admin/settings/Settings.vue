@@ -1,11 +1,19 @@
 <template>
     <v-container class="settings pa-2">
-        <h2>Settings</h2>
-        <v-row>
+        <v-row dense>
+            <v-col cols="12" md="12">
+                <v-card>
+                    <v-card-item>
+                        <template #title>
+                            <h2>Settings</h2>
+                        </template>
+                    </v-card-item>
+                </v-card>
+            </v-col>
             <v-col cols="12" md="4">
                 <v-card class="border-sm rounded-lg" :to="{name:'SettingsGeneral'}">
                     <v-card-text class="d-flex flex align-center">
-                        <div class="bg-grey-lighten-3 rounded-lg pa-1 me-2 elevation-1">
+                        <div class="bg-lblue text-success rounded-lg pa-1 me-2 elevation-1">
                             <v-icon size="45" class="rounded-lg">mdi-cog</v-icon>
                         </div>
                         <div>
@@ -23,7 +31,7 @@
             <v-col cols="12" md="4">
                 <v-card class="border-sm rounded-lg" :to="{name:'SettingsShipping'}">
                     <v-card-text class="d-flex flex align-center">
-                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                        <div class="bg-lblue text-success rounded-lg me-2 pa-1 elevation-1">
                             <v-icon size="45" class="rounded-lg">mdi-truck-fast</v-icon>
                         </div>
                         <div>
@@ -41,7 +49,7 @@
             <v-col cols="12" md="4">
                 <v-card class="border-sm" :to="{name:'SettingsPayment'}">
                     <v-card-text class="d-flex flex align-center">
-                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                        <div class="bg-lblue text-success rounded-lg me-2 pa-1 elevation-1">
                             <v-icon size="45">mdi-account-credit-card-outline</v-icon>
                         </div>
                         <div>
@@ -56,10 +64,10 @@
                     </v-card-text>
                 </v-card>
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="4" class="d-none">
                 <v-card class="border-sm rounded-lg" :to="{name:'SettingsPrinting'}">
                     <v-card-text class="d-flex flex align-center">
-                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                        <div class="bg-lblue text-success rounded-lg me-2 pa-1 elevation-1">
                             <v-icon size="45">mdi-printer</v-icon>
                         </div>
                         <div>
@@ -77,7 +85,7 @@
             <v-col cols="12" md="4">
                 <v-card class="border-sm rounded-lg" :to="{name:'SettingsMarketing'}">
                     <v-card-text class="d-flex flex align-center">
-                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                        <div class="bg-lblue text-success rounded-lg me-2 pa-1 elevation-1">
                             <v-icon size="45">mdi-sale</v-icon>
                         </div>
                         <div>
@@ -92,10 +100,10 @@
                     </v-card-text>
                 </v-card>
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="4" class="d-none">
                 <v-card class="border-sm rounded-lg" :to="{name:'SettingsInventory'}">
                     <v-card-text class="d-flex flex align-center">
-                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                        <div class="bg-lblue text-success rounded-lg me-2 pa-1 elevation-1">
                             <v-icon size="45">mdi-tag</v-icon>
                         </div>
                         <div>
@@ -113,7 +121,7 @@
             <v-col cols="12" md="4">
                 <v-card class="border-sm rounded-lg" :to="{name:'SettingsReview'}">
                     <v-card-text class="d-flex flex align-center">
-                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                        <div class="bg-lblue text-succecc rounded-lg me-2 pa-1 elevation-1">
                             <v-icon size="45">mdi-star-check-outline</v-icon>
                         </div>
                         <div>
@@ -131,7 +139,7 @@
             <v-col cols="12" md="4">
                 <v-card class="border-sm rounded-lg" :to="{name:'SettingsAccount'}">
                     <v-card-text class="d-flex flex align-center">
-                        <div class="bg-grey-lighten-3 rounded-lg me-2 pa-1 elevation-1">
+                        <div class="bg-lblue text-success rounded-lg me-2 pa-1 elevation-1">
                             <v-icon size="45">mdi-account-sync-outline</v-icon>
                         </div>
                         <div>

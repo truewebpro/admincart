@@ -15,7 +15,7 @@
                             <template #actions>
                                 <v-btn @click="addSpecDialog"
                                        color="success"
-                                       variant="tonal"
+                                       variant="tonal" prependIcon="mdi-plus"
                                        density="default">Add Specifics</v-btn>
                             </template>
                         </v-empty-state>

@@ -75,14 +75,14 @@
                             <v-btn variant="text" density="compact" class="font-weight-bold text-none">{{selectedPros.length}} Selected</v-btn>
                         </v-col>
                         <v-col cols="6" md="3">
-                            <v-btn @click="selectedPros = []" variant="outlined" density="compact" class="text-none">Unselect All</v-btn>
+                            <v-btn @click="selectedPros = []" variant="tonal" color="red" density="compact" class="text-none">Unselect All</v-btn>
                         </v-col>
                         <v-col cols="12" md="4">
                             <v-menu>
                                 <template v-slot:activator="{ props: menu }">
                                     <v-tooltip location="top">
                                         <template v-slot:activator="{ props: tooltip }">
-                                            <v-btn variant="outlined" class="text-none me-5" v-bind="mergeProps(menu, tooltip)"
+                                            <v-btn variant="tonal" class="text-none me-5" v-bind="mergeProps(menu, tooltip)"
                                                    density="compact" append-icon="mdi-chevron-down">
                                                 More Actions
                                             </v-btn>

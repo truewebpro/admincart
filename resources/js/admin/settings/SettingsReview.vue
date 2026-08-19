@@ -1,7 +1,18 @@
 <template>
     <v-container class="pa-2">
         <v-row dense>
-            <v-col cols="12" md="6"><h2>Reviews</h2></v-col>
+            <v-col cols="12" md="12">
+                <v-card>
+                    <v-card-item>
+                        <template #prepend>
+                            <v-icon>mdi-star</v-icon>
+                        </template>
+                        <template #title>
+                            <div class="text-h5 font-weight-bold">Reviews</div>
+                        </template>
+                    </v-card-item>
+                </v-card>
+            </v-col>
             <v-col cols="12">
                 <v-card class="border-sm">
                     <v-data-table :items="areviews" :headers="reviewsHeaders" items-per-page="20" mobileBreakpoint="sm">

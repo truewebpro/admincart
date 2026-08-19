@@ -1,9 +1,9 @@
 <template>
     <v-container class="pa-1">
-        <v-row class="mt-2" align="center">
-            <v-col cols="12" md="6">
-                <h2 class="text-h4 font-weight-bold">Dashboard</h2>
-            </v-col>
+        <v-row class="mt-2 d-none" align="center">
+<!--            <v-col cols="12" md="6">-->
+<!--                <h2 class="text-h4 font-weight-bold">Dashboard</h2>-->
+<!--            </v-col>-->
             <v-col cols="12" md="6" class="d-flex ga-2 justify-start justify-lg-end">
 <!--                <v-date-input-->
 <!--                    v-model="from"-->

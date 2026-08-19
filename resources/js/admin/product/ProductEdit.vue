@@ -43,11 +43,36 @@
                 </div>
                  <div class="text-body-2 opacity-70">Title & Summary</div>
             </v-tab>
-            <v-tab value="features" prepend-icon="mdi-star" class="bg-white">Features</v-tab>
-            <v-tab value="specifics" prepend-icon="mdi-format-list-text" class="bg-white" >Specifics</v-tab>
-            <v-tab value="content" prepend-icon="mdi-view-dashboard-outline" class="bg-white">Sections</v-tab>
-            <v-tab value="tiers" prepend-icon="mdi-tag-text-outline" class="bg-white">Tier Pricing</v-tab>
-            <v-tab value="faqs" prepend-icon="mdi-help-circle" class="bg-white">FAQ's</v-tab>
+            <v-tab value="features" prepend-icon="mdi-star" class="bg-white">
+                <div>
+                    Features
+                </div>
+                <div class="text-body-2 opacity-70">Highlights</div>
+            </v-tab>
+            <v-tab value="specifics" prepend-icon="mdi-format-list-text" class="bg-white" >
+                <div>
+                    Specifics
+                </div>
+                <div class="text-body-2 opacity-70">Attributes</div>
+            </v-tab>
+            <v-tab value="content" prepend-icon="mdi-view-dashboard-outline" class="bg-white">
+                <div>
+                    Sections
+                </div>
+                <div class="text-body-2 opacity-70">Page Layout</div>
+            </v-tab>
+            <v-tab value="tiers" prepend-icon="mdi-tag-text-outline" class="bg-white">
+                <div>
+                    Tier Pricing
+                </div>
+                <div class="text-body-2 opacity-70">Quantity Breaks</div>
+            </v-tab>
+            <v-tab value="faqs" prepend-icon="mdi-help-circle" class="bg-white">
+                <div>
+                    FAQ's
+                </div>
+                <div class="text-body-2 opacity-70">Common Questions</div>
+            </v-tab>
         </v-tabs>
         <v-window v-model="ptab">
             <v-window-item value="general">
@@ -60,7 +85,7 @@
                                             persistent-placeholder counter="500" persistent-counter
                                             class="mb-2" density="compact"></v-textarea>
                                 <RichTextEditor v-model="quillContent"/>
-                                <v-btn color="primary" variant="outlined" density="compact"
+                                <v-btn color="primary" variant="tonal" density="compact"
                                        prepend-icon="mdi-text-search-variant" class="mt-1"
                                        @click="contentDialog = true">Write AI Description</v-btn>
                                 <v-dialog v-model="contentDialog" max-width="600">
@@ -175,12 +200,12 @@
                                     </v-row>
                                 </v-container>
                                 <v-container class="px-0 pt-1">
-                                    <v-btn v-if="!showVariantForm && Object.keys(variants).length < 1" color="bg-grey-darken-4"
-                                           @click="startNewOption" variant="outlined" density="compact"
+                                    <v-btn v-if="!showVariantForm && Object.keys(variants).length < 1" color="primary"
+                                           @click="startNewOption" variant="tonal" density="compact"
                                            class="mb-3" prepend-icon="mdi-plus">Add Options
                                     </v-btn>
                                     <v-btn v-if="Object.keys(variants).length > 0 && Object.keys(variants).length < 3 && !showVariantForm"
-                                           color="bg-grey-darken-4" @click="startNewOption" variant="outlined" density="compact"
+                                           color="primary" @click="startNewOption" variant="tonal" density="compact"
                                            class="mt-3" prepend-icon="mdi-plus">
                                         Add Another Option
                                     </v-btn>
@@ -209,7 +234,7 @@
                                                 </v-text-field>
                                             </div>
                                             <div class="d-flex">
-                                                <v-btn prepend-icon="mdi-plus-circle-outline" color="grey-darken-5" variant="outlined" class="me-2 text-none" size="small"
+                                                <v-btn prepend-icon="mdi-plus-circle-outline" color="success" variant="tonal" class="me-2 text-none" size="small"
                                                        @click="addOptionField" :disabled="!canAddAnother">
                                                     Add another value
                                                 </v-btn>
@@ -233,11 +258,11 @@
                             <v-card-title>Variants Details</v-card-title>
                             <v-toolbar v-if="selectedVariants.length > 0" height="44" color="white">
                                 <v-btn variant="text" density="compact" class="font-weight-bold text-none">{{selectedVariants.length}} Selected</v-btn>
-                                <v-btn @click="selectedVariants = []" variant="outlined" density="compact" class="text-none">Unselect All</v-btn>
+                                <v-btn @click="selectedVariants = []" variant="tonal" density="compact" color="red" class="text-none">Unselect All</v-btn>
                                 <v-spacer/>
                                 <v-menu>
                                     <template v-slot:activator="{props}">
-                                        <v-btn v-bind="props" variant="outlined" class="text-none me-2" append-icon="mdi-chevron-down"
+                                        <v-btn v-bind="props" variant="tonal" class="text-none me-2" append-icon="mdi-chevron-down"
                                                density="compact">Edit Product Bulk</v-btn>
                                     </template>
                                     <v-list nav density="compact">
@@ -363,7 +388,7 @@
                                     <v-text-field v-model="pro.meta_title" variant="outlined" density="compact" label="Page Title"
                                                   counter="70" :placeholder="productname" persistent-counter
                                                   persistent-placeholder></v-text-field>
-                                    <v-btn color="primary" variant="outlined" density="compact"
+                                    <v-btn color="primary" variant="tonal" density="compact"
                                            prepend-icon="mdi-text-search-variant" class="mt-1"
                                            @click="mtitleDialog = true">Write AI Meta Title</v-btn>
                                     <v-dialog v-model="mtitleDialog" max-width="600">
@@ -391,7 +416,7 @@
                                     <v-textarea v-model="pro.meta_desc" variant="outlined" density="compact" label="Meta Description"
                                                 counter="160" :placeholder="(stripHtml(quillContent))"
                                                 persistent-counter persistent-placeholder></v-textarea>
-                                    <v-btn color="primary" variant="outlined" density="compact"
+                                    <v-btn color="primary" variant="tonal" density="compact"
                                            prepend-icon="mdi-text-search-variant" class="mt-1"
                                            @click="mdescDialog = true">Write AI Meta Description</v-btn>
                                     <v-dialog v-model="mdescDialog" max-width="600">
@@ -427,7 +452,7 @@
                         <v-card class="border-sm">
                             <v-card-title>Reviews</v-card-title>
                             <v-card-text>
-                                <v-btn variant="tonal" color="primary" @click="reviewDialog = true" density="comfortable">Add Review</v-btn>
+                                <v-btn class="text-none" prependIcon="mdi-plus" variant="tonal" color="primary" @click="reviewDialog = true" density="comfortable">Add Review</v-btn>
                             </v-card-text>
                             <v-card-title>Status</v-card-title>
                             <v-card-text>

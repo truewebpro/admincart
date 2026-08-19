@@ -50,7 +50,7 @@
                     <v-divider/>
                     <v-card-actions>
                         <v-spacer/>
-                        <v-btn color="primary" variant="elevated" :loading="saveLoading" @click="updatePageSetting"> Save
+                        <v-btn color="primary" variant="tonal" :loading="saveLoading" @click="updatePageSetting"> Save
                             Settings
                         </v-btn>
                     </v-card-actions>

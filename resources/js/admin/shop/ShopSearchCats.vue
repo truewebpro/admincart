@@ -1,11 +1,11 @@
 <template>
     <v-container class="pa-1">
       <v-row dense>
-        <v-col cols="12" md="6">
-            <h2 class="text-h6">Search Collections</h2>
-        </v-col>
-        <v-col cols="12" md="6">
-        </v-col>
+          <v-col cols="12" md="12">
+              <v-card>
+                  <v-card-title>Search Collections</v-card-title>
+              </v-card>
+          </v-col>
         <v-col cols="12" md="8">
             <v-card>
                 <v-data-table :items="scats" :headers="scatHeader" :hide-default-footer="scats.length < 20">

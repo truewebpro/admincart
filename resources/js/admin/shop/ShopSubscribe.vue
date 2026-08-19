@@ -1,8 +1,16 @@
 <template>
     <div>
         <v-container>
-            <h2 class="text-h6">Shop Subscribe Section</h2>
-            <v-row>
+            <v-row dense>
+                <v-col cols="12" md="12">
+                    <v-card>
+                        <v-card-item>
+                            <template #title>
+                                Shop Subscribe Section
+                            </template>
+                        </v-card-item>
+                    </v-card>
+                </v-col>
                 <v-col cols="12" md="12">
                     <v-form v-model="subForm" @submit.prevent="updateSubSection">
                         <v-card>
@@ -25,12 +33,14 @@
                                                   :items="['style1','style2','style3']"></v-select>
                                     </v-col>
                                     <v-col cols="12" md="4">
-                                        Background Color
-                                        <v-color-picker v-model="sdata.settings.background_color" mode="hexa" hide-canvas></v-color-picker>
+                                        <v-color-input v-model="sdata.settings.background_color"
+                                                       label="Background Color" color-pip pip-location="prepend-inner"
+                                                       variant="outlined" density="compact" mode="hexa" hide-canvas></v-color-input>
                                     </v-col>
                                     <v-col cols="12" md="4">
-                                        Text Color
-                                        <v-color-picker v-model="sdata.settings.text_color" mode="hexa" hide-canvas></v-color-picker>
+                                        <v-color-input v-model="sdata.settings.text_color" label="Text Color"
+                                                       color-pip pip-location="prepend-inner"
+                                                       variant="outlined" density="compact" mode="hexa" hide-canvas></v-color-input>
                                     </v-col>
                                 </v-row>
                             </v-card-text>
@@ -38,21 +48,21 @@
                             <v-card-text>
                                 <v-row>
                                     <v-col cols="12" md="4" v-for="(extra,index) in sdata.extras" :key="index">
-                                        <v-text-field v-model="extra.icon" density="compact" label="Title" variant="underlined"></v-text-field>
+                                        <v-text-field v-model="extra.icon" density="compact" label="Icon" variant="underlined"></v-text-field>
                                         <v-text-field v-model="extra.title" density="compact" label="Title" variant="underlined"></v-text-field>
                                         <v-text-field v-model="extra.detail" density="compact" label="Title" variant="underlined"></v-text-field>
                                     </v-col>
                                 </v-row>
                             </v-card-text>
                             <v-card-actions>
-                                <v-btn variant="flat" type="submit" color="success" density="comfortable">Update</v-btn>
+                                <v-btn variant="tonal" type="submit" color="success" prependIcon="mdi-pencil" density="comfortable">Update</v-btn>
                             </v-card-actions>
                         </v-card>
                     </v-form>
                 </v-col>
             </v-row>
         </v-container>
-        <v-card flat :color="sdata.settings.background_color" rounded="0">
+        <v-card v-if="sdata" flat :color="sdata.settings.background_color" rounded="0">
             <v-container>
                 <v-row v-if="sdata.style === 'style1'" align="center">
                     <v-col cols="12" md="6">
@@ -82,10 +92,12 @@
     </div>
 </template>
 <script>
+import { VColorInput } from 'vuetify/labs/VColorInput';
 import axios from "axios";
 
 export default {
     name:"ShopSubscribe",
+    components:{VColorInput},
     data(){
         return{
             subForm:false,

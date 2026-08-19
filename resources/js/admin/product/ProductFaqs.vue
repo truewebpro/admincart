@@ -3,7 +3,7 @@
         <v-card class="mb-2">
             <v-card-item>
                 <template #title>Frequently Asked Questions</template>
-                <template #append v-if="faqs.length"><v-btn @click="showAddDialog" color="success" variant="tonal" density="comfortable">Add Faq</v-btn></template>
+                <template #append v-if="faqs.length"><v-btn @click="showAddDialog" color="success" variant="tonal" prependIcon="mdi-plus" density="comfortable">Add Faq</v-btn></template>
             </v-card-item>
         </v-card>
         <v-row>
@@ -17,7 +17,7 @@
                         <template #actions>
                             <v-btn @click="showAddDialog"
                                    color="success"
-                                   variant="tonal"
+                                   variant="tonal" prependIcon="mdi-plus"
                                    density="default">Add Faq</v-btn>
                         </template>
                     </v-empty-state>

@@ -583,12 +583,12 @@ class ShopController extends Controller
             function () use ($shopId) {
                 return Announcement::where('shop_id','=',$shopId)
                     ->where('status','=','active')
-                    ->get();
+                    ->first();
             }
         );
 
         return response()->json([
-            'status' => $announcements->isNotEmpty(),
+            'status' => $announcements !== null,
             'announcements' => $announcements,
         ]);
     }

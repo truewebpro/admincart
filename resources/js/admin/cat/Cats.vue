@@ -4,7 +4,7 @@
             <v-col cols="12" md="6">
                 <span class="text-h6">Categories</span></v-col>
             <v-col cols="12" md="6" class="text-end">
-                <v-btn link :to="{name:'catnew'}" class="text-none" variant="tonal" size="small" color="primary">Add Category</v-btn>
+                <v-btn link :to="{name:'catnew'}" class="text-none" variant="tonal" prependIcon="mdi-plus" color="primary">Add Category</v-btn>
             </v-col>
             <v-col cols="12">
                 <v-card flat class="border">

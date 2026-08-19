@@ -10,9 +10,9 @@
             <v-col cols="12">
                 <v-tabs v-model="status" color="primary" selectedClass="bg-lblue"
                         density="compact" bgColor="grey-lighten-3" sliderColor="primary"
-                        slider-transition="fade" show-arrows class="w-100">
+                        slider-transition="fade" show-arrows class="w-100 my-2">
                     <v-tab v-for="(stat, index) in ostatuses" :key="index" :value="stat.value"
-                           class="text-capitalize text-body-1" :color="stat.color" backgroundColor="red">
+                           class="text-capitalize text-body-1 bg-white" :color="stat.color" backgroundColor="red">
                         {{ stat.title }}
                     </v-tab>
                 </v-tabs>

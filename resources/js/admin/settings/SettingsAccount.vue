@@ -1,11 +1,20 @@
 <template>
     <v-container>
-        <v-row>
-            <v-col cols="12" md="6"><h2>Account</h2></v-col>
-            <v-col cols="12" md="6" class="text-md-end">
+        <v-row dense>
+            <v-col cols="12" md="12">
+                <v-card>
+                    <v-card-item>
+                        <template #prepend>
+                            <v-icon>mdi-city</v-icon>
+                        </template>
+                        <template #title>
+                            <div class="text-h5 font-weight-bold">Account</div>
+                        </template>
+                    </v-card-item>
+                </v-card>
             </v-col>
         </v-row>
-        <v-row>
+        <v-row dense>
             <v-col cols="12" md="6">
                 <div v-if="billing">
                     <h3>Current Plan: {{ billing.plan?.name }}</h3>

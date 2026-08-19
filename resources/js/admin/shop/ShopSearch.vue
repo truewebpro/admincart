@@ -1,11 +1,11 @@
 <template>
     <v-container class="pa-1">
-        <v-tabs v-model="htab" density="compact" color="primary" selectedClass="bg-grey-lighten-3"
-                bgColor="white" sliderColor="red"
+        <v-tabs v-model="htab" density="compact" color="primary" selectedClass="bg-lblue"
+                bgColor="grey-lighten-3" sliderColor="primary"
                 class="my-2">
-            <v-tab value="searchtags">Search Tags</v-tab>
-            <v-tab value="searchbrands">Search Brands</v-tab>
-            <v-tab value="searchcats">Search Cats</v-tab>
+            <v-tab value="searchtags" class="bg-white">Search Tags</v-tab>
+            <v-tab value="searchbrands" class="bg-white">Search Brands</v-tab>
+            <v-tab value="searchcats" class="bg-white">Search Cats</v-tab>
         </v-tabs>
         <v-window v-model="htab">
             <v-window-item value="searchtags">

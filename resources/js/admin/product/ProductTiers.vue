@@ -15,6 +15,7 @@
                             <template #actions>
                                 <div class="d-flex ga-2">
                                     <v-btn @click="addTier" :disabled="tiers.some(t => !t.price || t.min_qty < 2)"
+                                           prependIcon="mdi-plus"
                                            color="primary" density="compact" :class="tiers.length > 2 ? 'd-none' : ''">Add Tier</v-btn>
                                     <v-btn type="submit" :disabled="!tierForm" color="success" density="compact">Save Tier</v-btn>
                                 </div>
@@ -48,6 +49,7 @@
                         </v-row>
                         <div v-if="tiers.length" class="d-flex ga-2">
                             <v-btn @click="addTier" :disabled="tiers.some(t => !t.price || t.min_qty < 2)"
+                                   prependIcon="mdi-plus"
                                    color="primary" density="compact" :class="tiers.length > 2 ? 'd-none' : ''">Add Tier</v-btn>
                             <v-btn type="submit" :disabled="!tierForm" color="success" density="compact">Save Tier</v-btn>
                         </div>

@@ -4,7 +4,7 @@
             <v-col cols="6" md="6">
                 <span class="text-h6">Inventory</span></v-col>
             <v-col cols="6" md="6" class="text-end">
-                <v-btn class="text-none" size="small" color="grey-darken-4">Export Stock</v-btn>
+                <v-btn class="text-none">Export Stock</v-btn>
             </v-col>
             <v-col cols="12">
                 <v-card flat class="border">

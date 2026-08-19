@@ -1,13 +1,17 @@
 <template>
     <v-container class="pa-2">
         <v-row dense>
-            <v-col cols="12" md="6">
-                <h2>
-                    <v-icon>mdi-bank</v-icon>
-                    Payment Methods
-                </h2>
-            </v-col>
-            <v-col cols="12" md="6" class="text-md-end">
+            <v-col cols="12" md="12">
+                <v-card>
+                    <v-card-item>
+                        <template #prepend>
+                            <v-icon>mdi-bank</v-icon>
+                        </template>
+                        <template #title>
+                            <div class="text-h5 font-weight-bold">Payment Methods</div>
+                        </template>
+                    </v-card-item>
+                </v-card>
             </v-col>
             <v-col cols="12" md="7">
                 <v-card>

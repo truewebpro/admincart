@@ -1,11 +1,11 @@
 <template>
     <v-container class="pa-1">
-        <v-tabs v-model="htab" density="compact" color="primary" selectedClass="bg-grey-lighten-3"
-                bgColor="white" sliderColor="red"
+        <v-tabs v-model="htab" density="compact" color="primary" selectedClass="bg-lblue"
+                bgColor="grey-lighten-3" sliderColor="primary"
                 class="my-2">
-            <v-tab value="general">Brands Page Setting</v-tab>
-            <v-tab value="tpromo">Top Promo</v-tab>
-            <v-tab value="bpromo">Bottom Promo</v-tab>
+            <v-tab value="general" class="bg-white">Brands Page Setting</v-tab>
+            <v-tab value="tpromo" class="bg-white">Top Promo</v-tab>
+            <v-tab value="bpromo" class="bg-white">Bottom Promo</v-tab>
         </v-tabs>
         <v-window v-model="htab">
             <v-window-item value="general">

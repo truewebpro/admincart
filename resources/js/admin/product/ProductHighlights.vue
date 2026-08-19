@@ -11,7 +11,7 @@
                     <template #actions>
                         <v-btn @click="addHighDialog = true"
                                color="success"
-                               variant="tonal"
+                               variant="tonal" prependIcon="mdi-plus"
                                density="default">Add Highlight</v-btn>
                     </template>
                 </v-empty-state>
@@ -62,7 +62,7 @@
                 </v-card>
             </v-dialog>
             <v-card-text v-if="highs.length">
-                <v-btn @click="addHighDialog = true" variant="tonal" color="success" density="default">Add Highlight</v-btn>
+                <v-btn @click="addHighDialog = true" prependIcon="mdi-plus" variant="tonal" color="success" density="default">Add Highlight</v-btn>
                 <v-dialog v-model="addHighDialog" max-width="400">
                     <v-card>
                         <v-card-title class="d-flex justify-space-between">

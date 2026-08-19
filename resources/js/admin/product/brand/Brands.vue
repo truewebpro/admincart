@@ -4,7 +4,7 @@
             <v-col cols="6" md="6">
                 <span class="text-h6">Brands</span></v-col>
             <v-col cols="6" md="6" class="text-end">
-                <v-btn class="text-none" variant="tonal" density="compact" color="primary" @click="addDialog = true">Add Brand</v-btn>
+                <v-btn class="text-none" variant="tonal" density="comfortable" prependIcon="mdi-plus" color="primary" @click="addDialog = true">Add Brand</v-btn>
             </v-col>
             <v-col cols="12">
                 <v-card flat class="border">

@@ -1,69 +1,73 @@
 <template>
     <v-container>
         <v-row>
-            <v-col cols="12" md="6">
-                <h2 class="text-h6">Shop Announcements</h2>
-            </v-col>
-            <v-col cols="12" md="6">
-            </v-col>
             <v-col cols="12" md="12">
                 <v-card>
-                    <v-data-table :items="announcements" :headers="announcementHeader" :hide-default-footer="announcements.length < 20">
-                        <template v-slot:item.actions="{item}">
-                            <v-btn @click="editItem(item)" density="compact" color="info" variant="text" icon="mdi-pencil" class="me-1"/>
-                            <v-btn @click="deleteItem(item)" density="compact" color="red" variant="text" icon="mdi-delete" class="ms-1"/>
+                    <v-card-item>
+                        <template #title>Search Announcement</template>
+                        <template #subtitle>
+                            <v-chip :color="announcement?.status === 'active' ? 'green' : 'red'" density="compact">
+                            {{ announcement?.status }}
+                            </v-chip>
                         </template>
-                    </v-data-table>
+                        <template #append>
+                            <div v-if="announcement !== null">
+                                <v-btn @click="editItem" density="compact" color="info" icon="mdi-pencil" class="me-1"/>
+                                <v-btn @click="deleteItem"  density="compact" color="red" icon="mdi-delete" class="ms-1"/>
+                            </div>
+                        </template>
+                    </v-card-item>
                 </v-card>
             </v-col>
-            <v-col cols="12" md="12" v-if="announcements.length < 2">
-                <v-sheet class="font-weight-medium text-uppercase py-1" :style="{background:defaultItem.setting.background,color:defaultItem.setting.color}">
-                    <marquee>{{defaultItem.title}}</marquee>
-                </v-sheet>
+            <v-col cols="12" md="12" v-if="announcement === null || announcement?.announcement_id === null">
                 <v-card>
                     <v-card-title>Add New Announcement</v-card-title>
                     <v-card-text>
                         <v-form v-model="asvalid">
                             <v-text-field v-model="defaultItem.title" variant="outlined" density="compact" label="Title"
                                           :rules="titleRule" class="mb-2"></v-text-field>
-                            <div class="d-flex ga-3">
-                                <div>
-                                    <h2 class="text-h6">Background Color</h2>
-                                    <v-color-picker v-model="defaultItem.setting.background" mode="hexa" hide-canvas></v-color-picker>
+                            <div class="d-flex ga-1">
+                                <div class="w-50">
+                                    <v-color-input label="Background Color" v-model="defaultItem.setting.background" pip-location="prepend-inner" variant="outlined" density="compact" mode="hexa" hide-canvas></v-color-input>
                                 </div>
-                                <div>
-                                    <h2 class="text-h6">Title Color</h2>
-                                    <v-color-picker v-model="defaultItem.setting.color" mode="hexa" hide-canvas></v-color-picker>
+                                <div class="w-50">
+                                    <v-color-input label="Title Color" v-model="defaultItem.setting.color" pip-location="prepend-inner" variant="outlined" density="compact" mode="hexa" hide-canvas></v-color-input>
                                 </div>
                             </div>
                             <div class="d-flex ga-1">
                                 <v-checkbox-btn v-model="defaultItem.status" label="Active" value="active" hide-details></v-checkbox-btn>
                                 <v-checkbox-btn v-model="defaultItem.status" label="Inactive" value="inactive" hide-details></v-checkbox-btn>
                             </div>
-                            <v-btn :disabled="!asvalid" @click="addAnnouncement" color="success" density="comfortable" class="mt-3">Submit</v-btn>
+                            <v-btn :disabled="!asvalid" @click="addAnnouncement" color="success" density="comfortable"
+                                   class="mt-3" prependIcon="mdi-plus">
+                                Save
+                            </v-btn>
                         </v-form>
                     </v-card-text>
                 </v-card>
+            </v-col>
+            <v-col cols="12" md="12" v-else>
+                <v-sheet class="font-weight-medium text-uppercase py-1" :style="{background:announcement.setting.background,color:announcement.setting.color}">
+                    <marquee>{{announcement.title}}</marquee>
+                </v-sheet>
             </v-col>
         </v-row>
         <v-dialog v-model="editDialog" max-width="700">
             <v-card>
                 <v-card-text>
                     <v-form v-model="usvalid">
-                        <v-text-field v-model="editedItem.title" variant="outlined" density="compact" label="Tag Name" :rules="titleRule"></v-text-field>
-                        <div class="d-flex ga-3">
-                            <div>
-                                <h2 class="text-h6">Background Color</h2>
-                                <v-color-picker v-model="editedItem.setting.background" mode="hexa" hide-canvas></v-color-picker>
+                        <v-text-field v-model="announcement.title" variant="outlined" density="compact" label="Tag Name" :rules="titleRule"></v-text-field>
+                        <div class="d-flex ga-1">
+                            <div class="w-50">
+                                <v-color-input label="Background Color" color-pip pip-location="prepend-inner" variant="outlined" density="compact" v-model="announcement.setting.background" mode="hexa" hide-canvas></v-color-input>
                             </div>
-                            <div>
-                                <h2 class="text-h6">Title Color</h2>
-                                <v-color-picker v-model="editedItem.setting.color" mode="hexa" hide-canvas></v-color-picker>
+                            <div class="w-50">
+                                <v-color-input label="Title Color" color-pip pip-variant="flat" pip-location="prepend-inner" variant="outlined" density="compact" v-model="announcement.setting.color" mode="hexa" hide-canvas></v-color-input>
                             </div>
                         </div>
                         <div class="d-flex ga-1">
-                            <v-checkbox-btn v-model="editedItem.status" label="Active" value="active" hide-details></v-checkbox-btn>
-                            <v-checkbox-btn v-model="editedItem.status" label="Inactive" value="inactive" hide-details></v-checkbox-btn>
+                            <v-checkbox-btn v-model="announcement.status" label="Active" value="active" hide-details></v-checkbox-btn>
+                            <v-checkbox-btn v-model="announcement.status" label="Inactive" value="inactive" hide-details></v-checkbox-btn>
                         </div>
                         <div class="d-flex mt-3">
                             <v-spacer/>
@@ -78,7 +82,7 @@
             <v-card>
                 <v-card-text class="text-center">
                     <h2>Are you sure delete?</h2>
-                    <h3>{{ editedItem.title }}</h3>
+                    <h3>{{ announcement.title }}</h3>
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer/>
@@ -88,13 +92,14 @@
             </v-card>
         </v-dialog>
     </v-container>
-
 </template>
 <script>
+import { VColorInput } from 'vuetify/labs/VColorInput';
 import axios from "axios";
 
 export default {
     name:"ShopAnnouncement",
+    components:{VColorInput},
     data(){
         return{
             domain:'https://'+this.$store.state.shop.maindomain || this.$store.state.shop.subdomain,
@@ -103,13 +108,21 @@ export default {
             editDialog:false,
             deleteDialog:false,
             announcements:[],
+            announcement:{
+                announcement_id:null,
+                title:'',
+                setting:{
+                    color:'#ffffff',
+                    background:"#f03e3e"
+                },
+                status:'active'
+            },
             announcementHeader:[
                 {title:'Title',key:'title'},
                 {title:'Setting',value:'setting'},
                 {title:'Status',value:'status'},
                 {title:'Actions',value:'actions'},
             ],
-            editedIndex:-1,
             defaultItem:{
                 title:'',
                 setting:{
@@ -118,15 +131,6 @@ export default {
                 },
                 status:'inactive'
             },
-            editedItem:{
-                announcement_id:'',
-                title:'',
-                setting:{
-                    color:'#ffffff',
-                    background:"#f03e3e"
-                },
-                status:'active'
-            },
             titleRule:[
                 (v) => !!v || "Title is required",
                 (v) => (v && v.length >= 20) || "Minimum 20 characters required",
@@ -134,14 +138,15 @@ export default {
             ]
         }
     },
-    created() {
-        this.getAllAnnouncements();
+    mounted() {
+        this.getAllAnnouncements()
     },
     methods:{
         getAllAnnouncements(){
             axios.get('/sadmin/announcements')
                 .then((resp)=>{
-                    this.announcements = resp.data.announcements;
+                    const respData = resp.data;
+                    this.announcement = respData.announcement || null;
                 })
         },
         addAnnouncement(){
@@ -159,10 +164,10 @@ export default {
         },
         updateAnnouncement(){
             const udata = {
-                announcement_id:this.editedItem.announcement_id,
-                title:this.editedItem.title,
-                setting:this.editedItem.setting,
-                status:this.editedItem.status,
+                announcement_id:this.announcement.announcement_id,
+                title:this.announcement.title,
+                setting:this.announcement.setting,
+                status:this.announcement.status,
             }
             axios.post('/sadmin/announcement/update',udata)
                 .then((resp)=>{
@@ -174,7 +179,7 @@ export default {
         deleteAnnouncement(){
             const ddata = {
                 mname:'delete',
-                announcement_id:this.editedItem.announcement_id,
+                announcement_id:this.announcement.announcement_id,
             }
             axios.post('/sadmin/announcement/update',ddata)
                 .then((resp)=>{
@@ -183,14 +188,10 @@ export default {
                     this.deleteDialog = false;
                 })
         },
-        editItem(item){
-            this.editedIndex = this.announcements.indexOf(item);
-            this.editedItem = Object.assign({},item);
+        editItem(){
             this.editDialog = true;
         },
-        deleteItem(item){
-            this.editedIndex = this.announcements.indexOf(item);
-            this.editedItem = Object.assign({},item);
+        deleteItem(){
             this.deleteDialog = true;
         },
     }

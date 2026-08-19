@@ -27,6 +27,7 @@ export default createVuetify({
         VBtn: {
             density: 'comfortable',
             variant:'tonal',
+            color:'primary',
         },
         VTextField: {
             density: 'compact',

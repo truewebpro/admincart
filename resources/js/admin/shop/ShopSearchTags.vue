@@ -1,10 +1,10 @@
 <template>
     <v-container class="pa-1">
       <v-row dense>
-        <v-col cols="12" md="6">
-            <h2 class="text-h6">Search Tags</h2>
-        </v-col>
-        <v-col cols="12" md="6">
+        <v-col cols="12" md="12">
+            <v-card>
+                <v-card-title>Search Tags</v-card-title>
+            </v-card>
         </v-col>
         <v-col cols="12" md="8">
             <v-card>

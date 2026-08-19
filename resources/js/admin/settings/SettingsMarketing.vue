@@ -1,134 +1,142 @@
 <template>
     <v-container class="pa-2">
         <v-row dense>
-            <v-col cols="12" md="6"><h2>Discount Coupons and Offers</h2></v-col>
-            <v-col cols="12" md="6" class="text-md-end">
+            <v-col cols="12" md="12">
+                <v-card>
+                    <v-card-item>
+                        <template #prepend>
+                            <v-icon>mdi-sale</v-icon>
+                        </template>
+                        <template #title>
+                            <div class="text-h5 font-weight-bold">Discount Coupons and Offers</div>
+                        </template>
+                    </v-card-item>
+                </v-card>
             </v-col>
             <v-col cols="12">
-                <v-card>
-                    <v-tabs v-model="mtabs" density="compact" color="primary" bgColor="grey-lighten-3">
-                        <v-tab value="coups">Coupons</v-tab>
-                        <v-tab value="prule">Pricing Rule (Products / Cats )</v-tab>
-                    </v-tabs>
-                    <v-divider></v-divider>
-                    <v-tabs-window v-model="mtabs">
-                        <v-tabs-window-item value="coups">
-                            <v-card flat>
-                                <v-card-text>
-                                    <v-card>
-                                        <v-card-title class="d-flex ga-2 justify-space-between">
-                                            Coupons
-                                            <div class="d-flex mb-3 ga-3">
-                                                <v-btn color="primary" density="comfortable"
-                                                       @click="openAddCoupon('fixed')">+ Amount off Order/Products</v-btn>
-                                                <v-btn color="success" density="comfortable"
-                                                       @click="openAddCoupon('bogo')">+ Buy X Get Y</v-btn>
-                                                <v-btn color="info" density="comfortable"
-                                                       @click="openAddCoupon('bundle')">+ Bundle</v-btn>
-                                            </div>
-                                        </v-card-title>
-                                        <v-table>
-                                            <thead>
-                                            <tr>
-                                                <th>Code</th>
-                                                <th>Type</th>
-                                                <th>Value</th>
-                                                <th>Applies To</th>
-                                                <th>Usage</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            <tr v-for="c in allcoupons" :key="c.coupon_id">
-                                                <td>{{ c.code }} <br/> {{ c.display_title || c.code || c.title }}</td>
-                                                <td>{{ c.type }}</td>
-                                                <td>
-                                                    <v-chip class="mt-2 font-weight-medium" color="primary" variant="outlined" density="compact">
-                                                        {{ c.label }}
-                                                    </v-chip>
-                                                </td>
-                                                <td>{{ c.applies_to }}</td>
-                                                <td>
-                                                    {{ c.used || 0 }} / {{ c.usage_limit || '∞' }}
-                                                </td>
-                                                <td>
-                                                    <v-chip :color="c.is_active ? 'green' : 'grey'">
-                                                        {{ c.is_active ? 'Active' : 'Inactive' }}
-                                                    </v-chip>
-                                                </td>
-                                                <td>
-                                                    <div class="d-flex ga-2">
-                                                        <v-btn color="info" variant="outlined" icon="mdi-pencil"
-                                                               @click="editCoupon(c)" density="comfortable" />
-                                                        <v-btn color="red" variant="outlined" icon="mdi-delete"
-                                                               @click="confirmDeleteCoupon(c.coupon_id)" density="comfortable" />
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            </tbody>
-                                        </v-table>
-                                    </v-card>
-                                </v-card-text>
-                            </v-card>
-                        </v-tabs-window-item>
-                        <v-tabs-window-item value="prule">
-                            <v-card flat>
-                                <v-card-text>
-                                    <v-card>
-                                        <v-card-title class="d-flex ga-2 justify-space-between">
-                                            Pricing Rules
-                                            <v-btn color="primary" density="comfortable" @click="openRuleForm()">Add Rule</v-btn>
-                                        </v-card-title>
-                                        <v-table>
-                                            <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Type</th>
-                                                <th>Scope</th>
-                                                <th>Min Qty</th>
-                                                <th>Value</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            <tr v-for="rule in rules" :key="rule.id">
-                                                <td>{{ rule.name }} <br/>{{rule.label}}</td>
-                                                <td>{{ rule.type }}</td>
-                                                <td>{{ rule.scope }}</td>
-                                                <td>{{ rule.min_qty }}</td>
-                                                <td>
+                <v-tabs v-model="mtabs" density="compact" color="primary" selectedClass="bg-lblue"
+                        bgColor="grey-lighten-3" sliderColor="primary"
+                        class="my-2">
+                    <v-tab value="coups" class="bg-white">Coupons</v-tab>
+                    <v-tab value="prule" class="bg-white">Pricing Rule (Products / Cats )</v-tab>
+                </v-tabs>
+                <v-tabs-window v-model="mtabs">
+                    <v-tabs-window-item value="coups">
+                        <v-card flat>
+                            <v-card-text>
+                                <v-card>
+                                    <v-card-title class="d-flex ga-2 justify-space-between">
+                                        Coupons
+                                        <div class="d-flex mb-3 ga-3">
+                                            <v-btn color="primary" density="comfortable"
+                                                   @click="openAddCoupon('fixed')">+ Amount off Order/Products</v-btn>
+                                            <v-btn color="success" density="comfortable"
+                                                   @click="openAddCoupon('bogo')">+ Buy X Get Y</v-btn>
+                                            <v-btn color="info" density="comfortable"
+                                                   @click="openAddCoupon('bundle')">+ Bundle</v-btn>
+                                        </div>
+                                    </v-card-title>
+                                    <v-table>
+                                        <thead>
+                                        <tr>
+                                            <th>Code</th>
+                                            <th>Type</th>
+                                            <th>Value</th>
+                                            <th>Applies To</th>
+                                            <th>Usage</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr v-for="c in allcoupons" :key="c.coupon_id">
+                                            <td>{{ c.code }} <br/> {{ c.display_title || c.code || c.title }}</td>
+                                            <td>{{ c.type }}</td>
+                                            <td>
+                                                <v-chip class="mt-2 font-weight-medium" color="primary" variant="outlined" density="compact">
+                                                    {{ c.label }}
+                                                </v-chip>
+                                            </td>
+                                            <td>{{ c.applies_to }}</td>
+                                            <td>
+                                                {{ c.used || 0 }} / {{ c.usage_limit || '∞' }}
+                                            </td>
+                                            <td>
+                                                <v-chip :color="c.is_active ? 'green' : 'grey'">
+                                                    {{ c.is_active ? 'Active' : 'Inactive' }}
+                                                </v-chip>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex ga-2">
+                                                    <v-btn color="info" variant="outlined" icon="mdi-pencil"
+                                                           @click="editCoupon(c)" density="comfortable" />
+                                                    <v-btn color="red" variant="outlined" icon="mdi-delete"
+                                                           @click="confirmDeleteCoupon(c.coupon_id)" density="comfortable" />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </v-table>
+                                </v-card>
+                            </v-card-text>
+                        </v-card>
+                    </v-tabs-window-item>
+                    <v-tabs-window-item value="prule">
+                        <v-card flat>
+                            <v-card-text>
+                                <v-card>
+                                    <v-card-title class="d-flex ga-2 justify-space-between">
+                                        Pricing Rules
+                                        <v-btn color="primary" prependIcon="mdi-plus" density="comfortable" @click="openRuleForm()">Add Rule</v-btn>
+                                    </v-card-title>
+                                    <v-table>
+                                        <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Scope</th>
+                                            <th>Min Qty</th>
+                                            <th>Value</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr v-for="rule in rules" :key="rule.id">
+                                            <td>{{ rule.name }} <br/>{{rule.label}}</td>
+                                            <td>{{ rule.type }}</td>
+                                            <td>{{ rule.scope }}</td>
+                                            <td>{{ rule.min_qty }}</td>
+                                            <td>
                                                       <span v-if="rule.type === 'bundle'">
                                                         £{{ rule.price }}
                                                       </span>
-                                                    <span v-else>
+                                                <span v-else>
                                                         {{ rule.discount_percent }}%
                                                       </span>
-                                                </td>
-                                                <td>
-                                                    <v-chip :color="rule.is_active ? 'green' : 'grey'"
-                                                            density="compact" class="font-weight-medium">
-                                                        {{ rule.is_active ? 'Active' : 'Inactive' }}
-                                                    </v-chip>
-                                                </td>
-                                                <td>
-                                                    <div class="d-flex ga-2">
-                                                        <v-btn color="info" variant="outlined" icon="mdi-pencil"
-                                                               @click="editRule(rule)" density="comfortable" />
-                                                        <v-btn color="red" variant="outlined" icon="mdi-delete"
-                                                               @click="confirmDelete(rule.id)" density="comfortable" />
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            </tbody>
-                                        </v-table>
-                                    </v-card>
-                                </v-card-text>
-                            </v-card>
-                        </v-tabs-window-item>
-                    </v-tabs-window>
-                </v-card>
+                                            </td>
+                                            <td>
+                                                <v-chip :color="rule.is_active ? 'green' : 'grey'"
+                                                        density="compact" class="font-weight-medium">
+                                                    {{ rule.is_active ? 'Active' : 'Inactive' }}
+                                                </v-chip>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex ga-2">
+                                                    <v-btn color="info" variant="outlined" icon="mdi-pencil"
+                                                           @click="editRule(rule)" density="comfortable" />
+                                                    <v-btn color="red" variant="outlined" icon="mdi-delete"
+                                                           @click="confirmDelete(rule.id)" density="comfortable" />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </v-table>
+                                </v-card>
+                            </v-card-text>
+                        </v-card>
+                    </v-tabs-window-item>
+                </v-tabs-window>
             </v-col>
         </v-row>
         <v-dialog v-model="showRuleForm" max-width="700">

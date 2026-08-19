@@ -1,20 +1,34 @@
 <template>
     <v-container class="pa-2">
         <v-row dense>
-            <v-col cols="12" md="6">
-                <h2>Integrations</h2>
+            <v-col cols="12" md="12">
+                <v-card>
+                    <v-card-item title="Integrations">
+                        <template #title>
+                            <h2>Integrations</h2>
+                        </template>
+                    </v-card-item>
+                </v-card>
             </v-col>
-            <v-col cols="12" md="6"></v-col>
         </v-row>
-        <v-row v-for="(ilist,ldx) in ilists" :key="ldx" class="mb-16">
+        <v-row dense v-for="(ilist,ldx) in ilists" :key="ldx" class="mb-16">
             <v-col cols="12" md="12" class="pb-0">
-                <h2 class="text-decoration-underline text-grey-darken-3"> <v-icon class="me-1">{{ilist.icon}}</v-icon> {{ilist.name}}</h2>
-            </v-col>
-            <v-col cols="12" md="12" class="pb-0">
-                <p class="text-body-1">{{ilist.desc}}</p>
+                <v-card>
+                    <v-card-item>
+                        <template #prepend>
+                            <v-icon>{{ilist.icon}}</v-icon>
+                        </template>
+                        <template #title>
+                            <div class="text-h5 font-weight-bold text-decoration-underline">  {{ilist.name}}</div>
+                        </template>
+                        <template #subtitle>
+                            <div class="text-body-1">  {{ilist.desc}}</div>
+                        </template>
+                    </v-card-item>
+                </v-card>
             </v-col>
             <v-col v-for="(partner,pdx) in ilist.partners" :key="pdx"  cols="12" md="4">
-                <v-card class="elevation-3 bg-white rounded-lg">
+                <v-card class="bg-white rounded-lg">
                     <v-card-text class="d-flex align-center">
                         <div class="me-2 overflow-hidden">
                             <v-img class="rounded-lg" :src="cdn+partner.logo" contain aspectRatio="1" min-width="60" max-width="60" max-height="60" min-height="60"/>

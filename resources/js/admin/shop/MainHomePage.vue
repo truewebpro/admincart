@@ -1,12 +1,12 @@
 <template>
-    <div class="page homepage">
-        <v-tabs v-model="htab" density="compact" color="primary" selectedClass="bg-grey-lighten-3"
-                bgColor="white" sliderColor="red"
+    <div class="page homepage pa-2">
+        <v-tabs v-model="htab" density="compact" color="primary" selectedClass="bg-lblue"
+                bgColor="grey-lighten-3" sliderColor="primary"
                 class="my-2">
-            <v-tab value="general">Sections</v-tab>
-            <v-tab value="faqs">FAQ's</v-tab>
-            <v-tab value="promos">Top Features</v-tab>
-            <v-tab value="bpromos">Bottom Promos</v-tab>
+            <v-tab value="general" class="bg-white">Sections</v-tab>
+            <v-tab value="faqs" class="bg-white">FAQ's</v-tab>
+            <v-tab value="promos" class="bg-white">Top Features</v-tab>
+            <v-tab value="bpromos" class="bg-white">Bottom Promos</v-tab>
         </v-tabs>
         <v-window v-model="htab">
             <v-window-item value="general">

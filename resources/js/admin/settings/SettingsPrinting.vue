@@ -1,9 +1,20 @@
 <template>
     <v-container>
         <v-row>
-            <v-col cols="12" md="6"><h2>Printing Templates</h2></v-col>
-            <v-col cols="12" md="6" class="text-md-end">
-                <v-btn color="grey-darken-4" density="compact">Add New</v-btn>
+            <v-col cols="12" md="12">
+                <v-card>
+                    <v-card-item>
+                        <template #prepend>
+                            <v-icon>mdi-printer</v-icon>
+                        </template>
+                        <template #title>
+                            <div class="text-h5 font-weight-bold">Printing Templates</div>
+                        </template>
+                        <template #append>
+                            <v-btn prependIcon="mdi-plus">Add New</v-btn>
+                        </template>
+                    </v-card-item>
+                </v-card>
             </v-col>
             <v-col cols="12">
                 <v-card>

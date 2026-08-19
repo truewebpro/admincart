@@ -16,10 +16,11 @@
         </v-row>
         <v-row class="mt-0">
             <v-col cols="12" md="12">
-                <v-tabs v-model="ttab" align-tabs="center" height="32" slider-color="primary"
-                        selected-class="bg-primary" bg-color="grey-lighten-3">
-                    <v-tab>Preferences</v-tab>
-                    <v-tab>Social Media</v-tab>
+                <v-tabs v-model="ttab" align-tabs="center" height="32" density="compact" color="primary" selectedClass="bg-lblue"
+                        bgColor="grey-lighten-3" sliderColor="primary"
+                        class="my-2">
+                    <v-tab class="bg-white">Preferences</v-tab>
+                    <v-tab class="bg-white">Social Media</v-tab>
                 </v-tabs>
                 <v-tabs-window v-model="ttab">
                     <v-tabs-window-item>

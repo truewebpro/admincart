@@ -1,14 +1,17 @@
 <template>
     <v-container class="settings-shipping pa-2">
         <v-row dense>
-            <v-col cols="12" md="6">
-                <h2>
-                    <v-icon>mdi-truck</v-icon>
-                    Shipping and Delivery
-                </h2>
-            </v-col>
-            <v-col cols="12" md="6" class="text-md-end">
-
+            <v-col cols="12" md="12">
+                <v-card>
+                    <v-card-item>
+                        <template #prepend>
+                            <v-icon>mdi-truck</v-icon>
+                        </template>
+                        <template #title>
+                            <div class="text-h5 font-weight-bold">Shipping and Delivery</div>
+                        </template>
+                    </v-card-item>
+                </v-card>
             </v-col>
         </v-row>
         <v-row dense>
@@ -163,12 +166,18 @@
         </v-row>
         <v-row>
             <v-col cols="12" md="12" class="pb-0">
-                <h2 class="text-decoration-underline text-grey-darken-3"> <v-icon class="me-1">mdi-cog</v-icon> Shipping Carriers</h2>
-            </v-col>
-            <v-col cols="12" md="12" class="pb-0">
-                <p class="text-body-1">
-                    Seamlessly connect to the best carriers via our pre-negotiated contracts, or upload your own and integrate with our API
-                </p>
+                <v-card>
+                    <v-card-item>
+                        <template #title>
+                            <div class="text-h5 text-decoration-underline font-weight-bold"> <v-icon class="me-1">mdi-cog</v-icon> Shipping Carriers</div>
+                        </template>
+                        <template #subtitle>
+                            <p class="text-body-1">
+                                Seamlessly connect to the best carriers via our pre-negotiated contracts, or upload your own and integrate with our API
+                            </p>
+                        </template>
+                    </v-card-item>
+                </v-card>
             </v-col>
             <v-col cols="12" md="4">
                 <v-card class="elevation-3 bg-white rounded-lg">

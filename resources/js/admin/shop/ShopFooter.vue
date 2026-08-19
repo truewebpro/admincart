@@ -1,47 +1,45 @@
 <template>
     <div>
-        <v-container fluid class="d-none">
-            <v-row>
-                <v-col cols="12" md="3">
-                    <v-color-picker v-model="settings.background" hide-canvas mode="hexa"></v-color-picker>
-                    <div class="mt-2">Background Color</div>
-                </v-col>
-                <v-col cols="12" md="3">
-                    <v-color-picker v-model="settings.color" hide-canvas mode="hexa"></v-color-picker>
-                </v-col>
-                <v-col cols="12" md="3">
-                    <v-color-picker v-model="settings.underline" hide-canvas mode="hexa"></v-color-picker>
-                </v-col>
-                <v-col cols="12" md="3">
-                    <v-select type="number" density="compact" variant="underlined"></v-select>
-                    <v-color-picker v-model="settings.columns" hide-canvas mode="hex"></v-color-picker>
-                </v-col>
-            </v-row>
+        <v-container>
+            <v-card>
+                <v-card-item>
+                    <template #title><h2 class="text-h6">Footer Settings</h2></template>
+                    <template #append><v-btn :disabled="fvalid" @click="updateFooter" color="success" density="comfortable">Update</v-btn></template>
+                </v-card-item>
+                <v-card-text class="d-none">
+                    <v-row>
+                        <v-col cols="12" md="3">
+                            <v-color-input label="Background Color" pip-location="prepend-inner" variant="outlined" density="compact" v-model="settings.background" mode="hexa"></v-color-input>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <v-color-input label="Text Color" pip-location="prepend-inner" variant="outlined" density="compact" v-model="settings.color" hide-canvas mode="hexa"></v-color-input>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <v-color-input label="Underline Color" pip-location="prepend-inner" variant="outlined" density="compact" v-model="settings.underline" hide-canvas mode="hexa"></v-color-input>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <v-select v-model="settings.columns" type="number" density="compact" variant="underlined"></v-select>
+                        </v-col>
+                    </v-row>
+                </v-card-text>
+            </v-card>
+
         </v-container>
-        <v-card >
+        <div :style="'color:'+settings.color+';'+'background-color:'+settings.background">
             <v-container>
                 <v-row>
-                    <v-col cols="12" md="6">
-                        <h2 class="text-h6">Footer Settings</h2>
-                    </v-col>
-                    <v-col cols="12" md="6">
-                        <v-btn :disabled="fvalid" @click="updateFooter" color="success" density="comfortable">Update</v-btn>
-                    </v-col>
                     <v-col cols="12" md="3" v-if="business === null">
                         Create Company Information
                         <v-btn color="info" density="comfortable" class="text-none"
                                link :to="{name:'SettingsGeneral'}">Create Company Info</v-btn>
                     </v-col>
                     <v-col v-else cols="12" md="3">
-                        <h2 class="h4 mb-2">{{fsections.custom.label}}</h2>
-                        <v-list density="compact" v-if="fsections?.custom?.ptext !== null">
-                            <v-list-item v-for="(value, key) in fsections?.custom?.ptext" :key="key" >
-                                <div class="d-flex">
-                                    <div class="font-weight-medium text-capitalize text-body-1">{{key}} :</div>
-                                    <div class="ms-1">{{value}}</div>
-                                </div>
-                            </v-list-item>
-                        </v-list>
+                        <h2 class="h4 mb-2 text-decoration-underine" :style="'text-decoration:underline solid 2px'+settings.underline+';text-underline-offset:6px;'">{{fsections.custom.label}}</h2>
+                        <div class="d-flex flex-wrap ga-1" v-if="fsections?.custom?.ptext !== null">
+                            <span v-for="(value, key) in fsections?.custom?.ptext" :key="key" >
+                                {{value}}
+                            </span>
+                        </div>
                     </v-col>
                     <v-col cols="12" md="3" v-if="qlinks === null">
                         Create Menu
@@ -49,12 +47,12 @@
                                 link :to="{name:'MenuAdd'}">Quick Links</v-btn>
                     </v-col>
                     <v-col cols="12" md="3" v-else>
-                        <h2 class="h4 mb-2">{{fsections.menus[0]?.menu_name}}</h2>
-                        <v-list v-if="fsections.menus[0]?.mitems !== null">
+                        <h2 class="h4 mb-2" :style="'text-decoration:underline solid 2px'+settings.underline+';text-underline-offset:6px;'">{{fsections.menus[0]?.menu_name}}</h2>
+                        <div v-if="fsections.menus[0]?.mitems !== null">
                             <v-list-item v-for="(menu,index) in fsections?.menus[0]?.mitems">
                                 {{menu.label}}
                             </v-list-item>
-                        </v-list>
+                        </div>
                     </v-col>
                     <v-col cols="12" md="3" v-if="ilinks === null">
                         Create Menu
@@ -62,12 +60,12 @@
                                link :to="{name:'MenuAdd'}">Information</v-btn>
                     </v-col>
                     <v-col cols="12" md="3" v-else>
-                        <h2 class="h4 mb-2">{{fsections.menus[1]?.menu_name}}</h2>
-                        <v-list v-if="fsections.menus[1]?.mitems !== null">
+                        <h2 class="h4 mb-2" :style="'text-decoration:underline solid 2px'+settings.underline+';text-underline-offset:6px;'">{{fsections.menus[1]?.menu_name}}</h2>
+                        <div v-if="fsections.menus[1]?.mitems !== null">
                             <v-list-item v-for="(menu,index) in fsections?.menus[1]?.mitems">
                                 {{menu.label}}
                             </v-list-item>
-                        </v-list>
+                        </div>
                     </v-col>
                     <v-col cols="12" md="3" v-if="plinks === null">
                         Create Menu
@@ -75,23 +73,25 @@
                                 link :to="{name:'MenuAdd'}">Our Policies</v-btn>
                     </v-col>
                     <v-col cols="12" md="3" v-else>
-                        <h2 class="h4 mb-2">{{fsections.menus[2]?.menu_name}}</h2>
-                        <v-list v-if="fsections.menus[2]?.mitems !== null">
+                        <h2 class="h4 mb-2" :style="'text-decoration:underline solid 2px'+settings.underline+';text-underline-offset:6px;'">{{fsections.menus[2]?.menu_name}}</h2>
+                        <div v-if="fsections.menus[2]?.mitems !== null">
                             <v-list-item v-for="(menu,index) in fsections?.menus[2]?.mitems">
                                 {{menu.label}}
                             </v-list-item>
-                        </v-list>
+                        </div>
                     </v-col>
                 </v-row>
             </v-container>
-        </v-card>
+        </div>
     </div>
 </template>
 <script>
+import { VColorInput } from 'vuetify/labs/VColorInput';
 import axios from "axios";
 
 export default {
     name:"ShopFooter",
+    components:{VColorInput},
     data(){
         return{
             fvalid:false,

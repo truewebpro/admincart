@@ -7,13 +7,13 @@
                         <v-btn link to="/products" icon variant="tonal" density="compact">
                             <v-icon>mdi-arrow-left</v-icon>
                         </v-btn>
-                        Add Product new1
+                        Add Product
                     </h2>
                 </v-col>
                 <v-col cols="12" md="6" class="text-end">
-                    <v-btn variant="outlined" @click="resetForm" class="text-none me-2" density="compact" color="grey-darken-4">Discard</v-btn>
+                    <v-btn variant="tonal" @click="resetForm" class="text-none me-2" density="comfortable" color="red">Discard</v-btn>
                     <v-btn color="success" type="submit" :disabled="!avalid || isLoading" :loading="isLoading"
-                           density="compact" class="text-none" >Save</v-btn>
+                           density="comfortable" class="text-none" >Save</v-btn>
                 </v-col>
             </v-row>
             <v-row>
@@ -113,12 +113,12 @@
                                 </v-row>
                             </v-container>
                             <v-container class="px-0 pt-1">
-                                <v-btn v-if="!showVariantForm && Object.keys(variants).length < 1" color="bg-grey-darken-4"
-                                       @click="startNewOption" variant="outlined" density="compact"
+                                <v-btn v-if="!showVariantForm && Object.keys(variants).length < 1"
+                                       @click="startNewOption" variant="tonal" density="compact"
                                        class="mb-3" prepend-icon="mdi-plus">Add Options
                                 </v-btn>
                                 <v-btn v-if="Object.keys(variants).length > 0 && Object.keys(variants).length < 3 && !showVariantForm"
-                                       color="bg-grey-darken-4" @click="startNewOption" variant="outlined" density="compact"
+                                       @click="startNewOption" variant="tonal" density="compact"
                                        class="mt-3" prepend-icon="mdi-plus">
                                     Add Another Option
                                 </v-btn>
@@ -147,7 +147,7 @@
                                             </v-text-field>
                                         </div>
                                         <div class="d-flex">
-                                            <v-btn prepend-icon="mdi-plus-circle-outline" color="grey-darken-5" variant="outlined" class="me-2 text-none" size="small"
+                                            <v-btn prepend-icon="mdi-plus-circle-outline" color="success" variant="tonal" class="me-2 text-none" size="small"
                                                    @click="addOptionField" :disabled="!canAddAnother">
                                                Add another value
                                             </v-btn>
