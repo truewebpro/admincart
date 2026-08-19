@@ -12,6 +12,7 @@ use App\Models\BusinessShop;
 use App\Models\Cartpage;
 use App\Models\Cat;
 use App\Models\CatFaq;
+use App\Models\CustomerShop;
 use App\Models\Footer;
 use App\Models\Highlight;
 use App\Models\Homepage;
@@ -45,6 +46,7 @@ use App\Observers\BusinessShopObserver;
 use App\Observers\CartpageObserver;
 use App\Observers\CatFaqObserver;
 use App\Observers\CatObserver;
+use App\Observers\CustomerShopObserver;
 use App\Observers\FooterObserver;
 use App\Observers\HighlightObserver;
 use App\Observers\HomepageFaqObserver;
@@ -122,6 +124,7 @@ class AppServiceProvider extends ServiceProvider
         BrandFaq::observe(BrandFaqObserver::class);
         HomepageFaq::observe(HomepageFaqObserver::class);
         RelatedCat::observe(RelatedCatObserver::class);
+        CustomerShop::observe(CustomerShopObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));
