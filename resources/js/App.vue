@@ -4,7 +4,7 @@
             color="grey-lighten-5"
             v-model="drawer"
             :permanent="isDesktop"
-            :width="225"
+            :width="240"
             :rail-width="50"
             expand-on-hover
             :temporary="!isDesktop"
@@ -12,9 +12,10 @@
             <v-list density="compact" nav color="primary"
                     class="fw-bold d-flex flex-column fill-height overflow-y-auto"
                     activeClass="bg-blue-lighten-5">
-                <v-list-item v-if="this.$store.state.shop.shop_slug" base-color="dark" :prepend-avatar="cdn+this.$store.state.shop.shop_slug+'/favicon.ico'">
+                <v-list-item v-if="this.$store.state.shop.shop_slug" base-color="dark"
+                             :prepend-avatar="cdn+this.$store.state.shop.shop_slug+'/favicon.ico'">
                     <v-list-item-title>
-                        <v-img class="ms-2" width="100" height="25" :src="cdn+this.$store.state.shop.shop_slug+'/logo.png'"></v-img>
+                        <v-img class="ms-2" width="100" height="25" :src="cdn+'poweredby400x100.png'"></v-img>
                     </v-list-item-title>
                 </v-list-item>
                 <v-divider></v-divider>
@@ -31,14 +32,14 @@
                     <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Dashboard</v-list-item-title>
                 </v-list-item>
                 <v-list-item link :to="{name:'AnalyticsOverview'}" prepend-icon="mdi-view-dashboard-outline">
-                    <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Dashboard</v-list-item-title>
+                    <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Home</v-list-item-title>
                 </v-list-item>
                 <v-list-group value="acarts">
                     <template v-slot:activator="{ props }">
                         <v-list-item v-bind="props" prepend-icon="mdi-cart-check">
                             <template #title>
                                 All Orders
-                                <v-chip size="small" color="primary" class="bg-light-subtle font-weight-bold">
+                                <v-chip size="small" color="primary" class="bg-light-subtle ms-2 font-weight-bold">
                                    {{orderStats.pending}}
                                 </v-chip>
                             </template>
@@ -60,11 +61,12 @@
                     <v-list-item :to="{name:'poptions'}" color="primary" title="Options" prepend-icon="mdi-filter-variant" link/>
                     <v-list-item :to="{name:'Features'}" color="primary" title="Features" prepend-icon="mdi-feature-search-outline" link/>
                 </v-list-group>
+                <v-list-item link :to="{name:'customers'}" color="primary" prepend-icon="mdi-account" title="Customers">
+                </v-list-item>
                 <v-list-item link :to="{name:'InventoryList'}" color="primary" prepend-icon="mdi-format-list-numbered"
                              title="Inventory" subtitle="All Products">
                 </v-list-item>
-                <v-list-item link :to="{name:'customers'}" color="primary" prepend-icon="mdi-account" title="Customers">
-                </v-list-item>
+                <v-list-item link :to="{name:'SettingsMarketing'}" title="Discounts" prependIcon="mdi-sale-outline"></v-list-item>
                 <v-list-group value="analytic">
                     <template v-slot:activator="{ props }">
                         <v-list-item v-bind="props" prepend-icon="mdi-google-analytics">
@@ -80,9 +82,49 @@
 
                     <v-list-item link :to="{name:'AnalyticsOrders'}" color="primary" prepend-icon="mdi-finance" title="Customers"></v-list-item>
                 </v-list-group>
+                <v-list-item prependIcon="mdi-domain">
+                    <template #title>
+                        B2B Hub
+                        <v-chip variant="tonal" density="compact" size="small" color="success" class="font-weight-bold">
+                            Coming Soon
+                        </v-chip>
+                    </template>
+                </v-list-item>
+                <v-list-item prependIcon="mdi-target-account">
+                    <template #title>
+                        Sales Reps
+                        <v-chip variant="tonal" density="compact" size="small" color="success" class="font-weight-bold">
+                            Coming Soon
+                        </v-chip>
+                    </template>
+                </v-list-item>
+                <v-list-item prependIcon="mdi-face-agent">
+                    <template #title>
+                        AI Bot Agent
+                        <v-chip variant="tonal" density="compact" size="small" color="success" class="font-weight-bold">
+                            Coming Soon
+                        </v-chip>
+                    </template>
+                </v-list-item>
+                <v-list-item prependIcon="mdi-warehouse">
+                    <template #title>
+                        DropShipping
+                        <v-chip variant="tonal" density="compact" size="small" color="success" class="font-weight-bold">
+                            Coming Soon
+                        </v-chip>
+                    </template>
+                </v-list-item>
+                <v-list-item prependIcon="mdi-package-variant-closed-check">
+                    <template #title>
+                        Click&Collect
+                        <v-chip variant="tonal" density="compact" size="small" color="success" class="font-weight-bold">
+                            Coming Soon
+                        </v-chip>
+                    </template>
+                </v-list-item>
                 <v-list-group value="themes">
                     <template v-slot:activator="{props}">
-                        <v-list-item v-bind="props" prepend-icon="mdi-store-settings" title="Shop Settings"></v-list-item>
+                        <v-list-item v-bind="props" prepend-icon="mdi-store-settings" title="Online Store"></v-list-item>
                     </template>
                     <v-list-item link :to="{name:'ShopHome'}" color="primary" prepend-icon="mdi-store-cog" title="Theme Settings">
                     </v-list-item>
@@ -93,7 +135,7 @@
                     <v-list-item link :to="{name:'BlogsList'}" title="Blogs" color="primary" prepend-icon="mdi-post-outline"></v-list-item>
                     <v-list-item link :to="{name:'PoliciesList'}" title="Policies" color="primary" prepend-icon="mdi-file-sign"></v-list-item>
                 </v-list-group>
-                <v-list-group value="loyalty" base-color="success">
+                <v-list-group value="loyalty">
                     <template v-slot:activator="{props}">
                         <v-list-item v-bind="props" prepend-icon="mdi-shield-star-outline" title="Loyalty Program"></v-list-item>
                     </template>
@@ -115,29 +157,29 @@
                 <v-divider class="my-1"></v-divider>
                 <v-list-item prepend-icon="mdi-logout">
                     <v-list-item-title>
-                        <v-btn @click="logout" variant="outlined" size="small" block title="Logout">Logout</v-btn>
+                        <v-btn @click="logout" color="red" variant="tonal" density="compact" class="text-none" title="Logout">Logout</v-btn>
                     </v-list-item-title>
                 </v-list-item>
             </v-list>
         </v-navigation-drawer>
         <v-main class="py-1 bg-grey-lighten-3">
-            <v-container class="pa-0 mt-1 mb-1" v-if="isSuperAdmin">
-                <v-row dense>
-                    <v-col cols="6" md="9">
-                        <h2 class="text-caption">Viewing shop: {{currentShopName}}</h2>
-                    </v-col>
-                    <v-col cols="6" md="3">
-                        <v-select variant="underlined" hide-details density="compact"
-                                  :items="shops" :disabled="this.$store.state.switchingShop"
-                                  item-title="shop_name"
-                                  item-value="shop_id"
-                                  v-model="selectedShop"
-                                  label="Selected Shop"
-                        />
-                    </v-col>
-                </v-row>
+<!--            <v-container class="pa-0 mt-1 mb-1" v-if="isSuperAdmin">-->
+<!--                <v-row dense>-->
+<!--                    <v-col cols="6" md="9">-->
+<!--                        <h2 class="text-caption">Viewing shop: {{currentShopName}}</h2>-->
+<!--                    </v-col>-->
+<!--                    <v-col cols="6" md="3">-->
+<!--                        <v-select variant="underlined" hide-details density="compact"-->
+<!--                                  :items="shops" :disabled="this.$store.state.switchingShop"-->
+<!--                                  item-title="shop_name"-->
+<!--                                  item-value="shop_id"-->
+<!--                                  v-model="selectedShop"-->
+<!--                                  label="Selected Shop"-->
+<!--                        />-->
+<!--                    </v-col>-->
+<!--                </v-row>-->
 
-            </v-container>
+<!--            </v-container>-->
             <router-view/>
         </v-main>
         <v-bottom-navigation grow active v-if="$vuetify.display.mobile" density="compact" bg-color="secondary" base-color="white">

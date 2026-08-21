@@ -1,29 +1,32 @@
 <template>
-    <v-container>
+    <v-container class="pa-1">
         <v-row dense align="center">
-            <v-col cols="12" md="6">
-                <h2>Shops List</h2>
-            </v-col>
-            <v-col cols="12" md="6" class="text-end d-flex ga-1 justify-end">
-                <v-btn color="primary" density="comfortable" @click="openCreate">Add New Shop</v-btn>
-<!--                <v-btn color="primary" density="comfortable" @click="syncCustomers">Sync Customers</v-btn>-->
+            <v-col cols="12" md="12">
+                <v-card>
+                    <v-card-item>
+                        <template #title><div class="text-h5 font-weight-bold">Shops List</div></template>
+                        <template #append>
+                            <v-btn color="primary" density="comfortable" @click="openCreate">Add New Shop</v-btn>
+                        </template>
+                    </v-card-item>
+                </v-card>
             </v-col>
         </v-row>
-        <v-row>
+        <v-row dense>
             <v-col cols="12" md="12">
                 <v-card>
                     <v-text-field density="compact" variant="outlined" class="pa-2" hide-details
                                   placeholder="Search Shop..." persistentPlaceholder label="Search Shop"></v-text-field>
-                    <v-data-table :items="allshops" :search="shopsearch" :headers="allshopsHeader" hover
+                    <v-data-table :items="allshops" :search="shopsearch" :headers="allshopsHeader" hover mobileBreakpoint="sm"
                                   itemsPerPage="50" :hideDefaultFooter="allshops?.length < 50">
                         <template #item.shop_name="{item}">
                             <div class="d-flex flex-column ga-1 py-1">
                                 <div>
                                     <div v-if="item?.maindomain">
-                                        <v-btn class="text-none" variant="text" color="success" density="compact">{{item.maindomain}}</v-btn>
+                                        <div class="font-weight-bold text-primary">{{item.maindomain}}</div>
                                     </div>
                                     <div v-else>
-                                        <v-btn class="text-none" variant="text" color="success" density="compact">{{item.subdomain}}</v-btn>
+                                        <div class="font-weight-medium text-info">{{item.subdomain}}</div>
                                     </div>
                                 </div>
                                 <div>
@@ -38,19 +41,19 @@
                             </div>
                         </template>
                         <template #item.users="{item}">
-                            <ul v-if="item?.users?.length">
-                                <li v-for="(user) in item.users" :key="user.id" class="border-b-sm my-1">
+                            <div v-if="item?.users?.length">
+                                <div v-for="(user) in item.users" :key="user.id" class="border-b-sm my-1">
                                     <div class="mb-1 d-flex ga-1">
-                                        <div class="d-flex flex-column">
+                                        <div class="d-flex flex-column align-start">
                                             <span class="font-weight-medium">{{user.name}}</span>
                                             <span>{{user.email}}</span>
                                         </div>
                                         <v-chip size="small" density="compact" class="font-weight-medium" color="success">{{ user?.pivot?.role }}</v-chip>
                                     </div>
-                                </li>
-                            </ul>
+                                </div>
+                            </div>
 
-                           <v-btn @click="openAddDialog(item)" density="comfortable" color="info" variant="tonal" size="small"
+                           <v-btn @click="openAddDialog(item)" density="compact" color="success" variant="tonal" size="small"
                                   prependIcon="mdi-account-plus" class="mb-1">
                                add User
                            </v-btn>

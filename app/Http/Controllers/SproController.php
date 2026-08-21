@@ -109,7 +109,11 @@ class SproController extends Controller
                 );
             }
         }
-        $options = $this->isSimpleProductOptions($spro['options']) ? null : array_column($spro['options'], 'name');
+        $sproOptions = is_array($spro['options'] ?? null) ? $spro['options'] : [];
+
+        $options = $this->isSimpleProductOptions($sproOptions)
+            ? null
+            : array_column($sproOptions, 'name');
         if(!empty($options)) {
             foreach ($options as $proption) {
                 Poptions::updateOrCreate(
@@ -194,7 +198,7 @@ class SproController extends Controller
             }
         }
         $pvariants = [];
-        foreach ($spro['variants'] as $vindex => $svariant) {
+        foreach (($spro['variants'] ?? []) as $vindex => $svariant) {
             $avariants = [];
             $optionValue = null;
             $isDefault = false;

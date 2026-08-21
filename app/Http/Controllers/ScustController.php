@@ -146,15 +146,17 @@ class ScustController extends Controller
         if ($request->boolean('only_not_imported')) {
             $query->whereNull('customer_id');
         }
-
+        $sortBy = $allowedSorts[$request->sort_by] ?? 'id';
+        $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
         $perPage = (int) $request->input('per_page', 50);
-        $page = $query->orderBy($request->input('sort', 'email'))->paginate($perPage);
+//        $page = $query->orderBy($request->input('sort', 'email'))->paginate($perPage);
+        $page = $query->paginate($perPage);
 
+        $stotal = Scust::where('shop_id', $shopId)->count();
         return response()->json([
-            'items'     => $page->items(),
-            'total'     => $page->total(),
-            'page'      => $page->currentPage(),
-            'last_page' => $page->lastPage(),
+            'items'     => $page,
+            'stotal'     => $stotal,
         ]);
     }
 

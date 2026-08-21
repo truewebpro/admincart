@@ -10,11 +10,13 @@
                 <v-tabs v-model="status" color="primary" selectedClass="bg-lblue"
                         density="compact" bgColor="grey-lighten-3" sliderColor="primary"
                         slider-transition="fade" show-arrows class="w-100">
-                    <v-tab v-for="(stat, index) in cartstatus" :key="index" :value="stat" class="text-capitalize">
-                        {{ stat }}
-                        <v-chip size="small" class="ms-2 font-weight-medium" density="comfortable">
-                            {{ stat === 'All' ? Object.values(statusCounts).reduce((a, b) => a + b, 0) : statusCounts[stat] }}
-                        </v-chip>
+                    <v-tab v-for="(stat, index) in cartstatus" :key="index" :value="stat" class="text-capitalize d-flex bg-white">
+                        <div>
+                            {{ stat }}
+                            <v-chip size="small" class="ms-2 font-weight-medium" density="comfortable">
+                                {{ stat === 'All' ? Object.values(statusCounts).reduce((a, b) => a + b, 0) : statusCounts[stat] }}
+                            </v-chip>
+                        </div>
                     </v-tab>
                 </v-tabs>
                 <v-card flat class="border">

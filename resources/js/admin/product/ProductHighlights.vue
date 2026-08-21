@@ -63,43 +63,43 @@
             </v-dialog>
             <v-card-text v-if="highs.length">
                 <v-btn @click="addHighDialog = true" prependIcon="mdi-plus" variant="tonal" color="success" density="default">Add Highlight</v-btn>
-                <v-dialog v-model="addHighDialog" max-width="400">
-                    <v-card>
-                        <v-card-title class="d-flex justify-space-between">
-                            Select Feature
-                            <v-icon @click="addHighDialog = false">mdi-close</v-icon>
-                        </v-card-title>
-                        <v-card-text>
-                            <v-autocomplete v-model="selectedFeature" :items="features" item-title="ftitle"
-                                            density="comfortable" variant="underlined" return-object
-                                            label="Select Highlight" hide-selected>
-                                <template v-slot:item="{ props, item }">
-                                    <v-list-item density="compact"
-                                                 v-bind="props"
-                                                 :prepend-avatar="cdn+item.raw.fimage"
-                                                 :title="item.raw.ftitle"
-                                    ></v-list-item>
-                                </template>
-                            </v-autocomplete>
-                            <div v-if="selectedFeature">
-                                <v-img :src="cdn+selectedFeature.fimage" max-width="75"/>
-                                <v-form v-model="haValid">
-                                    <v-text-field v-model="fvalue" variant="outlined" density="compact"
-                                                  :label="selectedFeature.ftitle" persistent-placeholder
-                                                  :rules="fvalRule" hint="Enter Relevant value of the Highlight"
-                                                  persistent-hint
-                                                  class="mt-3"></v-text-field>
-                                    <div class="d-flex ga-2 mt-3">
-                                        <v-spacer/>
-                                        <v-btn :disabled="!haValid" @click="addHighlight" color="success" density="comfortable">Add Highlight</v-btn>
-                                        <v-btn @click="addHighDialog = false" color="red" density="comfortable">cancel</v-btn>
-                                    </div>
-                                </v-form>
-                            </div>
-                        </v-card-text>
-                    </v-card>
-                </v-dialog>
             </v-card-text>
+            <v-dialog v-model="addHighDialog" max-width="400">
+                <v-card>
+                    <v-card-title class="d-flex justify-space-between">
+                        Select Feature
+                        <v-icon @click="addHighDialog = false">mdi-close</v-icon>
+                    </v-card-title>
+                    <v-card-text>
+                        <v-autocomplete v-model="selectedFeature" :items="features" item-title="ftitle"
+                                        density="comfortable" variant="underlined" return-object
+                                        label="Select Highlight" hide-selected>
+                            <template v-slot:item="{ props, item }">
+                                <v-list-item density="compact"
+                                             v-bind="props"
+                                             :prepend-avatar="cdn+item.raw.fimage"
+                                             :title="item.raw.ftitle"
+                                ></v-list-item>
+                            </template>
+                        </v-autocomplete>
+                        <div v-if="selectedFeature">
+                            <v-img :src="cdn+selectedFeature.fimage" max-width="75"/>
+                            <v-form v-model="haValid">
+                                <v-text-field v-model="fvalue" variant="outlined" density="compact"
+                                              :label="selectedFeature.ftitle" persistent-placeholder
+                                              :rules="fvalRule" hint="Enter Relevant value of the Highlight"
+                                              persistent-hint
+                                              class="mt-3"></v-text-field>
+                                <div class="d-flex ga-2 mt-3">
+                                    <v-spacer/>
+                                    <v-btn :disabled="!haValid" @click="addHighlight" color="success" density="comfortable">Add Highlight</v-btn>
+                                    <v-btn @click="addHighDialog = false" color="red" density="comfortable">cancel</v-btn>
+                                </div>
+                            </v-form>
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </v-dialog>
         </v-card>
     </div>
 </template>

@@ -13,7 +13,7 @@
                             text="List technical details like battery, capacity, or dimensions as attribute rows."
                         >
                             <template #actions>
-                                <v-btn @click="addSpecDialog"
+                                <v-btn @click="addSpecDialog = true"
                                        color="success"
                                        variant="tonal" prependIcon="mdi-plus"
                                        density="default">Add Specifics</v-btn>
