@@ -9,45 +9,43 @@
                 <v-btn @click="exportProducts" variant="tonal" class="text-none" color="primary me-2">Export</v-btn>
                 <v-btn link to="/products/new" variant="tonal" class="text-none" color="primary">Add Product</v-btn>
             </v-col>
+            <v-col cols="10" md="10">
+                <v-tabs v-model="status" color="primary" selectedClass="bg-lblue"
+                        density="compact" bgColor="grey-lighten-3" sliderColor="primary"
+                        slider-transition="fade" spaced="both" show-arrows>
+                    <v-tab v-for="(stat, index) in prostatus" :key="index" :value="stat" class="text-none bg-white">
+                        {{ stat }}
+                    </v-tab>
+                </v-tabs>
+            </v-col>
+            <v-col cols="2" md="2" class="text-end">
+                <v-menu>
+                    <template v-slot:activator="{ props: menu }">
+                        <v-tooltip location="top">
+                            <template v-slot:activator="{ props: tooltip }">
+                                <v-btn v-bind="mergeProps(menu, tooltip)" icon density="comfortable">
+                                    <v-icon size="small">mdi-sort</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Sort</span>
+                        </v-tooltip>
+                    </template>
+                    <v-list nav density="compact" base-color="dark">
+                        <v-list-item @click="setSort('title')" title="Product Title"></v-list-item>
+                        <v-list-item @click="setSort('created_at')" title="Created" />
+                        <v-list-item @click="setSort('updated_at')" title="Updated" />
+                        <v-list-item @click="setSort('astock_sum_quantity')" title="Inventory" />
+                        <v-list-item @click="setSort('ptype.product_type_name')" title="Product Type" />
+                        <v-list-item @click="setSort('brand.brand_name')" title="Brand" />
+                        <v-divider/>
+                        <v-list-item base-color="primary" @click="setDirection('asc')" title="A-Z" />
+                        <v-list-item base-color="primary" @click="setDirection('desc')" title="Z-A" />
+                    </v-list>
+                </v-menu>
+            </v-col>
             <v-col cols="12">
                 <v-card flat class="border">
-                    <v-row dense class="px-2 py-1">
-                        <v-col cols="10" md="10">
-                            <v-tabs v-model="status" color="primary" selectedClass="bg-lblue"
-                                    density="compact" bgColor="white" sliderColor="primary"
-                                    slider-transition="fade" spaced="both" show-arrows>
-                                <v-tab v-for="(stat, index) in prostatus" :key="index" :value="stat" class="text-none">
-                                    {{ stat }}
-                                </v-tab>
-                            </v-tabs>
-                        </v-col>
-                        <v-col cols="2" md="2" class="text-end">
-                            <v-menu>
-                                <template v-slot:activator="{ props: menu }">
-                                    <v-tooltip location="top">
-                                        <template v-slot:activator="{ props: tooltip }">
-                                            <v-btn v-bind="mergeProps(menu, tooltip)" icon density="comfortable">
-                                                <v-icon size="small">mdi-sort</v-icon>
-                                            </v-btn>
-                                        </template>
-                                        <span>Sort</span>
-                                    </v-tooltip>
-                                </template>
-                                <v-list nav density="compact" base-color="dark">
-                                    <v-list-item @click="setSort('title')" title="Product Title"></v-list-item>
-                                    <v-list-item @click="setSort('created_at')" title="Created" />
-                                    <v-list-item @click="setSort('updated_at')" title="Updated" />
-                                    <v-list-item @click="setSort('astock_sum_quantity')" title="Inventory" />
-                                    <v-list-item @click="setSort('ptype.product_type_name')" title="Product Type" />
-                                    <v-list-item @click="setSort('brand.brand_name')" title="Brand" />
-                                    <v-divider/>
-                                    <v-list-item base-color="primary" @click="setDirection('asc')" title="A-Z" />
-                                    <v-list-item base-color="primary" @click="setDirection('desc')" title="Z-A" />
-                                </v-list>
-                            </v-menu>
-                        </v-col>
-                    </v-row>
-                    <v-row dense class="pb-2 px-2">
+                    <v-row dense class="pb-2 px-2 pt-2">
                         <v-col cols="12" md="6">
                             <v-text-field v-model="psearch" class="w-100" variant="outlined" density="compact" clearable hide-details
                                           placeholder="Searching all Products"
@@ -72,7 +70,7 @@
                     </v-row>
                     <v-row dense v-if="selectedPros.length > 0" class="mb-2 px-2">
                         <v-col cols="6" md="3">
-                            <v-btn variant="text" density="compact" class="font-weight-bold text-none">{{selectedPros.length}} Selected</v-btn>
+                            <v-btn variant="tonal" density="compact" class="font-weight-bold text-none">{{selectedPros.length}} Selected</v-btn>
                         </v-col>
                         <v-col cols="6" md="3">
                             <v-btn @click="selectedPros = []" variant="tonal" color="red" density="compact" class="text-none">Unselect All</v-btn>

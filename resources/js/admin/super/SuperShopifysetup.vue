@@ -10,38 +10,84 @@
                     </v-card-item>
                 </v-card>
             </v-col>
-            <v-col cols="12" md="12" v-if="loading">
-                    <v-skeleton-loader type="card"></v-skeleton-loader>
-            </v-col>
-            <v-col cols="12" md="12" v-if="shopifyDetail === null">
-                <v-empty-state
-                    title="Shopify Setup"
-                    text="Add Shopify app details to impot Products, Collections, Blogs etc"
-                >
-                    <template #media>
-                        <span class="iconify text-h1" data-icon="logos:shopify"/>
-                    </template>
-                    <template #actions>
-                        <v-btn @click="showAddDialog"
-                               variant="tonal" prependIcon="mdi-plus" density="comfortable" color="success"
-                        >
-                            Add Shopify App
-                        </v-btn>
-                    </template>
-                </v-empty-state>
-
-            </v-col>
         </v-row>
         <v-tabs v-model="stab" color="primary" selectedClass="bg-lblue"
                 density="compact" bgColor="grey-lighten-3" sliderColor="primary" class="my-2">
             <v-tab value="setup" class="bg-white">Setup</v-tab>
-            <v-tab value="products" class="bg-white">Products</v-tab>
-            <v-tab value="collections" class="bg-white">Collections</v-tab>
-            <v-tab value="customers" class="bg-white">Customers</v-tab>
-            <v-tab value="blogs" class="bg-white">Blogs</v-tab>
+            <v-tab value="products" class="bg-white">
+                <div class="d-flex align-center ga-1">
+                    Products
+                    <div v-if="counts.products">
+                        <v-chip variant="tonal" density="compact" color="success">{{counts?.products?.count}}</v-chip>
+                    </div>
+                </div>
+            </v-tab>
+            <v-tab value="collections" class="bg-white">
+                <div class="d-flex align-center ga-1">
+                    Collections
+                    <div v-if="counts.smart_collections">
+                        <v-chip variant="tonal" density="compact" color="success">{{counts?.smart_collections?.count}}</v-chip>
+                    </div>
+                </div>
+            </v-tab>
+            <v-tab value="customers" class="bg-white">
+                <div class="d-flex align-center ga-1">
+                    Customers
+                    <div v-if="counts.customers">
+                        <v-chip variant="tonal" density="compact" color="success">{{counts?.customers?.count}}</v-chip>
+                    </div>
+                </div>
+            </v-tab>
+            <v-tab value="blogs" class="bg-white">
+                <div class="d-flex align-center ga-1">
+                    Blogs
+                    <div v-if="counts.articles">
+                        <v-chip variant="tonal" density="compact" color="success">{{counts?.articles?.count}}</v-chip>
+                    </div>
+                </div>
+            </v-tab>
+            <v-tab value="pages" class="bg-white">
+                <div class="d-flex align-center ga-1">
+                    Pages
+                    <div v-if="counts.pages">
+                        <v-chip variant="tonal" density="compact" color="success">{{counts?.pages?.count}}</v-chip>
+                    </div>
+                </div>
+            </v-tab>
+            <v-tab value="orders" class="bg-white">
+                <div class="d-flex align-center ga-1">
+                    Orders
+                    <div v-if="counts?.orders">
+                        <v-chip variant="tonal" density="compact" color="success">{{counts?.orders?.count}}</v-chip>
+                    </div>
+                </div>
+            </v-tab>
         </v-tabs>
         <v-window v-model="stab">
             <v-window-item value="setup">
+                <v-row>
+                    <v-col cols="12" md="12" v-if="loading">
+                        <v-skeleton-loader type="card"></v-skeleton-loader>
+                    </v-col>
+                    <v-col cols="12" md="12" v-if="shopifyDetail === null">
+                        <v-empty-state
+                            title="Shopify Setup"
+                            text="Add Shopify app details to impot Products, Collections, Blogs etc"
+                        >
+                            <template #media>
+                                <span class="iconify text-h1" data-icon="logos:shopify"/>
+                            </template>
+                            <template #actions>
+                                <v-btn @click="showAddDialog"
+                                       variant="tonal" prependIcon="mdi-plus" density="comfortable" color="success"
+                                >
+                                    Add Shopify App
+                                </v-btn>
+                            </template>
+                        </v-empty-state>
+
+                    </v-col>
+                </v-row>
                 <v-row v-if="shopifyDetail !== null">
                     <v-col cols="12" md="6">
                         <v-card>
@@ -66,125 +112,14 @@
                                     <div class="text-body-1">
                                         <span class="font-weight-semibold">Token to be Expired :</span> {{dayjs(shopifyDetail.token_expires_at).format('D MMM [at] h:mm a')}}
                                     </div>
-                                    <v-btn @click="getAccessToken" variant="elevated" color="success"
-                                           size="small" max-width="200">Refresh Token</v-btn>
+                                    <v-btn @click="getAccessToken" variant="tonal" color="success" prependIcon="mdi-refresh"
+                                           max-width="200">Refresh Token</v-btn>
                                 </div>
                             </v-card-text>
                         </v-card>
                     </v-col>
                     <v-col cols="12" md="6">
-                        <v-card class="mb-3" v-if="counts.products">
-                            <v-card-title>Products</v-card-title>
-                            <v-card-text>
-                                <v-row dense>
-                                    <v-col cols="12" md="6">
-                                        <h4 class="font-weight-semibold">Products</h4>
-                                        <div v-if="counts.products">
-                                            <h2>Total: {{counts?.products?.count}}</h2>
-                                            <h3>Products Fetched: {{stotal}} / {{counts?.products?.count}} </h3>
-                                            <div class="text-body-1" v-if="counts?.products?.available">Scope: Available</div>
-                                            <div v-if="counts?.products?.reason">Reason: {{counts?.products?.reason}}</div>
-                                            <v-btn @click="startSyncPros" :loading="syncLoading" class="mt-2"
-                                                   variant="outlined" color="success" density="compact">
-                                                Import Products
-                                            </v-btn>
-                                            <v-btn @click="syncProductsSeo" :loading="syncLoading" class="mt-2"
-                                                   variant="outlined" color="green" density="compact">
-                                                Sync Products SEO
-                                            </v-btn>
-                                        </div>
-                                    </v-col>
-                                    <v-col cols="12" md="6">
-                                        <h4 class="font-weight-semibold">Customers</h4>
-                                        <div v-if="counts.customers">
-                                            <h2>Total: {{counts?.customers?.count}}</h2>
-                                            <h3>Customers Fetched: {{scusts_count}} / {{counts?.customers?.count}} </h3>
-                                            <div class="text-body-1" v-if="counts?.customers?.available">Scope: Available</div>
-                                            <div v-if="counts?.customers?.reason">Reason: {{counts?.customers?.reason}}</div>
-                                            <v-btn @click="startSyncCustomers" :loading="syncLoading" class="mt-2"
-                                                   variant="outlined" color="success" density="compact">
-                                                Import Customers
-                                            </v-btn>
-                                            <v-btn :loading="syncLoading" class="mt-2"
-                                                   variant="outlined" color="green" density="compact">
-                                                Import Customers in Bulk
-                                            </v-btn>
-                                        </div>
-                                    </v-col>
-                                </v-row>
 
-                            </v-card-text>
-                        </v-card>
-                        <v-card class="mb-3" v-if="counts.custom_collections">
-                            <v-card-title>Collections</v-card-title>
-                            <v-card-text>
-                                <v-row dense>
-                                    <v-col cols="12" md="6">
-                                        <h4 class="font-weight-semibold">Custom</h4>
-                                        <div v-if="counts.custom_collections">
-                                            <h2>Total: {{ccats_count}} / {{counts?.custom_collections?.count}}</h2>
-                                            <div class="text-body-1" v-if="counts?.custom_collections?.available">Scope: Available</div>
-                                            <div v-if="counts?.custom_collections?.reason">Reason: {{counts?.custom_collections?.reason}}</div>
-                                            <v-btn @click="getAndUpdateCustomCollections" :loading="isLoading"
-                                                   class="mt-2" variant="outlined" color="success" density="compact">
-                                                Import Custom Collections
-                                            </v-btn>
-                                        </div>
-
-                                    </v-col>
-                                    <v-col cols="12" md="6">
-                                        <h4 class="font-weight-semibold">Smart</h4>
-                                        <div v-if="counts.smart_collections">
-                                            <h2>Total: {{scats_count}} / {{counts?.smart_collections?.count}}</h2>
-                                            <div class="text-body-1" v-if="counts?.smart_collections?.available">Scope: Available</div>
-                                            <div class="text-red" v-if="counts?.smart_collections?.reason">Reason: {{counts?.smart_collections?.reason}}</div>
-                                            <v-btn @click="getAndUpdateSmartCollections" :loading="isLoading"
-                                                   class="mt-2" variant="outlined" color="success" density="compact">
-                                                Import Smart Collections
-                                            </v-btn>
-                                        </div>
-                                    </v-col>
-                                </v-row>
-                            </v-card-text>
-                        </v-card>
-                        <v-card class="mb-3" v-if="counts.custom_collections">
-                            <v-card-title>Blogs & News Articles</v-card-title>
-                            <v-card-text>
-                                <v-row dense>
-                                    <v-col cols="12" md="6">
-                                        <h4 class="font-weight-semibold">Blogs</h4>
-                                        <div v-if="counts.blogs">
-                                            <h2>Total: {{blogs?.length || 0}} / {{counts?.blogs?.count || 0}}</h2>
-                                            <div class="text-body-1" v-if="counts?.blogs?.available">Scope: Available</div>
-                                            <div class="text-red" v-if="counts?.blogs?.reason">Reason: {{counts?.blogs?.reason}}</div>
-                                            <v-btn v-if="counts?.blogs?.available" class="mt-2" variant="outlined"
-                                                   color="success" density="compact">Import Blogs</v-btn>
-                                        </div>
-                                    </v-col>
-                                    <v-col cols="12" md="6">
-                                        <h4 class="font-weight-semibold">Articles</h4>
-                                        <div v-if="counts.articles">
-                                            <h2>Total: {{blogs_count}} / {{counts?.articles?.count || 0}}</h2>
-                                            <div class="text-body-1" v-if="counts?.articles?.available">Scope: Available</div>
-                                            <div class="text-red" v-if="counts?.articles?.reason">Reason: {{counts?.articles?.reason}}</div>
-                                            <v-btn v-if="counts?.articles?.available"
-                                                   class="mt-2" variant="outlined"
-                                                   @click="getAndUpdateArticles" :loading="isLoading"
-                                                   color="primary" density="compact">Import Articles</v-btn>
-                                        </div>
-                                    </v-col>
-                                </v-row>
-                            </v-card-text>
-                        </v-card>
-                        <v-card class="mb-3" v-if="counts.pages">
-                            <v-card-title>Pages</v-card-title>
-                            <v-card-text>
-                                <h2>Total: {{counts?.pages?.count || 0}}</h2>
-                                <div class="text-body-1" v-if="counts?.pages?.available">Scope: Available</div>
-                                <div class="text-red" v-if="counts?.pages?.reason">Reason: {{counts?.pages?.reason}}</div>
-                                <v-btn v-if="counts?.pages?.available" class="mt-2" variant="outlined" color="success" density="compact">Import Pages</v-btn>
-                            </v-card-text>
-                        </v-card>
                     </v-col>
                 </v-row>
                 <v-dialog v-model="addDialog" max-width="450">
@@ -218,13 +153,140 @@
                 </v-dialog>
             </v-window-item>
             <v-window-item value="products">
+                <v-card class="mb-3" v-if="counts.products">
+                    <v-card-text>
+                        <v-row dense>
+                            <v-col cols="12" md="6">
+                                <div v-if="counts.products">
+                                    <h2>Total: {{counts?.products?.count}}</h2>
+                                    <h3>Products Fetched: {{stotal}} / {{counts?.products?.count}} </h3>
+                                    <div class="text-body-1" v-if="counts?.products?.available">Scope: Available</div>
+                                    <div v-if="counts?.products?.reason">Reason: {{counts?.products?.reason}}</div>
+                                    <v-btn @click="startSyncPros" :loading="syncLoading" class="mt-2 me-2"
+                                           variant="tonal" color="success" density="compact" prependIcon="mdi-download">
+                                        Import Products
+                                    </v-btn>
+                                    <v-btn @click="syncProductsSeo" :loading="syncLoading" class="mt-2"
+                                           variant="tonal" color="green" density="compact" prependIcon="mdi-sync">
+                                        Sync Products SEO
+                                    </v-btn>
+                                </div>
+                            </v-col>
+                        </v-row>
+                    </v-card-text>
+                </v-card>
                 <ShopifyProducts/>
             </v-window-item>
-            <v-window-item value="collections">Collections</v-window-item>
+            <v-window-item value="collections">
+                <v-card class="mb-3" v-if="counts.custom_collections">
+                    <v-card-text>
+                        <v-row dense>
+                            <v-col cols="12" md="6">
+                                <h4 class="font-weight-semibold">Custom</h4>
+                                <div v-if="counts.custom_collections">
+                                    <h2>Total: {{ccats_count}} / {{counts?.custom_collections?.count}}</h2>
+                                    <div class="text-body-1" v-if="counts?.custom_collections?.available">Scope: Available</div>
+                                    <div v-if="counts?.custom_collections?.reason">Reason: {{counts?.custom_collections?.reason}}</div>
+                                    <v-btn @click="getAndUpdateCustomCollections" :loading="isLoading"
+                                           class="mt-2" variant="tonal" color="success" density="compact" prependIcon="mdi-download">
+                                        Import Custom Collections
+                                    </v-btn>
+                                </div>
+
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <h4 class="font-weight-semibold">Smart</h4>
+                                <div v-if="counts.smart_collections">
+                                    <h2>Total: {{scats_count}} / {{counts?.smart_collections?.count}}</h2>
+                                    <div class="text-body-1" v-if="counts?.smart_collections?.available">Scope: Available</div>
+                                    <div class="text-red" v-if="counts?.smart_collections?.reason">Reason: {{counts?.smart_collections?.reason}}</div>
+                                    <v-btn @click="getAndUpdateSmartCollections" :loading="isLoading"
+                                           class="mt-2" variant="tonal" color="success" density="compact" prependIcon="mdi-download">
+                                        Import Smart Collections
+                                    </v-btn>
+                                </div>
+                            </v-col>
+                        </v-row>
+                    </v-card-text>
+                </v-card>
+            </v-window-item>
             <v-window-item value="customers">
+                <v-card class="mb-3" v-if="counts.customers">
+                    <v-card-text>
+                        <v-row dense>
+                            <v-col cols="12" md="6">
+                                <div v-if="counts.customers">
+                                    <h2>Total: {{counts?.customers?.count}}</h2>
+                                    <h3>Customers Fetched: {{scusts_count}} / {{counts?.customers?.count}} </h3>
+                                    <div class="text-body-1" v-if="counts?.customers?.available">Scope: Available</div>
+                                    <div v-if="counts?.customers?.reason">Reason: {{counts?.customers?.reason}}</div>
+                                    <v-btn @click="startSyncCustomers" :loading="syncLoading" class="mt-2 me-2"
+                                           variant="tonal" color="success" density="compact" prependIcon="mdi-download">
+                                        Import Customers
+                                    </v-btn>
+                                    <v-btn :loading="syncLoading" class="mt-2"
+                                           variant="tonal" color="green" density="compact" prependIcon="mdi-progress-download">
+                                        Import Customers in Bulk
+                                    </v-btn>
+                                </div>
+                            </v-col>
+                        </v-row>
+                    </v-card-text>
+                </v-card>
                 <ShopifyCustomers/>
             </v-window-item>
-            <v-window-item value="blogs">Blogs</v-window-item>
+            <v-window-item value="blogs">
+                <v-card class="mb-3" v-if="counts.blogs">
+                    <v-card-text>
+                        <v-row dense>
+                            <v-col cols="12" md="6">
+                                <h4 class="font-weight-semibold">Blogs Slug</h4>
+                                <div v-if="counts.blogs">
+                                    <h2>Total: {{blogs?.length || 0}} / {{counts?.blogs?.count || 0}}</h2>
+                                    <div class="text-body-1" v-if="counts?.blogs?.available">Scope: Available</div>
+                                    <div class="text-red" v-if="counts?.blogs?.reason">Reason: {{counts?.blogs?.reason}}</div>
+                                    <v-btn v-if="counts?.blogs?.available" class="mt-2" variant="tonal"
+                                           color="success" density="compact" prependIcon="mdi-download">Import Blogs</v-btn>
+                                </div>
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <h4 class="font-weight-semibold">Articles</h4>
+                                <div v-if="counts.articles">
+                                    <h2>Total: {{blogs_count}} / {{counts?.articles?.count || 0}}</h2>
+                                    <div class="text-body-1" v-if="counts?.articles?.available">Scope: Available</div>
+                                    <div class="text-red" v-if="counts?.articles?.reason">Reason: {{counts?.articles?.reason}}</div>
+                                    <v-btn v-if="counts?.articles?.available"
+                                           class="mt-2" variant="tonal"
+                                           @click="getAndUpdateArticles" :loading="isLoading"
+                                           color="primary" density="compact" prependIcon="mdi-download">Import Articles</v-btn>
+                                </div>
+                            </v-col>
+                        </v-row>
+                    </v-card-text>
+                </v-card>
+            </v-window-item>
+            <v-window-item value="pages">
+                <v-card class="mb-3" v-if="counts.pages">
+                    <v-card-text>
+                        <h2>Total: {{counts?.pages?.count || 0}}</h2>
+                        <div class="text-body-1" v-if="counts?.pages?.available">Scope: Available</div>
+                        <div class="text-red" v-if="counts?.pages?.reason">Reason: {{counts?.pages?.reason}}</div>
+                        <v-btn v-if="counts?.pages?.available" class="mt-2" variant="tonal" color="success"
+                               density="compact" prependIcon="mdi-download">Import Pages</v-btn>
+                    </v-card-text>
+                </v-card>
+            </v-window-item>
+            <v-window-item value="orders">
+                <v-card class="mb-3" v-if="counts.orders">
+                    <v-card-text>
+                        <h2>Total: {{counts?.orders?.count || 0}}</h2>
+                        <div class="text-body-1" v-if="counts?.orders?.available">Scope: Available</div>
+                        <div class="text-red" v-if="counts?.orders?.reason">Reason: {{counts?.orders?.reason}}</div>
+                        <v-btn v-if="counts?.orders?.available" class="mt-2" variant="tonal" color="success"
+                               density="compact" prependIcon="mdi-download">Import Orders</v-btn>
+                    </v-card-text>
+                </v-card>
+            </v-window-item>
         </v-window>
     </v-container>
 </template>
@@ -256,6 +318,7 @@ export default {
                 articles:0,
                 pages:0,
                 customers:0,
+                orders:0,
             },
             syncLoading:false,
             addValid:false,
@@ -288,6 +351,7 @@ export default {
             ccats_count:0,
             scats_count:0,
             scusts_count:0,
+            sorders_count:0,
         }
     },
     created() {
@@ -306,6 +370,7 @@ export default {
                     this.ccats_count = allData.ccats_count || 0;
                     this.scats_count = allData.scats_count || 0;
                     this.scusts_count = allData.scusts_count || 0;
+                    this.sorders_count = allData.sorders_count || 0;
                 })
                 .finally(()=>{
                     this.loading = false;

@@ -255,6 +255,26 @@ class ShopifyService
         return $response->json('articles', []);
     }
 
+    public function getOrders(int $limit = 100): array
+    {
+        $token = $this->getAccessToken();
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+        ])->get(
+            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/orders.json",
+            ['limit' => $limit]
+        );
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                'Shopify orders request failed: ' . $response->body()
+            );
+        }
+
+        return $response->json('orders', []);
+    }
+
     /**
      * Fetch ALL articles for a given blog, 250 per page, same cursor
      * pagination pattern as getAllProducts().
@@ -310,6 +330,7 @@ class ShopifyService
         'blogs'              => 'read_content',
         'articles'           => 'read_content',
         'customers'          => 'read_customers',
+        'orders'          => 'read_orders',
     ];
 
     /**
@@ -322,7 +343,7 @@ class ShopifyService
     {
         $counts = [];
 
-        foreach (['products', 'custom_collections', 'smart_collections', 'pages', 'blogs','articles','customers'] as $resource) {
+        foreach (['products', 'custom_collections', 'smart_collections', 'pages', 'blogs','articles','customers','orders'] as $resource) {
             if (! $this->shop->hasScope($this->requiredScopes[$resource])) {
                 $counts[$resource] = [
                     'count'     => null,
@@ -341,6 +362,7 @@ class ShopifyService
                     'blogs'              => $this->blogsCount(),
                     'articles'           => $this->articlesCount(),
                     'customers'           => $this->customersCount(),
+                    'orders'           => $this->ordersCount(),
                 },
                 'available' => true,
                 'reason'    => null,
@@ -671,6 +693,12 @@ class ShopifyService
     {
         $this->ensureScope('customers');
         return $this->fetchCount('customers/count.json');
+    }
+
+    public function ordersCount(): int
+    {
+        $this->ensureScope('orders');
+        return $this->fetchCount('orders/count.json');
     }
 
 

@@ -3,7 +3,7 @@
         <v-card class="mb-6 section-card">
             <v-card-title class="d-flex justify-space-between align-center mt-2">
                 Earn Actions
-                <v-btn density="comfortable" color="primary" @click="openNewDialog">Add Action</v-btn>
+                <v-btn density="comfortable" color="primary" prependIcon="mdi-plus" @click="openNewDialog">Add Action</v-btn>
             </v-card-title>
             <v-card-subtitle>
                 Non-purchase ways customers earn points — reviews, social follows, shares, or

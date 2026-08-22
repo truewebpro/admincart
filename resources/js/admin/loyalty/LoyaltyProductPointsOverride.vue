@@ -18,7 +18,7 @@
                         />
                     </v-col>
                     <v-col cols="7" class="text-right">
-                        <v-btn color="primary" density="comfortable" @click="openNewDialog">Add Override</v-btn>
+                        <v-btn color="primary" density="comfortable" prependIcon="mdi-plus" @click="openNewDialog">Add Override</v-btn>
                     </v-col>
                 </v-row>
 

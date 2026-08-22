@@ -53,7 +53,7 @@
         <v-card class="section-card">
             <v-card-title class="d-flex justify-space-between align-center">
                 Redeem Rules
-                <v-btn size="small" color="primary" @click="openNewRuleDialog">Add Rule</v-btn>
+                <v-btn color="success" prependIcon="mdi-plus" @click="openNewRuleDialog">Add Rule</v-btn>
             </v-card-title>
 
             <v-table>

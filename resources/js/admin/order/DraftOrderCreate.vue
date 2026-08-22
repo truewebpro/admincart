@@ -9,7 +9,7 @@
                 </div>
             </v-col>
             <v-col cols="12" md="6" class="text-end">
-                <v-btn variant="tonal" color="primary" size="small" class="mr-2" @click="saveDraft" :loading="saving">
+                <v-btn variant="tonal" color="success" class="mr-2" @click="saveDraft" :loading="saving">
                     Save draft
                 </v-btn>
             </v-col>
@@ -45,7 +45,7 @@
                     <div v-if="items.length === 0" class="empty-state">
                         <v-icon size="40" color="grey-lighten-1">mdi-package-variant</v-icon>
                         <div class="muted mt-2">No products added yet</div>
-                        <v-btn size="small" class="mt-3" variant="tonal" @click="openProductDialog">Add product</v-btn>
+                        <v-btn size="small" class="mt-3" variant="tonal" prependIcon="mdi-plus" @click="openProductDialog">Add product</v-btn>
                     </div>
                     <div v-else class="items-table">
                         <v-data-table

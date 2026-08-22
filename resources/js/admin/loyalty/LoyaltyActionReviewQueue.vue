@@ -9,7 +9,7 @@
                 Claims that need a human check — reviews and social follows can't be verified automatically.
             </v-card-subtitle>
 
-            <v-tabs v-model="statusFilter" class="px-4">
+            <v-tabs v-model="statusFilter" class="px-4" density="compact">
                 <v-tab value="pending">Pending</v-tab>
                 <v-tab value="approved">Approved</v-tab>
                 <v-tab value="rejected">Rejected</v-tab>
