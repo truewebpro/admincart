@@ -22,7 +22,7 @@
                                       prepend-inner-icon="mdi-magnify" clearable></v-text-field>
                     </div>
                     <v-data-table :items="apages" :headers="apagesHeader" :search="psearch"
-                                  v-model="selectedPage" hover
+                                  v-model="selectedPage" hover mobileBreakpoint="sm"
                                   return-object>
                         <template v-slot:item.page_title="{item}">
                             <div class="title d-flex align-center justify-space-between">
@@ -39,10 +39,10 @@
                             <v-btn v-if="item.page_status === 'active'" variant="tonal" color="success" density="compact" class="rounded-pill text-capitalize">{{item.page_status}}</v-btn>
                             <v-btn v-else color="red" variant="tonal" density="compact" class="rounded-pill text-capitalize">{{item.page_status}}</v-btn>
                         </template>
-                        <template v-slot:item.page_description="{item}">
-                            <div class="text-truncate" v-html="item.page_description">
-                            </div>
-                        </template>
+<!--                        <template v-slot:item.page_description="{item}">-->
+<!--                            <div class="text-truncate" style="max-width: 360px" v-html="item.page_description">-->
+<!--                            </div>-->
+<!--                        </template>-->
                         <template v-slot:item.updated_at="{item}">
                             <div class="font-weight-medium">{{dayjs(item.updated_at).format('D MMM [at] h:mm a')}}</div>
                         </template>
@@ -69,8 +69,7 @@ export default {
             apagesHeader:[
                 {title:'Title',value:'page_title',sortable:true},
                 {title:'Visibility',value:'page_status'},
-                {title:'Content',value:'page_description'},
-                {title:'Updated',value:'updated_at'},
+                {title:'Updated',value:'updated_at',align:'end'},
             ]
         }
     },

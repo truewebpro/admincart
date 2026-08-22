@@ -7,7 +7,6 @@
                         <v-btn link :to="{name:'BlogsList'}" icon variant="tonal" density="compact">
                             <v-icon>mdi-arrow-left</v-icon>
                         </v-btn>
-                        <v-icon size="small" class="mx-1">mdi-pencil</v-icon>
                         {{sblog.blog_title}}
                     </h2>
                 </v-col>
@@ -16,14 +15,14 @@
                 </v-col>
             </v-row>
             <v-tabs v-model="btab" color="primary" selectedClass="bg-lblue"
-                    density="compact" bgColor="greay-lighten-5" sliderColor="primary"
+                    density="compact" bgColor="grey-lighten-3" sliderColor="primary"
                     slider-transition="fade"
                     class="mt-4">
-                <v-tab value="general">
+                <v-tab value="general" class="bg-white">
                     Blog
                 </v-tab>
-                <v-tab value="content">Sections</v-tab>
-                <v-tab value="faqs">FAQ's</v-tab>
+                <v-tab value="content" class="bg-white">Sections</v-tab>
+                <v-tab value="faqs" class="bg-white">FAQ's</v-tab>
             </v-tabs>
             <v-window v-model="btab">
                 <v-window-item value="general">
@@ -196,7 +195,7 @@ export default {
             titleRule:[
                 (v) => !!v || "Title is required",
                 (v) => (v && v.length >= 4) || "Minimum 4 characters required",
-                (v) => (v && v.length <= 60) || "Maximum 60 characters allowed"]
+                (v) => (v && v.length <= 100) || "Maximum 60 characters allowed"]
         }
     },
     watch:{

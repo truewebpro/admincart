@@ -35,9 +35,9 @@
                     density="compact" bgColor="grey-lighten-3" sliderColor="primary"
                     slider-transition="fade"
                     class="mt-4">
-                <v-tab value="general">Page</v-tab>
-                <v-tab value="content">Sections</v-tab>
-                <v-tab value="faqs">FAQ's</v-tab>
+                <v-tab value="general" class="bg-white">Page</v-tab>
+                <v-tab value="content" class="bg-white">Sections</v-tab>
+                <v-tab value="faqs" class="bg-white">FAQ's</v-tab>
             </v-tabs>
             <v-window v-model="ptab">
                 <v-window-item value="general">

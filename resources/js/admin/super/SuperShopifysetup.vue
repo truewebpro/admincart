@@ -390,6 +390,9 @@ export default {
                     this.getShopDetail();
                     window.Toast.success(resp.data.message ?? "updated Successfully")
                 })
+                .finally(()=>{
+                    this.addDialog = false;
+                })
         },
         getAccessToken(){
             axios.get('/superadmin/shopify/fetch-token')
@@ -403,7 +406,7 @@ export default {
             axios.get('/superadmin/shopify/sync-products')
                 .then((resp)=>{
                     console.log('Sync Respo',resp);
-                    this.loadItems();
+                    this.getShopDetail();
                     window.Toast.success(`product Synced Successfully`)
                 })
                 .catch((err)=>{
@@ -419,6 +422,7 @@ export default {
                 .then((resp)=>{
                     this.blogs = resp.data.blogs || [];
                     window.Toast.success('Articles imported Successfully')
+                    this.getShopDetail();
                 })
                 .catch((err)=>{
                     console.log('error',err);
@@ -463,7 +467,7 @@ export default {
             axios.get('/superadmin/shopify/sync-products-seo/'+this.shop_id)
                 .then((resp)=>{
                     console.log('Sync Respo',resp);
-                    this.loadItems();
+                    this.getShopDetail();
                     window.Toast.success(`products SEO Synced Successfully`)
                 })
                 .catch((err)=>{
@@ -478,6 +482,7 @@ export default {
             axios.post(`/superadmin/shopify/${this.shop_id}/sync-customers`)
                 .then((resp)=>{
                     console.log('Sync Resp',resp);
+                    this.getShopDetail();
                     window.Toast.success(`customers Synced Successfully`)
                 })
                 .catch((err)=>{
@@ -490,7 +495,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-
-</style>
