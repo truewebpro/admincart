@@ -5,45 +5,33 @@
                 <v-card-title>Fetched Customer</v-card-title>
                 <v-text-field v-model="customer_search" class="ma-2" clearable density="compact" variant="outlined"
                               hide-details appendInnerIcon="mdi-magnify" placeholder="Search Customer..."></v-text-field>
-                <v-row dense v-if="selectedPros.length > 0" class="mb-2 px-2">
+                <v-row dense v-if="selectedCusts.length > 0" class="mb-2 px-2">
                     <v-col cols="6" md="3">
-                        <v-btn variant="text" density="compact" class="font-weight-bold text-none">{{selectedPros.length}} Selected</v-btn>
+                        <v-btn variant="tonal" density="comfortable" class="font-weight-bold text-none">{{selectedCusts.length}} Selected</v-btn>
                     </v-col>
                     <v-col cols="6" md="3">
-                        <v-btn @click="selectedPros = []" variant="outlined" density="compact" class="text-none">Unselect All</v-btn>
+                        <v-btn @click="selectedCusts = []" variant="tonal" density="compact" color="red" class="text-none">Unselect All</v-btn>
                     </v-col>
                     <v-col cols="12" md="4">
                         <v-menu>
                             <template v-slot:activator="{ props: menu }">
                                 <v-tooltip location="top">
                                     <template v-slot:activator="{ props: tooltip }">
-                                        <v-btn variant="outlined" class="text-none me-5" v-bind="mergeProps(menu, tooltip)"
-                                               density="compact" append-icon="mdi-chevron-down">
+                                        <v-btn variant="tonal" class="text-none me-5" v-bind="mergeProps(menu, tooltip)"
+                                               density="comfortable" append-icon="mdi-chevron-down">
                                             More Actions
                                         </v-btn>
                                     </template>
                                     <span>More Actions</span>
                                 </v-tooltip>
                             </template>
-                            <!--                                <v-list nav density="compact">-->
-                            <!--                                    <v-list-item @click="archiveCustomer">-->
-                            <!--                                        <v-list-item-title><v-icon class="me-2">mdi-archive-outline</v-icon>Archive Customer</v-list-item-title>-->
-                            <!--                                    </v-list-item>-->
-                            <!--                                    <v-list-item base-color="error" @click="deleteCustomer">-->
-                            <!--                                        <v-list-item-title><v-icon class="me-2">mdi-trash-can-outline</v-icon>Delete Customer</v-list-item-title>-->
-                            <!--                                    </v-list-item>-->
-                            <!--                                    <v-divider class="mt-1"/>-->
-                            <!--                                    <v-list-item @click="addBulkTagDialog = true">-->
-                            <!--                                        <v-list-item-title><v-icon class="me-2">mdi-tag-plus-outline</v-icon>Add Tags</v-list-item-title>-->
-                            <!--                                    </v-list-item>-->
-                            <!--                                    <v-list-item base-color="error" @click="removeBulkTagDialog = true">-->
-                            <!--                                        <v-list-item-title><v-icon class="me-2">mdi-tag-remove-outline</v-icon>Remove Tags</v-list-item-title>-->
-                            <!--                                    </v-list-item>-->
-                            <!--                                    <v-divider class="mt-1"/>-->
-                            <!--                                    <v-list-item base-color="success" @click="exportSelectedCustomer">-->
-                            <!--                                        <v-list-item-title><v-icon class="me-2">mdi-export</v-icon>Export Customer</v-list-item-title>-->
-                            <!--                                    </v-list-item>-->
-                            <!--                                </v-list>-->
+                                <v-list nav density="compact">
+                                    <v-list-item @click="createSelectedCustomersInSystem" base-color="success">
+                                        <v-list-item-title><v-icon class="me-2">mdi-account-group</v-icon>
+                                            Import Customers
+                                        </v-list-item-title>
+                                    </v-list-item>
+                                </v-list>
                         </v-menu>
                     </v-col>
                 </v-row>
@@ -54,7 +42,7 @@
                     :headers="scustsHeader"
                     :items-length="totalItems"
                     :items-per-page="itemsPerPage"
-                    v-model="selectedPros"
+                    v-model="selectedCusts"
                     hover show-select
                     return-object
                     :loading="isLoading"
@@ -74,25 +62,24 @@
                     </template>
                     <template #item.addresses="{item}">
                         <div class="py-1">
-                            <div>
-                                {{item.addresses}}
+                            <div v-if="item?.addresses?.length">
+                                <v-chip density="compact" size="small" variant="tonal" color="success">{{item.addresses?.length}} <span class="ms-1">Address{{item?.addresses?.length > 1 ? 'es' : ''}}</span></v-chip>
                             </div>
                         </div>
                     </template>
-                    <template #item.actions="{item}">
-                        <v-btn v-if="!item.customer_id" @click="createCustomerInSystem(item)" size="small"
-                               color="success" variant="outlined" density="comfortable">
-                            Create
-                        </v-btn>
-                        <v-btn v-else size="small"
-                               color="success" variant="tonal" density="comfortable">
-                            Done
-                        </v-btn>
-                    </template>
+<!--                    <template #item.actions="{item}">-->
+<!--                        <v-btn v-if="!item.customer_id" @click="createCustomerInSystem(item)" size="small"-->
+<!--                               color="success" variant="outlined" density="comfortable">-->
+<!--                            Create-->
+<!--                        </v-btn>-->
+<!--                        <v-btn v-else size="small"-->
+<!--                               color="success" variant="tonal" density="comfortable">-->
+<!--                            Done-->
+<!--                        </v-btn>-->
+<!--                    </template>-->
                 </v-data-table-server>
             </v-card>
         </v-col>
-        <pre>{{scusts}}</pre>
     </v-row>
 </template>
 <script>
@@ -114,7 +101,7 @@ export default {
             sort_order: 'desc',
             only_not_imported: true,
             sortBy: [],
-            selectedPros:[],
+            selectedCusts:[],
             selectedCustomer:{},
             scusts:[],
             isLoading: false,
@@ -124,8 +111,6 @@ export default {
                 {title:"Phone",key:'phone'},
                 {title:"Email",key:'email'},
                 {title:"Addresses",key:'addresses'},
-                {title:"CustomerId",key:'customer_id'},
-                {title:"Actions",key:'actions'},
             ],
         }
     },
@@ -186,21 +171,42 @@ export default {
                 this.isLoading = false;
             }
         },
-        createCustomerInSystem(item){
+        createSelectedCustomersInSystem(){
             this.isLoading = true;
-            axios.post('/superadmin/shopify/create-single-customer',{
-                id:item.id
-            }).then((resp)=>{
-                console.log("respIn",resp.data);
-                this.getSyncedCustomer();
-            })
+            const shopId = this.shop_id;
+            const edata = {
+                scust_ids:this.selectedCusts.map(c=>c.id),
+            }
+            axios.post(`/superadmin/shopify/${shopId}/import-customers`,edata)
+                .then((resp)=>{
+                    window.Toast.success('Imported');
+                    this.getSyncedCustomer();
+                    this.selectedCusts = [];
+                    console.log('resp',resp)
+                })
                 .catch((err)=>{
-                    console.log(err)
+                    console.log('err',err)
                 })
                 .finally(()=>{
-                    this.isLoading = false
+                    this.isLoading = false;
                 })
-        },
+            console.log('ids',edata);
+        }
+        // createCustomerInSystem(item){
+        //     this.isLoading = true;
+        //     axios.post('/superadmin/shopify/create-single-customer',{
+        //         id:item.id
+        //     }).then((resp)=>{
+        //         console.log("respIn",resp.data);
+        //         this.getSyncedCustomer();
+        //     })
+        //         .catch((err)=>{
+        //             console.log(err)
+        //         })
+        //         .finally(()=>{
+        //             this.isLoading = false
+        //         })
+        // },
 
     }
 }

@@ -20,10 +20,11 @@
         <v-tabs v-model="ctab" color="primary" selectedClass="bg-lblue"
                 density="compact" bgColor="grey-lighten-3" sliderColor="primary"
                 slider-transition="fade"
-                class="mt-4">
-            <v-tab value="general">Collection</v-tab>
-            <v-tab value="content">Sections</v-tab>
-            <v-tab value="faqs">FAQ's</v-tab>
+                class="mb-2 mt-3">
+            <v-tab value="general" class="bg-white">Collection</v-tab>
+            <v-tab value="content" class="bg-white">Sections</v-tab>
+            <v-tab value="related" class="bg-white">Related</v-tab>
+            <v-tab value="faqs" class="bg-white">FAQ's</v-tab>
         </v-tabs>
         <v-window v-model="ctab">
             <v-window-item value="general">
@@ -211,77 +212,6 @@
                                 </div>
                             </v-card-text>
                         </v-card>
-                        <v-card class="mt-4 border">
-                            <v-card-title class="d-flex justify-space-between align-center">
-                                Related Cats
-                                <v-btn @click="addrcatDialog = true" color="success" density="compact"
-                                       variant="flat" class="text-none">Add Child Category</v-btn>
-                            </v-card-title>
-                            <v-data-table :items="rcats" :headers="rcatsHeader" :hide-default-footer="rcats.length < 9">
-                                <template v-slot:item.related_image="{item}">
-                                    <v-img v-if="item.related_image" :src="cdn+item.related_image" width="150" min-height="75" height="75"
-                                           cover class="my-1"></v-img>
-                                    <v-img v-else :src="cdn+'noimage.png'" width="150" min-height="75" height="75" cover class="my-1"></v-img>
-                                </template>
-                                <template v-slot:item.actions="{item}">
-                                    <v-btn @click="editItem(item)" color="info" density="compact">Edit</v-btn>
-                                    <v-btn @click="deleteRelatedCat(item)" color="red" density="compact" class="ms-1">Delete</v-btn>
-                                </template>
-                            </v-data-table>
-                            <v-card-text></v-card-text>
-                            <v-dialog v-model="addrcatDialog" max-width="450">
-                                <v-card>
-                                    <v-form v-model="addrcatValid" @submit.prevent="addRelatedCat">
-                                        <v-card-text>
-                                            <v-text-field v-model="defaultRcat.related_cat_title"
-                                                          :rules="ctitleRule"
-                                                          density="comfortable"
-                                                          label="Title" variant="underlined"/>
-                                            <v-autocomplete v-model="defaultRcat.cat_child_id"
-                                                            :rules="selectChildCatRule"
-                                                            label="Select Category"
-                                                            density="comfortable" :items="pcats" return-object
-                                                            item-title="cat_name" variant="underlined"></v-autocomplete>
-                                            <v-file-upload v-model="defaultRcat.related_image" density="compact" browse-text="Add Image"
-                                                           icon="mdi-image" class="mt-3"
-                                                           title="Image 300x150" subtitle="300x150" clearable show-size
-                                            ></v-file-upload>
-                                            <div class="d-flex ga-3">
-                                                <v-spacer/>
-                                                <v-btn :disabled="!addrcatValid" type="submit" color="success" density="comfortable">Add</v-btn>
-                                                <v-btn @click="addrcatDialog = false" density="comfortable" variant="outlined">Cancel</v-btn>
-                                            </div>
-                                        </v-card-text>
-                                    </v-form>
-                                </v-card>
-                            </v-dialog>
-                            <v-dialog v-model="editrcatDialog" max-width="450">
-                                <v-card>
-                                    <v-form v-model="editrcatValid" @submit.prevent="updateRelatedCat">
-                                        <v-card-text>
-                                            <v-text-field v-model="editedRcat.related_cat_title"
-                                                          :rules="ctitleRule"
-                                                          density="comfortable"
-                                                          label="Title" variant="underlined"/>
-                                            <v-autocomplete v-model="editedRcat.cat_child_id"
-                                                            :rules="selectChildCatRule"
-                                                            label="Select Category" item-value="cat_id"
-                                                            density="comfortable" :items="pcats"
-                                                            item-title="cat_name" variant="underlined"></v-autocomplete>
-                                            <v-file-upload v-model="newrImage" density="compact" browse-text="Add Image"
-                                                           icon="mdi-image" class="mt-3"
-                                                           title="Image 300x150" subtitle="300x150" clearable show-size
-                                            ></v-file-upload>
-                                            <div class="d-flex ga-3">
-                                                <v-spacer/>
-                                                <v-btn :disabled="!editrcatValid" type="submit" color="success" density="comfortable">Update</v-btn>
-                                                <v-btn @click="editrcatDialog = false" density="comfortable" variant="outlined">Cancel</v-btn>
-                                            </div>
-                                        </v-card-text>
-                                    </v-form>
-                                </v-card>
-                            </v-dialog>
-                        </v-card>
                     </v-col>
                     <v-col cols="12" md="3">
                         <v-card>
@@ -354,6 +284,79 @@
                     :cdn="cdn"
                     @refresh="getCategory"
                 />
+            </v-window-item>
+            <v-window-item value="related">
+                <v-card class="mt-4 border">
+                    <v-card-title class="d-flex justify-space-between align-center">
+                        Related Cats
+                        <v-btn @click="addrcatDialog = true" color="success" prependIcon="mdi-plus" density="compact"
+                               variant="tonal" class="text-none">Add Child Category</v-btn>
+                    </v-card-title>
+                    <v-data-table :items="rcats" :headers="rcatsHeader" :hide-default-footer="rcats.length < 9">
+                        <template v-slot:item.related_image="{item}">
+                            <v-img v-if="item.related_image" :src="cdn+item.related_image" width="150" min-height="75" height="75"
+                                   cover class="my-1"></v-img>
+                            <v-img v-else :src="cdn+'noimage.png'" width="150" min-height="75" height="75" cover class="my-1"></v-img>
+                        </template>
+                        <template v-slot:item.actions="{item}">
+                            <v-btn @click="editItem(item)" color="info" density="compact">Edit</v-btn>
+                            <v-btn @click="deleteRelatedCat(item)" color="red" density="compact" class="ms-1">Delete</v-btn>
+                        </template>
+                    </v-data-table>
+                    <v-card-text></v-card-text>
+                    <v-dialog v-model="addrcatDialog" max-width="450">
+                        <v-card>
+                            <v-form v-model="addrcatValid" @submit.prevent="addRelatedCat">
+                                <v-card-text>
+                                    <v-text-field v-model="defaultRcat.related_cat_title"
+                                                  :rules="ctitleRule"
+                                                  density="comfortable"
+                                                  label="Title" variant="underlined"/>
+                                    <v-autocomplete v-model="defaultRcat.cat_child_id"
+                                                    :rules="selectChildCatRule"
+                                                    label="Select Category"
+                                                    density="comfortable" :items="pcats" return-object
+                                                    item-title="cat_name" variant="underlined"></v-autocomplete>
+                                    <v-file-upload v-model="defaultRcat.related_image" density="compact" browse-text="Add Image"
+                                                   icon="mdi-image" class="mt-3"
+                                                   title="Image 300x150" subtitle="300x150" clearable show-size
+                                    ></v-file-upload>
+                                    <div class="d-flex ga-3">
+                                        <v-spacer/>
+                                        <v-btn :disabled="!addrcatValid" type="submit" color="success" density="comfortable">Add</v-btn>
+                                        <v-btn @click="addrcatDialog = false" density="comfortable" variant="outlined">Cancel</v-btn>
+                                    </div>
+                                </v-card-text>
+                            </v-form>
+                        </v-card>
+                    </v-dialog>
+                    <v-dialog v-model="editrcatDialog" max-width="450">
+                        <v-card>
+                            <v-form v-model="editrcatValid" @submit.prevent="updateRelatedCat">
+                                <v-card-text>
+                                    <v-text-field v-model="editedRcat.related_cat_title"
+                                                  :rules="ctitleRule"
+                                                  density="comfortable"
+                                                  label="Title" variant="underlined"/>
+                                    <v-autocomplete v-model="editedRcat.cat_child_id"
+                                                    :rules="selectChildCatRule"
+                                                    label="Select Category" item-value="cat_id"
+                                                    density="comfortable" :items="pcats"
+                                                    item-title="cat_name" variant="underlined"></v-autocomplete>
+                                    <v-file-upload v-model="newrImage" density="compact" browse-text="Add Image"
+                                                   icon="mdi-image" class="mt-3"
+                                                   title="Image 300x150" subtitle="300x150" clearable show-size
+                                    ></v-file-upload>
+                                    <div class="d-flex ga-3">
+                                        <v-spacer/>
+                                        <v-btn :disabled="!editrcatValid" type="submit" color="success" density="comfortable">Update</v-btn>
+                                        <v-btn @click="editrcatDialog = false" density="comfortable" variant="outlined">Cancel</v-btn>
+                                    </div>
+                                </v-card-text>
+                            </v-form>
+                        </v-card>
+                    </v-dialog>
+                </v-card>
             </v-window-item>
             <v-window-item value="faqs">
                 <CatFaqs
@@ -853,7 +856,7 @@ export default {
             const umcat = {
                 cat_name:this.cat.cat_name,
                 cat_slug:this.cat.cat_slug,
-                cat_desc:this.cat.cat_desc,
+                cat_desc:this.quillContent,
                 short_desc:this.cat.short_desc,
                 cat_status:'Active',
                 cat_image:this.newImage,

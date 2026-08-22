@@ -192,12 +192,12 @@ class ScustController extends Controller
 
                     if (! $customer) {
                         $customer = Customer::create([
-                            'fname'    => $scust->first_name ?? 'Customer',
+                            'fname'    => $scust->first_name ?: $this->nameFromEmail($scust->email),
                             'lname'    => $scust->last_name,
                             'email'    => $scust->email,
                             'password' => Hash::make(Str::random(32)),
                             'phone'    => $scust->phone,
-                            'status'   => $scust->state === 'disabled' ? 'inactive' : 'active',
+                            'status'   => $scust->state === 'disabled' ? 'active' : 'active',
                         ]);
                     } else {
                         $customer->update([
@@ -263,4 +263,17 @@ class ScustController extends Controller
 
         return response()->json(['success' => true, 'imported' => $imported]);
     }
+
+    protected function nameFromEmail(string $email): string
+    {
+        $localPart = explode('@', $email)[0] ?? 'Customer';
+
+        // Emails often use dots/underscores/hyphens as word separators —
+        // turn "john.smith" or "john_smith" into "John Smith" rather than
+        // leaving it as an unbroken lowercase blob.
+        $cleaned = str_replace(['.', '_', '-'], ' ', $localPart);
+
+        return ucwords(trim($cleaned)) ?: 'Customer';
+    }
+
 }

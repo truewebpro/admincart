@@ -64,8 +64,7 @@
                 <v-list-item link :to="{name:'customers'}" color="primary" prepend-icon="mdi-account" title="Customers">
                 </v-list-item>
                 <v-list-item link :to="{name:'InventoryList'}" color="primary" prepend-icon="mdi-format-list-numbered"
-                             title="Inventory" subtitle="All Products">
-                </v-list-item>
+                             title="Inventory"/>
                 <v-list-item link :to="{name:'SettingsMarketing'}" title="Discounts" prependIcon="mdi-sale-outline"></v-list-item>
                 <v-list-group value="analytic">
                     <template v-slot:activator="{ props }">
@@ -85,7 +84,7 @@
                 <v-list-item prependIcon="mdi-domain">
                     <template #title>
                         B2B Hub
-                        <v-chip variant="tonal" density="compact" size="small" color="success" class="font-weight-bold">
+                        <v-chip variant="tonal" density="comfortable" size="x-small" color="success" class="font-weight-bold">
                             Coming Soon
                         </v-chip>
                     </template>
@@ -93,7 +92,7 @@
                 <v-list-item prependIcon="mdi-target-account">
                     <template #title>
                         Sales Reps
-                        <v-chip variant="tonal" density="compact" size="small" color="success" class="font-weight-bold">
+                        <v-chip variant="tonal" density="comfortable" size="x-small" color="success" class="font-weight-bold">
                             Coming Soon
                         </v-chip>
                     </template>
@@ -101,7 +100,7 @@
                 <v-list-item prependIcon="mdi-face-agent">
                     <template #title>
                         AI Bot Agent
-                        <v-chip variant="tonal" density="compact" size="small" color="success" class="font-weight-bold">
+                        <v-chip variant="tonal" density="compact" size="x-small" color="success" class="font-weight-bold">
                             Coming Soon
                         </v-chip>
                     </template>
@@ -109,7 +108,7 @@
                 <v-list-item prependIcon="mdi-warehouse">
                     <template #title>
                         DropShipping
-                        <v-chip variant="tonal" density="compact" size="small" color="success" class="font-weight-bold">
+                        <v-chip variant="tonal" density="comfortable" size="x-small" color="success" class="font-weight-bold">
                             Coming Soon
                         </v-chip>
                     </template>
@@ -117,7 +116,7 @@
                 <v-list-item prependIcon="mdi-package-variant-closed-check">
                     <template #title>
                         Click&Collect
-                        <v-chip variant="tonal" density="compact" size="small" color="success" class="font-weight-bold">
+                        <v-chip variant="tonal" density="comfortable" size="x-small" color="success" class="font-weight-bold">
                             Coming Soon
                         </v-chip>
                     </template>
