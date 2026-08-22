@@ -7,9 +7,13 @@ use App\Models\Brand;
 use App\Models\Cat;
 use App\Models\Product;
 use App\Models\Section;
+use App\Models\Stype;
 use App\Services\CacheKeys;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
 
 class BrandController extends Controller
 {
@@ -237,5 +241,149 @@ class BrandController extends Controller
             }
         );
         return response()->json($data);
+    }
+
+    //admin Routes
+    public function allAdminBrands(Request $request)
+    {
+        $shopId = session('shop_id');
+        $search = $request->search;
+        $status = $request->status;
+        $allowedSorts = [
+            'brand_name' => 'brand_name',
+            'brand_status' => 'brand_status',
+            'products_count' => 'products_count',
+            'created_at' => 'created_at',
+            'updated_at' => 'updated_at',
+        ];
+        $query = Brand::query()
+            ->where('shop_id', $shopId)
+            ->withCount(['products']);
+        if ($search) {
+            $terms = explode(' ', $search);
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $q->where('brand_name', 'LIKE', "%{$term}%");
+                }
+            });
+        }
+        if ($status && $status !== 'All') {
+            $query->where('brand_status', $status);
+        }
+        $sortBy = $allowedSorts[$request->sort_by] ?? 'brand_id';
+        $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+        $perPage = (int) $request->per_page;
+        if ($perPage === -1) {
+            $perPage = min($query->count(), 500);
+        } else {
+            $perPage = $perPage > 0
+                ? min($perPage, 500)
+                : 50;
+        }
+        $brands = $query->paginate($perPage);
+        return response()->json([
+            'brands' => $brands
+        ],200);
+    }
+
+    public function brandById($brand_id)
+    {
+        $shopId = session('shop_id');
+        $brand = Brand::with('sections','faqs')
+            ->where('brand_id', $brand_id)
+            ->first();
+        if(!$brand){
+            return response()->json([
+                'success' => false,
+                'message' => 'Brand not found'
+            ]);
+        }
+        $brands = Brand::where('shop_id', $shopId)->select('brand_id','brand_name')->get();
+        $ctypes = ['review_slider','blog_slider'];
+        $stypes = Stype::whereNotIn('stype_slug',$ctypes)->get();
+        $cats = Cat::query()
+            ->where('shop_id','=',$shopId)
+            ->get();
+        $pros = Product::where('shop_id','=',$shopId)
+            ->select('products.product_id','products.featured_image','products.title','products.product_status')
+            ->get();
+        return response()->json([
+            'status' => 200,
+            'brand' => $brand,
+            'brands' => $brands,
+            'stypes' => $stypes,
+            'cats' => $cats,
+            'pros' => $pros,
+            'message' => "Brand Detail",
+        ]);
+    }
+
+    public function updateBrand(Request $request)
+    {
+        $shopId = session('shop_id');
+        $existingBrand  = Brand::where('shop_id','=',$shopId)
+            ->where('brand_id',$request['brand_id'])
+            ->first();
+        $bpath = $existingBrand?->brand_image ?? null;
+        if($request->hasFile('brand_image')){
+            if ($existingBrand && $existingBrand->brand_image) {
+                Storage::disk('s3')->delete($existingBrand->brand_image);
+            }
+            $Image = $request->file('brand_image');
+            $filename = 'brand_'.uniqid().'.png';
+            $img = Image::make($Image->getRealPath())->resize(300, null, function ($constraint) {
+                $constraint->aspectRatio();
+            });
+            $bpath = 'images/brand/'.$filename;
+            Storage::disk('s3')->put($bpath, (string) $img->encode());
+        }
+        $baseSlug = Str::slug($request['brand_slug'] ?? $request['brand_name']);
+        $slug = $baseSlug;
+        $counter = 1;
+        while (Brand::where('shop_id','=',$shopId)
+            ->where('brand_slug', '=', $slug)
+            ->where('brand_id', '!=', $request['brand_id'])
+            ->exists())
+        {
+            $slug = $baseSlug.'-'.$counter;
+            $counter++;
+        }
+        $request['brand_slug'] = $slug;
+        $brand = Brand::updateOrCreate(
+            [
+                'shop_id' => $shopId,
+                'brand_id' => $request['brand_id'],
+            ],
+            [
+                'brand_name'=>$request['brand_name'],
+                'brand_slug' => $request['brand_slug'],
+                'brand_desc' => $request['brand_desc'],
+                'brand_status' => $request['brand_status'] ?? "Active",
+                'brand_image' => $bpath,
+                'shop_id' => $shopId,
+                'meta_title' => $request['meta_title'],
+                'meta_desc' => $request['meta_desc'],
+            ]
+        );
+        if($brand){
+            return response()->json([
+                'success' => true,
+                'message' => 'Brand updated successfully',
+                'brand' => $brand,
+            ],200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Brand Not Updated'
+            ],401);
+        }
+    }
+
+    public function deleteBrand(Request $request)
+    {
+        $brand = Brand::findOrFail($request['brand_id']);
+        $brand->delete();
+        return response()->json(['success'=>true,'message' => "Brand Deleted Success"]);
     }
 }

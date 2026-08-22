@@ -2,12 +2,148 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Blog;
+use App\Models\Cat;
+use App\Models\Homepage;
 use App\Models\HomePromo;
 use App\Models\HomePromoItem;
+use App\Models\Product;
+use App\Models\Proreview;
+use App\Services\CacheKeys;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class HomepageController extends Controller
 {
+    public function homeHeroSections(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $sections = Cache::remember(
+            CacheKeys::heroSections($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                $homepage = Homepage::with('herosections','faqs')
+                    ->where('shop_id','=',$shopId)
+                    ->first();
+//                return $homepage?->herosections;
+                return $homepage;
+            }
+        );
+
+        return response()->json([
+            'success' => true,
+            'hsections' => $sections['herosections'] ?? [],
+            'faqs' => $sections['faqs'] ?? [],
+        ]);
+    }
+
+    public function homePromos(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $promos = HomePromo::with('items')
+            ->where('shop_id','=',$shopId)
+            ->where('status','=',true)
+            ->get();
+        return response()->json([
+            'success' => true,
+            'promos' => $promos,
+        ]);
+    }
+
+    public function homeLazySections(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $data = Cache::remember(
+            CacheKeys::lazySections($shopId),
+            now()->addHours(12),
+            function () use ($shopId) {
+                $homepage = Homepage::with('lsections')
+                    ->where('shop_id','=',$shopId)
+                    ->first();
+                if (!$homepage) {
+                    return [];
+                }
+                $asections = $homepage->lsections ?? collect();
+                foreach ($asections as &$section) {
+                    if ($section->stype_slug !== 'featured_products') {
+                        continue;
+                    }
+                    $sectionJson = $section->section_json;
+                    $stypeJson = $sectionJson['stype_json'];
+                    $catId = $stypeJson['cat_id'];
+                    $cat = Cat::where('cat_id', $catId)->first();
+                    $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                        ->where('shop_id','=',$shopId)
+                        ->withCount('reviews')->withAvg('reviews','rating')
+                        ->whereIn('product_id', function ($query) use ($catId) {
+                            $query->select('product_id')
+                                ->from('catpros')
+                                ->where('cat_id', $catId);
+                        })
+                        ->limit($stypeJson['plimit'] ?? 12)
+                        ->get();
+                    $allVariants = $products->flatMap(fn ($product) => $product->variants);
+                    $this->attachLoyaltyPointsToMany($shopId, $allVariants);
+                    $stypeJson['cat_slug'] = $cat->cat_slug ?? null;
+                    $stypeJson['cat_image'] = $cat->cat_image ?? null;
+                    $stypeJson['catpros'] = $products ?? [];
+                    $sectionJson['stype_json'] = $stypeJson;
+                    $section->section_json = $sectionJson;
+                }
+                return $asections;
+            }
+        );
+
+        return response()->json([
+            'success' => true,
+            'hsections' => $data,
+        ]);
+
+    }
+
+    public function homeSections(Request $request)
+    {
+        $shopId = $request->shop_id;
+        $homepage = Homepage::with(['hsections'])
+            ->where('shop_id','=',$shopId)->first();
+        $sectionsWithExtras = [];
+        foreach ($homepage->hsections as $section){
+            $sectionArray = $section->toArray();
+            if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
+                $catId = $sectionArray['section_json']['stype_json']['cat_id'];
+                $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
+                $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                    ->where('shop_id','=',$shopId)
+                    ->withCount('reviews')->withAvg('reviews','rating')
+                    ->whereIn('product_id', function ($query) use ($catId) {
+                        $query->select('product_id')
+                            ->from('catpros')
+                            ->where('cat_id', $catId);
+                    })
+                    ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
+                    ->get();
+
+                $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
+                $sectionArray['section_json']['stype_json']['catpros'] = $products;
+            }
+            $sectionsWithExtras[] = $sectionArray;
+        }
+        $blogs = Blog::where('shop_id','=',$shopId)->where('blog_status','=','active')
+            ->orderBy('created_at','DESC')->limit(6)->get();
+        $reviews = Proreview::where('shop_id','=',$shopId)
+            ->join('reviewers','reviewers.id','=','proreviews.reviewer_id')
+            ->orderBy('proreviews.rating','desc')
+            ->orderBy('proreviews.created_at','desc')
+            ->select('proreviews.*','reviewers.first_name','reviewers.last_name')
+            ->limit(6)->get();
+        return response()->json([
+            'hsections'=> $sectionsWithExtras,
+            'reviews' => $reviews,
+            'blogs' => $blogs ?? null,
+        ],200);
+    }
+
+    //Admin Routes
     public function getHomePagePromo(Request $request)
     {
         $shopId = session('shop_id');

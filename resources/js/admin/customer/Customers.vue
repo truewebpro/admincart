@@ -73,11 +73,14 @@
                            density="comfortable"
                            mobileBreakpoint="sm">
                            <template v-slot:item.fname="{item}">
-                               <div class="title d-flex align-center justify-space-between">
+                               <div class="title d-flex flex-column">
                                    <router-link class="text-decoration-none text-grey-darken-3"
                                                 :to="'/customers/'+item.customer_id">
                                        <span class="font-weight-medium">{{item.fname}} {{item?.lname}}</span>
                                    </router-link>
+                                   <div class="text-body-2">
+                                       {{item.email}}
+                                   </div>
                                </div>
                            </template>
                            <template v-slot:item.email="{item}">
@@ -107,27 +110,23 @@
                            <template v-slot:item.amount_spent="{item}">
                                <div>£{{ Number(item.amount_spent || 0).toFixed(2) }}</div>
                            </template>
-                           <template v-slot:item.ctags="{item}">
-                               <div v-if="item.ctags">
-                                   <v-chip variant="tonal" density="compact" v-for="(ctag,index) in item.ctags" :key="index">
-                                       {{ctag}}
-                                   </v-chip>
-                               </div>
-                           </template>
+
                            <template #item.mailtrap_synced="{ item }">
-                               <v-chip v-if="item.mailtrap_synced" color="success" density="compact" variant="tonal">
-                                   Synced
-                               </v-chip>
-                               <v-chip v-else color="warning" density="compact" variant="tonal">
-                                   Pending
-                               </v-chip>
-                               <div class="mt-1">
-                                   <div v-if="item.mailtrap_contact_id" class="text-caption">
-                                       contact Updated
+                               <div class="py-1">
+                                   <v-chip v-if="item.mailtrap_synced" color="success" density="compact" variant="tonal">
+                                       Synced
+                                   </v-chip>
+                                   <v-chip v-else color="warning" density="compact" variant="tonal">
+                                       Pending
+                                   </v-chip>
+                                   <div class="mt-1">
+                                       <div v-if="item.mailtrap_contact_id" class="text-caption">
+                                           contact Updated
+                                       </div>
+                                       <v-btn v-else size="small" variant="outlined" density="compact" @click="updateContact(item)">
+                                           Update Contact
+                                       </v-btn>
                                    </div>
-                                   <v-btn v-else size="small" variant="outlined" density="compact" @click="updateContact(item)">
-                                       Update Contact
-                                   </v-btn>
                                </div>
                            </template>
                        </v-data-table-server>
@@ -167,7 +166,6 @@ export default {
                 {title:'Location',key:'defaultaddress',maxWidth:200},
                 {title:'Orders',key:'ordercount'},
                 {title:'Amount Spent',key:'amount_spent'},
-                {title:'Tags',value:'ctags'},
                 {title:'Mailtrap',value:'mailtrap_synced'},
             ],
             selectedCustomers:[]
@@ -254,6 +252,7 @@ export default {
                         ids: this.selectedCustomers.map(i => i.cshop_id)
                     });
                 await this.getAllCusts();
+                selectedCustomers = [];
             } catch (e) {
                 console.error(e);
             }

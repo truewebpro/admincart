@@ -1,16 +1,16 @@
 <template>
-    <v-container fluid class="pa-2">
-        <v-row dense>
-            <v-col cols="12" md="6">
-                <span class="text-h6">Orders</span></v-col>
-            <v-col cols="12" md="6" class="text-end">
-<!--                <v-btn class="text-none me-1" size="small" variant="outlined" color="grey-darken-4">Export</v-btn>-->
-<!--                <v-btn class="text-none" size="small" variant="outlined" color="grey-darken-4">More Actions</v-btn>-->
+    <v-container class="pa-1">
+        <v-row dense align="center">
+            <v-col cols="6" md="6">
+                <span class="text-h6">Orders</span>
+            </v-col>
+            <v-col cols="6" md="6" class="text-end">
+                <v-btn :to="{name:'DraftOrderCreate'}" density="compact">Create Order</v-btn>
             </v-col>
             <v-col cols="12">
                 <v-tabs v-model="status" color="primary" selectedClass="bg-lblue"
                         density="compact" bgColor="grey-lighten-3" sliderColor="primary"
-                        slider-transition="fade" show-arrows class="w-100 my-2">
+                        slider-transition="fade" class="w-100 my-2">
                     <v-tab v-for="(stat, index) in ostatuses" :key="index" :value="stat.value"
                            class="text-capitalize text-body-1 bg-white" :color="stat.color" backgroundColor="red">
                         {{ stat.title }}

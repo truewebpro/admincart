@@ -14,6 +14,7 @@ class SubscriptionController extends Controller
             ->orderBy('sort_order')
             ->get();
     }
+
     public function subscribe(Request $request)
     {
         $shopId = session('shop_id');

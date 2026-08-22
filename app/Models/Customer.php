@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -39,7 +40,8 @@ class Customer extends Authenticatable  implements JWTSubject
         return $this->hasMany(Order::class, 'customer_id', 'customer_id');
     }
 
-    public function defaultaddress(){
+    public function defaultaddress():HasOne
+    {
         return $this->hasOne(CustomerAddress::class, 'customer_id', 'customer_id')
             ->where('is_default', true);
     }

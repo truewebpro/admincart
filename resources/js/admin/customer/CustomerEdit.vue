@@ -45,11 +45,11 @@
             </v-col>
         </v-row>
         <v-tabs v-model="ctab" density="compact" color="primary" selectedClass="bg-lblue"
-                bgColor="white" sliderColor="primary"
+                sliderColor="primary"
                 slider-transition="fade" class="mb-2">
-            <v-tab value="last">Last Order</v-tab>
-            <v-tab value="past">Past Order</v-tab>
-            <v-tab value="credit">Store Credit</v-tab>
+            <v-tab value="last" class="bg-white">Last Order</v-tab>
+            <v-tab value="past" class="bg-white">Past Order</v-tab>
+            <v-tab value="credit" class="bg-white">Store Credit</v-tab>
         </v-tabs>
         <v-window v-model="ctab">
             <v-window-item value="last">
@@ -57,7 +57,11 @@
                     <v-col cols="12" lg="8">
                         <v-card class="section-card">
                             <v-card-title>Last Order Placed</v-card-title>
-                            <v-card-text class="d-flex">
+                            <v-card-text v-if="!last_order?.length">
+                                <v-empty-state icon="mdi-package-variant" text="No Order Placed yet">
+                                </v-empty-state>
+                            </v-card-text>
+                            <v-card-text v-else class="d-flex">
                                 <div>
                                     <div>
                                         <v-icon>mdi-package-variant</v-icon>
@@ -71,7 +75,7 @@
                                 </div>
                                 <div class="ms-auto font-weight-bold text-h6">£{{last_order.order_total}}</div>
                             </v-card-text>
-                            <v-card-text>
+                            <v-card-text v-if="last_order?.order_items">
                                 <v-row v-for="(oitem,index) in last_order.order_items" :key="index" class="border-b-sm">
                                     <v-col cols="12" md="auto">
                                         <div v-if="oitem.variant.variant_image" class="border rounded">
@@ -154,10 +158,12 @@
                         <v-card class="mt-4 section-card">
                             <v-card-title class="font-weight-semibold">Tags</v-card-title>
                             <v-card-text class="font-weight-medium">
-                                <v-chip v-for="(ctag,index) in customer.ctags" :key="ctag" variant="outlined" color="primary"
-                                        density="comfortable">{{ctag}}</v-chip>
-                                <v-btn color="success" size="small" class="ms-2">Add more</v-btn>
+                                <v-chip v-for="(ctag,index) in customer.ctags" :key="ctag" variant="tonal" color="primary"
+                                        density="compact" class="me-1">{{ctag}}</v-chip>
                             </v-card-text>
+                            <v-card-actions>
+                                <v-btn color="success" density="compact" variant="tonal" class="text-none" prependIcon="mdi-plus">Add tag</v-btn>
+                            </v-card-actions>
                         </v-card>
                         <v-card class="mt-4 section-card">
                             <v-card-title class="font-weight-semibold">Notes</v-card-title>

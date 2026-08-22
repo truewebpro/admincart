@@ -500,30 +500,20 @@ export default {
                     }
                     break;
 
-                case 'fulfilled':
-                    actions.push({
-                        label: 'Complete Order',
-                        type: 'direct',
-                        handler: () => this.updateOrder('completed')
-                    });
-                    break;
+                // case 'fulfilled':
+                //     actions.push({
+                //         label: 'Complete Order',
+                //         type: 'direct',
+                //         handler: () => this.updateOrder('completed')
+                //     });
+                //     break;
             }
 
-            // Label print/reprint — independent of currentStep, since a label existing
-            // (lstatus) and the order's fulfillment step can diverge once created.
             if (this.lstatus === 'created') {
                 actions.push({
                     label: 'Print Label',
                     type: 'direct',
                     handler: this.printLabel
-                });
-            }
-            if (this.lstatus === 'printed') {
-                actions.push({
-                    label: 'Re-print Label',
-                    type: 'direct',
-                    handler: this.printLabel,
-                    variant: 'text'
                 });
             }
 
@@ -538,7 +528,13 @@ export default {
                         `https://www.royalmail.com/track-your-item#/tracking-results/${this.orderDetail.tracking_number}`,
                         '_blank'
                     ),
-                    variant: 'text'
+                    variant: 'outlined'
+                });
+                actions.push({
+                    label: 'Re-print Label',
+                    type: 'direct',
+                    handler: this.printLabel,
+                    variant: 'tonal'
                 });
             }
             return actions;
