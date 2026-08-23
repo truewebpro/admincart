@@ -263,7 +263,7 @@ class ShopifyService
             'X-Shopify-Access-Token' => $token,
         ])->get(
             "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/orders.json",
-            ['limit' => $limit]
+            ['limit' => $limit,'status'=>'any']
         );
 
         if ($response->failed()) {
@@ -362,7 +362,7 @@ class ShopifyService
                     'blogs'              => $this->blogsCount(),
                     'articles'           => $this->articlesCount(),
                     'customers'           => $this->customersCount(),
-                    'orders'           => $this->ordersCount(),
+                    'orders'              => $this->ordersCount(),
                 },
                 'available' => true,
                 'reason'    => null,
@@ -698,7 +698,7 @@ class ShopifyService
     public function ordersCount(): int
     {
         $this->ensureScope('orders');
-        return $this->fetchCount('orders/count.json');
+        return $this->fetchCount('orders/count.json?status=any');
     }
 
 

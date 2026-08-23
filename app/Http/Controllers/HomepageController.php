@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\EnrichesWithLoyaltyPoints;
 use App\Models\Blog;
 use App\Models\Cat;
 use App\Models\Homepage;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Cache;
 
 class HomepageController extends Controller
 {
+    use EnrichesWithLoyaltyPoints;
     public function homeHeroSections(Request $request)
     {
         $shopId = $request->shop_id;
