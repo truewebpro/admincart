@@ -78,7 +78,7 @@ class SendcloudV3Service implements SendcloudServiceInterface
                 'description' => $item['description'] ?? null,
                 'quantity'    => $item['quantity'] ?? 1,
                 'weight' => [
-                    'value' => (float) ($item['weight'] ?? 0.5),
+                    'value' => (float) (0.010),
                     'unit' => 'kg',
                 ],
                 'price' => [
@@ -96,7 +96,8 @@ class SendcloudV3Service implements SendcloudServiceInterface
 
     private function totalWeight(array $items): float
     {
-        return array_reduce($items, fn($sum, $item) => $sum + (($item['weight'] ?? 0.1) * ($item['quantity'] ?? 1)), 0) ?: 0.1;
+//        return array_reduce($items, fn($sum, $item) => $sum + (($item['weight'] ?? 0.1) * ($item['quantity'] ?? 1)), 0) ?: 0.1;
+        return array_reduce($items, fn($sum, $item) => $sum + ((0.01) * ($item['quantity'] ?? 1)), 0) ?: 0.01;
     }
 
     private function getSenderAddress(): array
