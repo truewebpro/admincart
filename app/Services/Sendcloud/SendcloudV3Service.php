@@ -89,7 +89,7 @@ class SendcloudV3Service implements SendcloudServiceInterface
                 'product_id' => isset($item['product_id']) ? (string) $item['product_id'] : null,
                 // 'properties' expects an object like {size: "XL"} — your current
                 // {"Flavour": "Banana Ice"} shape actually matches this fine per schema
-                'properties' => $item['properties'] ?? null,
+                'properties' => is_array($item['properties'] ?? null) ? $item['properties'] : null,
             ], fn($v) => $v !== null), $items),
         ], fn($v) => $v !== null);
     }
