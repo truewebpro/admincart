@@ -25,15 +25,21 @@ class ShopifyController extends Controller
         $shopifyDetail = ShopifyShop::where('shop_id', $shopId)
             ->first();
 
-        $service = new ShopifyService($shopifyDetail);
-        $counts = $service->getImportCounts();
+        $counts = null;
+
+        if ($shopifyDetail) {
+            $service = new ShopifyService($shopifyDetail);
+            $counts = $service->getImportCounts();
+        }
         $blogs_count = Blog::where('shop_id', $shopId)->count();
         $ccats_count = Cat::where('shop_id', $shopId)->where('cat_type','=','manual')->count();
         $scats_count = Cat::where('shop_id', $shopId)->where('cat_type','=','smart')->count();
         $scusts_count = Scust::where('shop_id', $shopId)->count();
+
         return response()->json([
             'success' => true,
             'shopifyDetail' => $shopifyDetail ?? null,
+            'connected' => (bool) $shopifyDetail,
             'counts' => $counts,
             'blogs_count' => $blogs_count ?? null,
             'ccats_count' => $ccats_count ?? null,

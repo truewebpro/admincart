@@ -47,8 +47,8 @@
         <v-tabs v-model="ctab" density="compact" color="primary" selectedClass="bg-lblue"
                 sliderColor="primary"
                 slider-transition="fade" class="mb-2">
-            <v-tab value="last" class="bg-white">Last Order</v-tab>
-            <v-tab value="past" class="bg-white">Past Order</v-tab>
+            <v-tab value="last" class="bg-white">Latest Order</v-tab>
+            <v-tab value="past" class="bg-white">Past Orders</v-tab>
             <v-tab value="credit" class="bg-white">Store Credit</v-tab>
         </v-tabs>
         <v-window v-model="ctab">
@@ -57,7 +57,7 @@
                     <v-col cols="12" lg="8">
                         <v-card class="section-card">
                             <v-card-title>Last Order Placed</v-card-title>
-                            <v-card-text v-if="!last_order?.length">
+                            <v-card-text v-if="!last_order || !Object.keys(last_order).length">
                                 <v-empty-state icon="mdi-package-variant" text="No Order Placed yet">
                                 </v-empty-state>
                             </v-card-text>

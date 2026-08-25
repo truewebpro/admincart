@@ -21,13 +21,15 @@
                                   itemsPerPage="50" :hideDefaultFooter="allshops?.length < 50">
                         <template #item.shop_name="{item}">
                             <div class="d-flex flex-column ga-1 py-1">
-                                <div>
+                                <div class="d-flex ga-1">
                                     <div v-if="item?.maindomain">
                                         <div class="font-weight-bold text-primary">{{item.maindomain}}</div>
                                     </div>
                                     <div v-else>
                                         <div class="font-weight-medium text-info">{{item.subdomain}}</div>
                                     </div>
+                                    <v-btn maxWidth="140" class="text-none" icon="mdi-web" size="small" color="red" density="comfortable" variant="tonal" @click="editSubdomain(item)">
+                                    </v-btn>
                                 </div>
                                 <div>
                                     Name: <span class="font-weight-medium">{{item.shop_name}}</span>
@@ -35,9 +37,12 @@
                                 <div>
                                     Slug: <span class="font-weight-medium">{{item.shop_slug}}</span>
                                 </div>
-                                <div>
+                                <div class="d-flex ga-1">
                                     Order Prefix: <span class="font-weight-medium">{{item.order_prefix}}</span>
+                                    <v-btn maxWidth="140" class="text-none" icon="mdi-pencil" size="small" color="success" density="comfortable" variant="tonal" @click="editOrderPrefix(item)">
+                                    </v-btn>
                                 </div>
+
                             </div>
                         </template>
                         <template #item.users="{item}">
@@ -148,7 +153,7 @@
                     />
 
                     <v-text-field variant="underlined" density="comfortable"
-                        :model-value="shopForm.shop_slug + '.truewebcart.com'"
+                        :model-value="shopForm.shop_slug + '.twcarts.com'"
                         label="Subdomain"
                         readonly
                     />
@@ -191,6 +196,55 @@
                 </v-form>
             </v-card>
         </v-dialog>
+        <v-dialog v-model="subdomainDialog" maxWidth="400">
+            <v-card>
+                <v-card-title>Change Subdomain</v-card-title>
+                <v-card-title>{{ subdomainForm.shop_slug }}.{{subdomainForm.domain_name}}</v-card-title>
+                <v-card-text>
+                    <v-text-field variant="underlined" density="comfortable"
+                                  v-model="subdomainForm.shop_slug"
+                                  readonly
+                                  label="Shop Slug"
+                                  :rules="[rules.required]"
+                                  :error-messages="errors.shop_slug"
+                    />
+                    <v-text-field variant="underlined" density="comfortable"
+                                  v-model="subdomainForm.domain_name"
+                                  label="Domain"
+                                  placeholder="twcarts.com"
+                                  :rules="[rules.required]"
+                                  hint="twcarts.com, vercel.app or truewebcart.com"
+                                  persistentHint
+                                  :error-messages="errors.shop_slug"
+                    />
+
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer/>
+                    <v-btn color="success" @click="updateSubdomain">Update</v-btn>
+                    <v-btn color="red" @click="subdomainDialog = false">cancel</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <v-dialog v-model="orderPrefixDialog" maxWidth="300">
+            <v-card>
+                <v-card-text>
+                    <v-text-field variant="underlined" density="comfortable"
+                                  v-model="prefixForm.order_prefix"
+                                  label="Order Prefix"
+                                  placeholder="ABC"
+                                  :rules="[rules.required]"
+                                  hint="Shop Name convert to SN"
+                                  persistentHint
+                    />
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer/>
+                    <v-btn color="success" @click="updateOrderPrefix">update</v-btn>
+                    <v-btn color="red" @click="orderPrefixDialog = false">cancel</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 <script>
@@ -202,6 +256,8 @@ export default {
         return {
             shopsearch:"",
             shopDialog: false,
+            subdomainDialog: false,
+            orderPrefixDialog: false,
             addValid: false,
             addUserDialog: false,
             mailLoading: false,
@@ -219,6 +275,14 @@ export default {
                 shop_slug: '',
                 maindomain: ''
             },
+            prefixForm: {
+                shop_name: '',
+                order_prefix: ''
+            },
+            subdomainForm: {
+                shop_slug: '',
+                domain_name: ''
+            },
             errors: {},
             slugAvailable: null,
             slugTouched: false,
@@ -226,7 +290,7 @@ export default {
             debounceTimer: null,
             rules: {
                 required: v => !!v || 'Required',
-                slug: v => /^[a-z0-9-]+$/.test(v) || 'Only lowercase, numbers, hyphen'
+                slug: v => /^[a-z0-9]+$/.test(v) || 'Only lowercase letters and numbers'
             },
             nameRule: [
                 v => !!v || 'Name is Required',
@@ -321,6 +385,14 @@ export default {
             this.slugTouched = true
             this.shopDialog = true
         },
+        editSubdomain(shop){
+            this.selectedShop = shop
+            this.subdomainForm = {
+                shop_slug: shop.shop_slug,
+                domain_name: "twcarts.com"
+            }
+            this.subdomainDialog = true;
+        },
         async switchShop(shopId) {
             await this.$store.dispatch('switchShop', shopId)
         },
@@ -348,13 +420,45 @@ export default {
                 }
             }
         },
+        async updateSubdomain(){
+            this.errors = {}
+            try {
+                await axios.put(`/superadmin/shop/update-subdomain/${this.selectedShop.shop_id}`, this.subdomainForm)
+                this.fetchShops();
+                window.Toast.success('domain updated');
+                this.subdomainDialog = false;
+            } catch (e) {
+                if (e.response?.status === 422) {
+                    this.errors = e.response.data.errors
+                }
+            }
+        },
+        editOrderPrefix(shop){
+            this.selectedShop = shop
+            this.prefixForm = {
+                shop_name: shop.shop_name,
+                order_prefix: shop.order_prefix,
+            }
+            this.orderPrefixDialog = true;
+        },
+        updateOrderPrefix(){
+            axios.put(`/superadmin/shop/update-order-prefix/${this.selectedShop.shop_id}`,{
+                order_prefix:this.prefixForm.order_prefix,
+            }).then((resp)=>{
+                window.Toast.success('Order prefix updated');
+                console.log(resp.data);
+                this.fetchShops();
+                this.orderPrefixDialog = false;
+            }).catch((err)=>{
+                window.Toast.error('some error')
+            })
+        },
         async checkSlug(slug) {
             this.slugChecking = true
             try {
                 const res = await axios.get('/superadmin/shops/check-slug', {
                     params: { slug }
                 })
-                console.log('Slug check response:', res.data) // 👈 debug
                 this.slugAvailable = res.data.available
             } catch (e) {
                 console.error(e)
@@ -362,12 +466,24 @@ export default {
             }
             this.slugChecking = false
         },
+        slugify(val) {
+            return (val || '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '')
+        },
         onSlugInput(val) {
             this.slugAvailable = null
-            if (!val || this.isEdit) return
+            this.slugTouched = true
+            const cleaned = this.slugify(val)
+            if (cleaned !== val) {
+                this.shopForm.shop_slug = cleaned
+            }
+
+            if (!cleaned || this.isEdit) return
+
             clearTimeout(this.debounceTimer)
             this.debounceTimer = setTimeout(() => {
-                this.checkSlug(val)
+                this.checkSlug(cleaned)
             }, 500)
         },
         openAddDialog(item){
@@ -405,12 +521,7 @@ export default {
     watch: {
         'shopForm.shop_name'(val) {
             if (!this.isEdit && !this.slugTouched) {
-                this.shopForm.shop_slug = val
-                    .toLowerCase()
-                    .trim()
-                    .replace(/[^a-z0-9\s-]/g, '')
-                    .replace(/\s+/g, '-')
-                    .replace(/-+/g, '-')
+                this.shopForm.shop_slug = this.slugify(val)
             }
         },
     }

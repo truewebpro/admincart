@@ -112,6 +112,8 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/shops/assign-user',[SuperadminController::class, 'assignUserToShop']);
         Route::get('/shop-users', [SuperadminController::class, 'shopUsers']);
         Route::put('/shop/update/{shop_id}', [SuperadminController::class, 'updateShop']);
+        Route::put('/shop/update-subdomain/{shop_id}', [SuperadminController::class, 'updateShopSubdomain']);
+        Route::put('/shop/update-order-prefix/{shop_id}', [SuperadminController::class, 'updateOrderPrefix']);
         Route::post('/shop/add', [SuperadminController::class, 'storeShop']);
         Route::post('/switch-shop', [SuperadminController::class, 'switchShop']);
         Route::get('/shops/check-slug', [SuperadminController::class, 'checkSlug']);

@@ -97,6 +97,32 @@ class SuperadminController extends Controller
         ]);
     }
 
+    public function updateShopSubdomain(Request $request, $shop_id)
+    {
+        $shop = Shop::findOrFail($shop_id);
+        $shopSlug = $shop->shop_slug;
+        $newName = $request->input('domain_name') ?? 'twcarts.com';
+        $newSubdomain = $shopSlug . '.' . $newName;
+        $shop->subdomain = $newSubdomain;
+        $shop->save();
+        return response()->json([
+            'success' => true,
+            'message' => 'Shop updated successfully',
+            'shop' => $shop
+        ]);
+    }
+
+    public function updateOrderPrefix(Request $request, $shop_id)
+    {
+        $shop = Shop::findOrFail($shop_id);
+        $shop->order_prefix = $request->input('order_prefix');
+        $shop->save();
+        return response()->json([
+            'success' => true,
+            'shop' => $shop
+        ]);
+    }
+
     public function assignUserToShop(Request $request)
     {
         $validated = $request->validate([
