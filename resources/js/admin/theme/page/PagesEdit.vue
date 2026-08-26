@@ -171,7 +171,7 @@ export default {
             },
             titleRule:[
                 (v) => !!v || "Title is required",
-                (v) => (v && v.length >= 4) || "Minimum 4 characters required",
+                (v) => (v && v.length >= 3) || "Minimum 3 characters required",
                 (v) => (v && v.length <= 60) || "Maximum 60 characters allowed",
             ]
         }
