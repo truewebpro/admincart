@@ -224,10 +224,10 @@
                                            variant="tonal" color="success" density="compact" prependIcon="mdi-download">
                                         Import Customers
                                     </v-btn>
-                                    <v-btn :loading="syncLoading" class="mt-2"
-                                           variant="tonal" color="green" density="compact" prependIcon="mdi-progress-download">
-                                        Import Customers in Bulk
-                                    </v-btn>
+<!--                                    <v-btn :loading="syncLoading" class="mt-2"-->
+<!--                                           variant="tonal" color="green" density="compact" prependIcon="mdi-progress-download">-->
+<!--                                        Import Customers in Bulk-->
+<!--                                    </v-btn>-->
                                 </div>
                             </v-col>
                         </v-row>
@@ -280,12 +280,14 @@
                 <v-card class="mb-3" v-if="counts.orders">
                     <v-card-text>
                         <h2>Total: {{counts?.orders?.count || 0}}</h2>
+                        <h3>Orders Saved: {{sorders_count}} / {{counts?.orders?.count}} </h3>
                         <div class="text-body-1" v-if="counts?.orders?.available">Scope: Available</div>
                         <div class="text-red" v-if="counts?.orders?.reason">Reason: {{counts?.orders?.reason}}</div>
-                        <v-btn v-if="counts?.orders?.available" class="mt-2" variant="tonal" color="success"
-                               density="compact" prependIcon="mdi-download">Import Orders</v-btn>
+<!--                        <v-btn v-if="counts?.orders?.available" class="mt-2" variant="tonal" color="success"-->
+<!--                               density="compact" prependIcon="mdi-download">Import Orders</v-btn>-->
                     </v-card-text>
                 </v-card>
+                <ShopifyOrders/>
             </v-window-item>
         </v-window>
     </v-container>
@@ -293,11 +295,12 @@
 <script>
 import dayjs from "dayjs";
 import ShopifyProducts from "./shopify/ShopifyProducts.vue";
-import ShopifyCustomers from "@/admin/super/shopify/ShopifyCustomers.vue";
+import ShopifyCustomers from "./shopify/ShopifyCustomers.vue";
+import ShopifyOrders from "./shopify/ShopifyOrders.vue";
 
 export default {
     name: "SuperShopifysetup",
-    components: {ShopifyCustomers, ShopifyProducts},
+    components: {ShopifyOrders, ShopifyCustomers, ShopifyProducts},
     computed: {
         dayjs() {
             return dayjs

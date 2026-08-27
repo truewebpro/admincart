@@ -9,6 +9,7 @@ use App\Models\ProductType;
 use App\Models\Scust;
 use App\Models\ShopifyShop;
 use App\Models\ShopUser;
+use App\Models\Sorder;
 use App\Services\ShopifyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -35,6 +36,7 @@ class ShopifyController extends Controller
         $ccats_count = Cat::where('shop_id', $shopId)->where('cat_type','=','manual')->count();
         $scats_count = Cat::where('shop_id', $shopId)->where('cat_type','=','smart')->count();
         $scusts_count = Scust::where('shop_id', $shopId)->count();
+        $sorders_count = Sorder::where('shop_id', $shopId)->count();
 
         return response()->json([
             'success' => true,
@@ -45,6 +47,7 @@ class ShopifyController extends Controller
             'ccats_count' => $ccats_count ?? null,
             'scats_count' => $scats_count ?? null,
             'scusts_count' => $scusts_count ?? null,
+            'sorders_count' => $sorders_count ?? null,
         ]);
     }
 

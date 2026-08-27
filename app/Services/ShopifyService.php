@@ -704,6 +704,150 @@ class ShopifyService
     }
 
 
+    /**
+     * Reference-only fetch, capped at Shopify's own per-call max
+     * ($limit, up to 250). The $days window is a FALLBACK, not a hard
+     * filter — if the shop has fewer than $limit total orders, ALL of
+     * them are pulled regardless of age (a shop with 80 orders spanning
+     * 6 months should show all 80, not just whichever slice falls in
+     * the last 30 days). The date restriction only kicks in when the
+     * shop genuinely has more orders than fit in one call, in which
+     * case showing "the most recent $days days" is a reasonable bounded
+     * view — showing an arbitrary unordered 250 out of thousands isn't.
+     */
+    /**
+     * Live, single-page fetch with cursor tokens exposed to the caller
+     * — unlike getAllProducts()/importOrdersSinceId(), this does NOT
+     * loop through everything. It returns exactly one page plus the
+     * Next/Previous cursor tokens, so a frontend can offer real-time
+     * Next/Previous browsing directly against Shopify with zero
+     * staleness — no sync step, no local cache, always current.
+     *
+     * Trade-off vs. the sorders cache table: no page-number jumping is
+     * possible (Shopify's cursor pagination fundamentally doesn't
+     * support it), only Next/Previous — but the data is always live.
+     */
+    public function getOrdersPage(?string $pageInfo = null, int $limit = 50): array
+    {
+        $this->ensureScope('orders');
+
+        $token = $this->getAccessToken();
+
+        $query = ['limit' => min($limit, 250), 'status' => 'any'];
+
+        // Once a page_info cursor is present, Shopify's API requires
+        // ONLY that param (no status/other filters alongside it) — this
+        // is a real Shopify API constraint, not a choice.
+        if ($pageInfo) {
+            $query = ['limit' => min($limit, 250), 'page_info' => $pageInfo];
+        }
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+        ])->get(
+            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/orders.json",
+            $query
+        );
+
+        if ($response->failed()) {
+            throw new RuntimeException('Shopify orders request failed: ' . $response->body());
+        }
+
+        [$nextCursor, $prevCursor] = $this->parseLinkHeader($response->header('Link'));
+
+        return [
+            'orders' => $response->json('orders', []),
+            'next_page_info' => $nextCursor,
+            'previous_page_info' => $prevCursor,
+        ];
+    }
+
+    /**
+     * Extracts both next AND previous page_info tokens from Shopify's
+     * Link header — the existing getAllProducts() only ever needed
+     * "next" since it auto-loops forward; a real Next/Previous UI needs
+     * both directions available.
+     */
+    protected function parseLinkHeader(?string $linkHeader): array
+    {
+        $next = null;
+        $previous = null;
+
+        if ($linkHeader) {
+            if (preg_match('/<[^>]*[?&]page_info=([^&>]+)[^>]*>;\s*rel="next"/', $linkHeader, $m)) {
+                $next = $m[1];
+            }
+            if (preg_match('/<[^>]*[?&]page_info=([^&>]+)[^>]*>;\s*rel="previous"/', $linkHeader, $m)) {
+                $previous = $m[1];
+            }
+        }
+
+        return [$next, $previous];
+    }
+
+    /**
+     * Fetch one specific order by its Shopify ID — used when a
+     * superadmin explicitly picks an order from the live view to
+     * create locally, rather than trusting client-relayed order data.
+     * Re-fetching from Shopify directly (not from whatever the browser
+     * already has) keeps the authoritative source for anything that
+     * becomes a real financial record in your system.
+     */
+    public function getOrderById(string $orderId): array
+    {
+        $this->ensureScope('orders');
+
+        $token = $this->getAccessToken();
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+        ])->get("https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/orders/{$orderId}.json");
+
+        if ($response->failed()) {
+            throw new RuntimeException('Shopify order fetch failed: ' . $response->body());
+        }
+
+        return $response->json('order', []);
+    }
+
+    public function getRecentOrders(int $days = 30, int $limit = 250): array
+    {
+        $this->ensureScope('orders');
+        $limit = min($limit, 250);
+
+        $totalCount = $this->ordersCount();
+
+        $token = $this->getAccessToken();
+
+        $query = [
+            'limit' => $limit,
+            'status' => 'any',
+        ];
+
+        if ($totalCount > $limit) {
+            $query['created_at_min'] = now()->subDays($days)->toIso8601String();
+            // Explicit recency ordering — without this, Shopify's default
+            // order (oldest-first by id) combined with the 250 cap could
+            // return the OLDEST 250 orders within the date window rather
+            // than the most recent ones, which defeats the point of a
+            // "recent orders" view.
+            $query['order'] = 'created_at DESC';
+        }
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+        ])->get(
+            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/orders.json",
+            $query
+        );
+
+        if ($response->failed()) {
+            throw new RuntimeException('Shopify orders request failed: ' . $response->body());
+        }
+
+        return $response->json('orders', []);
+    }
+
     public function getProductsGraphQl(int $first = 50): array
     {
         $token = $this->getAccessToken();

@@ -25,6 +25,7 @@ use App\Http\Controllers\ScustController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SendcloudController;
 use App\Http\Controllers\ShopifyController;
+use App\Http\Controllers\SorderController;
 use App\Http\Controllers\SproController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SuperadminController;
@@ -108,6 +109,11 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/shopify/{shopId}/bulk-sync-customers/start', [ScustController::class, 'startBulkSync']);
         Route::get('/shopify/{shopId}/bulk-sync-customers/status', [ScustController::class, 'checkBulkSyncStatus']);
         Route::post('/shopify/{shopId}/bulk-sync-customers/process', [ScustController::class, 'processBulkSync']);
+        // Shopify orders Routes
+        Route::get('/shopify/{shopId}/live-orders', [SorderController::class, 'live']);
+        Route::get('/shopify/{shopId}/orders-list', [SorderController::class, 'index']);
+        Route::post('/shopify/{shopId}/orders/{orderId}/create', [SorderController::class, 'createOrder']);
+        Route::post('/shopify/{shopId}/orders/bulk-create', [SorderController::class, 'bulkCreateOrders']);
 
         Route::post('/shops/assign-user',[SuperadminController::class, 'assignUserToShop']);
         Route::get('/shop-users', [SuperadminController::class, 'shopUsers']);
