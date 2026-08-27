@@ -17,6 +17,8 @@ class CustomerShop extends Model
         'customer_id',
         'shop_id',
         'thirdparty_id',
+        'thirdparty_orders_count',
+        'thirdparty_spent',
         'status',
         'registered_at',
         'mailtrap_contact_id',
@@ -31,7 +33,8 @@ class CustomerShop extends Model
         'registered_at' => 'datetime',
         'mailtrap_synced' => 'boolean',
         'mailtrap_synced_at' => 'datetime',
-        'store_credit_balance' => 'decimal:2'
+        'store_credit_balance' => 'decimal:2',
+        'thirdparty_spent' => 'decimal:2',
     ];
 
     protected static function booted()

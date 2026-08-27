@@ -150,7 +150,8 @@ class ScustController extends Controller
         if ($request->boolean('only_not_imported')) {
             $query->whereNull('customer_id');
         }
-        $sortBy = $allowedSorts[$request->sort_by] ?? 'id';
+        $allowedSorts = ['email', 'first_name', 'last_name', 'orders_count', 'total_spent', 'created_at'];
+        $sortBy = in_array($request->sort_by, $allowedSorts) ? $request->sort_by : 'id';
         $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
         $perPage = (int) $request->input('per_page', 50);
@@ -249,6 +250,8 @@ class ScustController extends Controller
                         ['customer_id' => $customer->customer_id, 'shop_id' => $shopId],
                         [
                             'thirdparty_id' => $scust->thirdparty_id,
+                            'thirdparty_orders_count'  => $scust->orders_count ?? 0,
+                            'thirdparty_spent'         => $scust->total_spent ?? 0,
                             'ctags'         => $tags,
                             'status'        => 'active',
                             'registered_at' => $scust->shopify_created_at ?? now(),
