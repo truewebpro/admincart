@@ -1124,6 +1124,7 @@ class CartController extends Controller
         $paymentFee = $this->calculatePaymentFee($cart, $subtotal);
 
         $settings = Setting::where('shop_id',$cart->shop_id)->first();
+        $vatIncluded = $settings->vat_included ?? true;
 
         $preTaxTotal =
             (float)$subtotal
@@ -1132,7 +1133,7 @@ class CartController extends Controller
             + (float)$paymentFee
             + (float)$cart->shipping_protection_fee;
 
-        if ($settings->vat_included) {
+        if ($vatIncluded) {
             $taxAmount = $preTaxTotal - ($preTaxTotal / 1.20);
             $cartTotal = $preTaxTotal;
         } else {

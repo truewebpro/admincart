@@ -45,8 +45,11 @@
                     <v-card-title class="d-flex align-center">
                         <v-avatar size="48" class="me-2">
                             <v-img :src="cdn+selectedPmethod?.payment_icon"></v-img>
-                        </v-avatar>  <v-select v-model="selectedPmethod" :items="availablePmethods" item-value="payment_method" return-object
-                                               item-title="payment_name" variant="underlined" hide-details density="compact"></v-select>
+                        </v-avatar>
+                        <v-select v-model="selectedPmethod" :items="availablePmethods"
+                                  item-value="payment_method" return-object
+                                  item-title="payment_name"
+                                  variant="underlined" hide-details density="compact"></v-select>
                     </v-card-title>
                     <v-card-text>
                         <v-form v-model="favalid">
@@ -232,6 +235,15 @@ export default {
                         test_mode:true,
                     }},
                 {payment_name:'Stripe',payment_method:'stripe',payment_icon:'payment/stripe.png',
+                    handling_fee:"0.00",fee_type:"fixed",
+                    payment_options:{
+                        environment:'dev',
+                        publish_key:'',
+                        secret_key:'',
+                        note:'',
+                        test_mode:true,
+                    }},
+                {payment_name:'Other No Use',payment_method:'other',payment_icon:'payment/stripe.png',
                     handling_fee:"0.00",fee_type:"fixed",
                     payment_options:{
                         environment:'dev',
