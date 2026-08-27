@@ -67,6 +67,9 @@
                             </div>
                         </div>
                     </template>
+                    <template #item.total_spent="{item}">
+                        <div>£{{item.total_spent}}</div>
+                    </template>
 <!--                    <template #item.actions="{item}">-->
 <!--                        <v-btn v-if="!item.customer_id" @click="createCustomerInSystem(item)" size="small"-->
 <!--                               color="success" variant="outlined" density="comfortable">-->
@@ -110,6 +113,8 @@ export default {
                 {title:"Name",key:'first_name'},
                 {title:"Phone",key:'phone'},
                 {title:"Email",key:'email'},
+                {title:"Orders Count",key:'orders_count'},
+                {title:"Spent",key:'total_spent'},
                 {title:"Addresses",key:'addresses'},
             ],
         }

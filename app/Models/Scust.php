@@ -18,6 +18,8 @@ class Scust extends Model
         'last_name',
         'phone',
         'state',
+        'orders_count',
+        'total_spent',
         'tags',
         'addresses',
         'shopify_created_at',

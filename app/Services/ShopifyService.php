@@ -87,6 +87,14 @@ class ShopifyService
         return $response->json('products', []);
     }
 
+    /**
+     * Memory-safe alternative to getAllProducts(): pages through the
+     * catalog using since_id instead of Link-header cursors, and
+     * REQUIRES a callback — each batch is handed off and then discarded
+     * (unset + gc_collect_cycles) rather than accumulated into one huge
+     * array. Use this for large catalogs instead of getAllProducts()
+     * without a callback, which will exhaust memory on big stores.
+     */
     public function importProductsSinceId(callable $onBatch, int $limit = 250): void
     {
         $this->ensureScope('products');
@@ -123,56 +131,6 @@ class ShopifyService
 
         } while ($count === $limit);
     }
-
-    public function getCustomCollections(int $limit = 50): array
-    {
-        $token = $this->getAccessToken();
-
-        $response = Http::withHeaders([
-            'X-Shopify-Access-Token' => $token,
-        ])->get(
-            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/custom_collections.json",
-            ['limit' => $limit]
-        );
-
-        if ($response->failed()) {
-            throw new RuntimeException(
-                'Shopify products request failed: ' . $response->body()
-            );
-        }
-
-        return $response->json('custom_collections', []);
-    }
-
-    public function getSmartCollections(int $limit = 250): array
-    {
-        $token = $this->getAccessToken();
-
-        $response = Http::withHeaders([
-            'X-Shopify-Access-Token' => $token,
-        ])->get(
-            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/smart_collections.json",
-            ['limit' => $limit]
-        );
-
-        if ($response->failed()) {
-            throw new RuntimeException(
-                'Shopify products request failed: ' . $response->body()
-            );
-        }
-
-        return $response->json('smart_collections', []);
-    }
-
-
-    /**
-     * Fetch ALL products (REST), 250 per page, following Shopify's
-     * cursor-based Link header pagination until there's no next page.
-     *
-     * @param  callable|null  $onPage  Optional callback invoked with each
-     *                                 page's product array, e.g. for streaming
-     *                                 import instead of holding everything in memory.
-     */
     public function getAllProducts(?callable $onPage = null): array
     {
         $this->ensureScope('products');
@@ -255,26 +213,6 @@ class ShopifyService
         return $response->json('articles', []);
     }
 
-    public function getOrders(int $limit = 100): array
-    {
-        $token = $this->getAccessToken();
-
-        $response = Http::withHeaders([
-            'X-Shopify-Access-Token' => $token,
-        ])->get(
-            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/orders.json",
-            ['limit' => $limit,'status'=>'any']
-        );
-
-        if ($response->failed()) {
-            throw new RuntimeException(
-                'Shopify orders request failed: ' . $response->body()
-            );
-        }
-
-        return $response->json('orders', []);
-    }
-
     /**
      * Fetch ALL articles for a given blog, 250 per page, same cursor
      * pagination pattern as getAllProducts().
@@ -318,6 +256,66 @@ class ShopifyService
         return $all;
     }
 
+    public function getCustomCollections(int $limit = 50): array
+    {
+        $token = $this->getAccessToken();
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+        ])->get(
+            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/custom_collections.json",
+            ['limit' => $limit]
+        );
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                'Shopify products request failed: ' . $response->body()
+            );
+        }
+
+        return $response->json('custom_collections', []);
+    }
+
+    public function getSmartCollections(int $limit = 250): array
+    {
+        $token = $this->getAccessToken();
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+        ])->get(
+            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/smart_collections.json",
+            ['limit' => $limit]
+        );
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                'Shopify products request failed: ' . $response->body()
+            );
+        }
+
+        return $response->json('smart_collections', []);
+    }
+
+    public function getOrders(int $limit = 100): array
+    {
+        $token = $this->getAccessToken();
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+        ])->get(
+            "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/orders.json",
+            ['limit' => $limit,'status'=>'any']
+        );
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                'Shopify orders request failed: ' . $response->body()
+            );
+        }
+
+        return $response->json('orders', []);
+    }
+
     /**
      * Maps each importable resource to the Admin API scope required to
      * read it. Used to check access before making the request.
@@ -330,7 +328,7 @@ class ShopifyService
         'blogs'              => 'read_content',
         'articles'           => 'read_content',
         'customers'          => 'read_customers',
-        'orders'          => 'read_orders',
+        'orders'             => 'read_orders',
     ];
 
     /**
@@ -482,6 +480,10 @@ class ShopifyService
                 state
                 tags
                 createdAt
+                ordersCount
+                amountSpent {
+                  amount
+                }
                 addresses {
                   id
                   firstName
