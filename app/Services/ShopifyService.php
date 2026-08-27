@@ -195,7 +195,7 @@ class ShopifyService
         return $response->json('blogs', []);
     }
 
-    public function getArticles(int $limit = 100): array
+    public function getArticles(int $limit = 240): array
     {
         $this->ensureScope('articles');
 
