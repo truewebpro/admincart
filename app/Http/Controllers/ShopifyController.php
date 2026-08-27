@@ -169,7 +169,7 @@ class ShopifyController extends Controller
     {
         $shopifyShop = ShopifyShop::where('shop_id','=',session('shop_id'))->first();
         $service = new ShopifyService($shopifyShop);
-        $articles = $service->getArticles(100);
+        $articles = $service->getArticles(240);
 
         $blogs = [];
         $shopUser = ShopUser::where('shop_id','=',session('shop_id'))->where('role','!=','superadmin')->first();
