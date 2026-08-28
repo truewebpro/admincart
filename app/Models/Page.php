@@ -19,6 +19,7 @@ class Page extends Model
         'page_description',
         'page_status',
         'shop_id',
+        'thirdparty_id',
         'meta_title',
         'meta_description',
         'og_image',

@@ -49,8 +49,8 @@
             <v-tab value="pages" class="bg-white">
                 <div class="d-flex align-center ga-1">
                     Pages
-                    <div v-if="counts.pages">
-                        <v-chip variant="tonal" density="compact" color="success">{{counts?.pages?.count}}</v-chip>
+                    <div v-if="pages_count">
+                        <v-chip variant="tonal" density="compact" color="success">{{pages_count}}</v-chip>
                     </div>
                 </div>
             </v-tab>
@@ -266,15 +266,7 @@
                 </v-card>
             </v-window-item>
             <v-window-item value="pages">
-                <v-card class="mb-3" v-if="counts.pages">
-                    <v-card-text>
-                        <h2>Total: {{counts?.pages?.count || 0}}</h2>
-                        <div class="text-body-1" v-if="counts?.pages?.available">Scope: Available</div>
-                        <div class="text-red" v-if="counts?.pages?.reason">Reason: {{counts?.pages?.reason}}</div>
-                        <v-btn v-if="counts?.pages?.available" class="mt-2" variant="tonal" color="success"
-                               density="compact" prependIcon="mdi-download">Import Pages</v-btn>
-                    </v-card-text>
-                </v-card>
+                <ShopifyPages :shopifyDomain="shopifyDetail?.shop_domain"/>
             </v-window-item>
             <v-window-item value="orders">
                 <v-card class="mb-3" v-if="counts.orders">
@@ -297,10 +289,11 @@ import dayjs from "dayjs";
 import ShopifyProducts from "./shopify/ShopifyProducts.vue";
 import ShopifyCustomers from "./shopify/ShopifyCustomers.vue";
 import ShopifyOrders from "./shopify/ShopifyOrders.vue";
+import ShopifyPages from "./shopify/ShopifyPages.vue";
 
 export default {
     name: "SuperShopifysetup",
-    components: {ShopifyOrders, ShopifyCustomers, ShopifyProducts},
+    components: {ShopifyPages, ShopifyOrders, ShopifyCustomers, ShopifyProducts},
     computed: {
         dayjs() {
             return dayjs
@@ -350,6 +343,7 @@ export default {
             page: 1,
             isLoading: false,
             blogs:[],
+            pages_count:0,
             blogs_count:0,
             ccats_count:0,
             scats_count:0,
@@ -369,6 +363,7 @@ export default {
                     const allData = resp.data;
                     this.shopifyDetail = allData.shopifyDetail;
                     this.counts = allData.counts;
+                    this.pages_count = allData.pages_count || 0;
                     this.blogs_count = allData.blogs_count || 0;
                     this.ccats_count = allData.ccats_count || 0;
                     this.scats_count = allData.scats_count || 0;

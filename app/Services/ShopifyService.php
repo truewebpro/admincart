@@ -2,67 +2,13 @@
 
 namespace App\Services;
 
-use App\Exceptions\MissingShopifyScopeException;
-use App\Models\ShopifyShop;
+use App\Services\Concerns\InteractsWithShopifyApi;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Carbon;
 use RuntimeException;
 
 class ShopifyService
 {
-    protected string $apiVersion = '2026-07';
-
-    public function __construct(protected ShopifyShop $shop)
-    {
-    }
-
-    /**
-     * Returns a valid access token, fetching a fresh one if expired.
-     */
-    public function getAccessToken(): string
-    {
-        if (! $this->shop->isTokenExpired()) {
-            return $this->shop->access_token;
-        }
-
-        return $this->connect();
-    }
-
-    /**
-     * Fetches a fresh access token from Shopify and saves it (plus the
-     * granted scope) on the shop record. Called automatically when the
-     * cached token is expired, but can also be called directly right
-     * after a superadmin saves new credentials, so the connection is
-     * verified immediately instead of waiting for the first import run.
-     */
-    public function connect(): string
-    {
-        $response = Http::asForm()->post(
-            "https://{$this->shop->shop_domain}/admin/oauth/access_token",
-            [
-                'grant_type'    => 'client_credentials',
-                'client_id'     => $this->shop->client_id,
-                'client_secret' => $this->shop->client_secret,
-            ]
-        );
-
-        if ($response->failed()) {
-            throw new RuntimeException(
-                'Shopify token request failed: ' . $response->body()
-            );
-        }
-
-        $data = $response->json();
-
-        $this->shop->update([
-            'access_token'     => $data['access_token'],
-            'scope'            => $data['scope'] ?? null,
-            // Shopify tokens last 24h (86400s); refresh a bit early to be safe
-            'token_expires_at' => Carbon::now()->addSeconds(($data['expires_in'] ?? 86400) - 60),
-        ]);
-
-        return $this->shop->access_token;
-    }
+    use InteractsWithShopifyApi;
 
     /**
      * Example: fetch products from the Admin API (REST).
@@ -319,12 +265,17 @@ class ShopifyService
     /**
      * Maps each importable resource to the Admin API scope required to
      * read it. Used to check access before making the request.
+     *
+     * NOTE: 'pages' intentionally removed — page-related scope/count
+     * logic now lives in ShopifyPageService::pagesCount(). If you want
+     * page count included in a combined import overview, call that
+     * service separately and merge results in the controller, rather
+     * than this class knowing about pages at all.
      */
     protected array $requiredScopes = [
         'products'           => 'read_products',
         'custom_collections' => 'read_products',
         'smart_collections'  => 'read_products',
-        'pages'              => 'read_content',
         'blogs'              => 'read_content',
         'articles'           => 'read_content',
         'customers'          => 'read_customers',
@@ -341,7 +292,7 @@ class ShopifyService
     {
         $counts = [];
 
-        foreach (['products', 'custom_collections', 'smart_collections', 'pages', 'blogs','articles','customers','orders'] as $resource) {
+        foreach (['products', 'custom_collections', 'smart_collections', 'blogs','articles','customers','orders'] as $resource) {
             if (! $this->shop->hasScope($this->requiredScopes[$resource])) {
                 $counts[$resource] = [
                     'count'     => null,
@@ -356,7 +307,6 @@ class ShopifyService
                     'products'           => $this->productsCount(),
                     'custom_collections' => $this->customCollectionsCount(),
                     'smart_collections'  => $this->smartCollectionsCount(),
-                    'pages'              => $this->pagesCount(),
                     'blogs'              => $this->blogsCount(),
                     'articles'           => $this->articlesCount(),
                     'customers'           => $this->customersCount(),
@@ -368,33 +318,6 @@ class ShopifyService
         }
 
         return $counts;
-    }
-
-    /**
-     * Compares granted scopes against everything this integration needs.
-     * Since this app uses the client_credentials grant (own-org app on
-     * an own-org store), there's no separate merchant consent step —
-     * if scopes are missing, updating the app's Configuration in the
-     * Dev Dashboard and calling connect() again is enough to pick up
-     * the new scopes on the next token response.
-     */
-    public function missingScopes(): array
-    {
-        $required = array_unique(array_values($this->requiredScopes));
-
-        return array_values(array_filter(
-            $required,
-            fn ($scope) => ! $this->shop->hasScope($scope)
-        ));
-    }
-
-    protected function ensureScope(string $resource): void
-    {
-        $scope = $this->requiredScopes[$resource] ?? null;
-
-        if ($scope && ! $this->shop->hasScope($scope)) {
-            throw new MissingShopifyScopeException($scope, $resource);
-        }
     }
 
     public function productsCount(): int
@@ -415,12 +338,6 @@ class ShopifyService
         return $this->fetchCount('smart_collections/count.json');
     }
 
-    public function pagesCount(): int
-    {
-        $this->ensureScope('pages');
-        return $this->fetchCount('pages/count.json');
-    }
-
     public function blogsCount(): int
     {
         $this->ensureScope('blogs');
@@ -431,27 +348,6 @@ class ShopifyService
     {
         $this->ensureScope('articles');
         return count($this->getArticles());
-    }
-
-    /**
-     * Shared helper for the *_count.json endpoints — all of them return
-     * { "count": N } in the same shape.
-     */
-    protected function fetchCount(string $endpoint): int
-    {
-        $token = $this->getAccessToken();
-
-        $response = Http::withHeaders([
-            'X-Shopify-Access-Token' => $token,
-        ])->get("https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/{$endpoint}");
-
-        if ($response->failed()) {
-            throw new RuntimeException(
-                "Shopify count request failed ({$endpoint}): " . $response->body()
-            );
-        }
-
-        return $response->json('count', 0);
     }
 
     /**
@@ -595,11 +491,6 @@ class ShopifyService
         }
 
         fclose($stream);
-    }
-
-    protected function graphqlStringLiteral(string $value): string
-    {
-        return json_encode($value);
     }
 
     public function getProductsSeo(array $shopifyProductIds): array
