@@ -236,34 +236,35 @@
                 <ShopifyCustomers/>
             </v-window-item>
             <v-window-item value="blogs">
-                <v-card class="mb-3" v-if="counts.blogs">
-                    <v-card-text>
-                        <v-row dense>
-                            <v-col cols="12" md="6">
-                                <h4 class="font-weight-semibold">Blogs Slug</h4>
-                                <div v-if="counts.blogs">
-                                    <h2>Total: {{blogs?.length || 0}} / {{counts?.blogs?.count || 0}}</h2>
-                                    <div class="text-body-1" v-if="counts?.blogs?.available">Scope: Available</div>
-                                    <div class="text-red" v-if="counts?.blogs?.reason">Reason: {{counts?.blogs?.reason}}</div>
-                                    <v-btn v-if="counts?.blogs?.available" class="mt-2" variant="tonal"
-                                           color="success" density="compact" prependIcon="mdi-download">Import Blogs</v-btn>
-                                </div>
-                            </v-col>
-                            <v-col cols="12" md="6">
-                                <h4 class="font-weight-semibold">Articles</h4>
-                                <div v-if="counts.articles">
-                                    <h2>Total: {{blogs_count}} / {{counts?.articles?.count || 0}}</h2>
-                                    <div class="text-body-1" v-if="counts?.articles?.available">Scope: Available</div>
-                                    <div class="text-red" v-if="counts?.articles?.reason">Reason: {{counts?.articles?.reason}}</div>
-                                    <v-btn v-if="counts?.articles?.available"
-                                           class="mt-2" variant="tonal"
-                                           @click="getAndUpdateArticles" :loading="isLoading"
-                                           color="primary" density="compact" prependIcon="mdi-download">Import Articles</v-btn>
-                                </div>
-                            </v-col>
-                        </v-row>
-                    </v-card-text>
-                </v-card>
+<!--                <v-card class="mb-3" v-if="counts.blogs">-->
+<!--                    <v-card-text>-->
+<!--                        <v-row dense>-->
+<!--                            <v-col cols="12" md="6">-->
+<!--                                <h4 class="font-weight-semibold">Blogs Slug</h4>-->
+<!--                                <div v-if="counts.blogs">-->
+<!--                                    <h2>Total: {{blogs?.length || 0}} / {{counts?.blogs?.count || 0}}</h2>-->
+<!--                                    <div class="text-body-1" v-if="counts?.blogs?.available">Scope: Available</div>-->
+<!--                                    <div class="text-red" v-if="counts?.blogs?.reason">Reason: {{counts?.blogs?.reason}}</div>-->
+<!--&lt;!&ndash;                                    <v-btn v-if="counts?.blogs?.available" class="mt-2" variant="tonal"&ndash;&gt;-->
+<!--&lt;!&ndash;                                           color="success" density="compact" prependIcon="mdi-download">Import Blogs</v-btn>&ndash;&gt;-->
+<!--                                </div>-->
+<!--                            </v-col>-->
+<!--                            <v-col cols="12" md="6">-->
+<!--                                <h4 class="font-weight-semibold">Articles</h4>-->
+<!--                                <div v-if="counts.articles">-->
+<!--                                    <h2>Total: {{blogs_count}} / {{counts?.articles?.count || 0}}</h2>-->
+<!--                                    <div class="text-body-1" v-if="counts?.articles?.available">Scope: Available</div>-->
+<!--                                    <div class="text-red" v-if="counts?.articles?.reason">Reason: {{counts?.articles?.reason}}</div>-->
+<!--                                    <v-btn v-if="counts?.articles?.available"-->
+<!--                                           class="mt-2" variant="tonal"-->
+<!--                                           @click="getAndUpdateArticles" :loading="isLoading"-->
+<!--                                           color="primary" density="compact" prependIcon="mdi-download">Import Articles</v-btn>-->
+<!--                                </div>-->
+<!--                            </v-col>-->
+<!--                        </v-row>-->
+<!--                    </v-card-text>-->
+<!--                </v-card>-->
+                <ShopifyBlogs :shopifyDomain="shopifyDetail?.shop_domain"/>
             </v-window-item>
             <v-window-item value="pages">
                 <ShopifyPages :shopifyDomain="shopifyDetail?.shop_domain"/>
@@ -290,10 +291,11 @@ import ShopifyProducts from "./shopify/ShopifyProducts.vue";
 import ShopifyCustomers from "./shopify/ShopifyCustomers.vue";
 import ShopifyOrders from "./shopify/ShopifyOrders.vue";
 import ShopifyPages from "./shopify/ShopifyPages.vue";
+import ShopifyBlogs from "./shopify/ShopifyBlogs.vue";
 
 export default {
     name: "SuperShopifysetup",
-    components: {ShopifyPages, ShopifyOrders, ShopifyCustomers, ShopifyProducts},
+    components: {ShopifyBlogs, ShopifyPages, ShopifyOrders, ShopifyCustomers, ShopifyProducts},
     computed: {
         dayjs() {
             return dayjs
@@ -414,22 +416,22 @@ export default {
                     this.syncLoading = false;
                 })
         },
-        getAndUpdateArticles(){
-            this.isLoading = true
-            axios.get('/superadmin/shopify/import-and-save-articles')
-                .then((resp)=>{
-                    this.blogs = resp.data.blogs || [];
-                    window.Toast.success('Articles imported Successfully')
-                    this.getShopDetail();
-                })
-                .catch((err)=>{
-                    console.log('error',err);
-                    window.Toast.error(`Something Err ${err.message}`)
-                })
-                .finally(()=>{
-                    this.isLoading = false;
-                })
-        },
+        // getAndUpdateArticles(){
+        //     this.isLoading = true
+        //     axios.get('/superadmin/shopify/import-and-save-articles')
+        //         .then((resp)=>{
+        //             this.blogs = resp.data.blogs || [];
+        //             window.Toast.success('Articles imported Successfully')
+        //             this.getShopDetail();
+        //         })
+        //         .catch((err)=>{
+        //             console.log('error',err);
+        //             window.Toast.error(`Something Err ${err.message}`)
+        //         })
+        //         .finally(()=>{
+        //             this.isLoading = false;
+        //         })
+        // },
         getAndUpdateCustomCollections(){
             this.isLoading = true
             axios.get('/superadmin/shopify/import-and-save-ccats')

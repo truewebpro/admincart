@@ -24,6 +24,7 @@ use App\Http\Controllers\PromoController;
 use App\Http\Controllers\ScustController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SendcloudController;
+use App\Http\Controllers\ShopifyBlogController;
 use App\Http\Controllers\ShopifyController;
 use App\Http\Controllers\ShopifyPageController;
 use App\Http\Controllers\SorderController;
@@ -119,6 +120,12 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/shopify/{shopId}/pages/live', [ShopifyPageController::class, 'live']);
         Route::post('/shopify/{shopId}/pages/{pageId}/create', [ShopifyPageController::class, 'create']);
         Route::get('/shopify/{shopId}/pages/sync-seo', [ShopifyPageController::class, 'syncSeo']);
+        // Shopify blogs/Articles routes
+        Route::get('/shopify/{shopId}/blogs/live', [ShopifyBlogController::class, 'liveBlogs']);
+        Route::get('/shopify/{shopId}/blogs/{blogId}/articles/live', [ShopifyBlogController::class, 'liveArticles']);
+        Route::post('/shopify/{shopId}/blogs/{blogId}/articles/{articleId}/create', [ShopifyBlogController::class, 'create']);
+        Route::get('/shopify/{shopId}/blogs/sync-seo', [ShopifyBlogController::class, 'syncSeo']);
+        Route::post('/shopify/{shopId}/blogs/backfill-thirdparty-ids', [ShopifyBlogController::class, 'backfillThirdpartyIds']);
 
         Route::post('/shops/assign-user',[SuperadminController::class, 'assignUserToShop']);
         Route::get('/shop-users', [SuperadminController::class, 'shopUsers']);

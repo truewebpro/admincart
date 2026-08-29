@@ -23,6 +23,9 @@ class Blog extends Model
         'meta_desc',
         'user_id',
         'shop_id',
+        'thirdparty_id',
+        'thirdparty_blog_id',
+        'thirdparty_blog_handle',
     ];
 
     protected $casts = [
