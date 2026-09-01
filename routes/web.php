@@ -25,6 +25,7 @@ use App\Http\Controllers\ScustController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SendcloudController;
 use App\Http\Controllers\ShopifyBlogController;
+use App\Http\Controllers\ShopifyCatController;
 use App\Http\Controllers\ShopifyController;
 use App\Http\Controllers\ShopifyPageController;
 use App\Http\Controllers\SorderController;
@@ -126,6 +127,11 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/shopify/{shopId}/blogs/{blogId}/articles/{articleId}/create', [ShopifyBlogController::class, 'create']);
         Route::get('/shopify/{shopId}/blogs/sync-seo', [ShopifyBlogController::class, 'syncSeo']);
         Route::post('/shopify/{shopId}/blogs/backfill-thirdparty-ids', [ShopifyBlogController::class, 'backfillThirdpartyIds']);
+        // Shopify Collections Routes
+        Route::get('/shopify/{shopId}/collections/live', [ShopifyCatController::class, 'liveCollections']);
+        Route::post('/shopify/{shopId}/collections/{type}/{collectionId}/create', [ShopifyCatController::class, 'create']);
+        Route::post('/shopify/{shopId}/collections/backfill-thirdparty-ids', [ShopifyCatController::class, 'backfillThirdpartyIds']);
+        Route::get('/shopify/{shopId}/collections/sync-seo', [ShopifyCatController::class, 'syncSeo']);
 
         Route::post('/shops/assign-user',[SuperadminController::class, 'assignUserToShop']);
         Route::get('/shop-users', [SuperadminController::class, 'shopUsers']);

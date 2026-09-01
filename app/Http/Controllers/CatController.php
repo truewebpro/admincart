@@ -265,7 +265,7 @@ class CatController extends Controller
     {
         $shopId = session('shop_id');
         $cats = Cat::query()
-            ->select('cat_id', 'cat_name','cat_image','cat_slug','cat_status','cat_type','shop_id','updated_at')
+            ->select('cat_id', 'cat_name','cat_image','cat_slug','cat_status','cat_type','shop_id','thirdparty_id','thirdparty_handle','updated_at')
             ->with('rules')->withCount('catpros')
             ->where('shop_id','=',$shopId)
             ->orderByDesc('updated_at')

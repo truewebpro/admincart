@@ -187,10 +187,10 @@
                                     <h2>Total: {{ccats_count}} / {{counts?.custom_collections?.count}}</h2>
                                     <div class="text-body-1" v-if="counts?.custom_collections?.available">Scope: Available</div>
                                     <div v-if="counts?.custom_collections?.reason">Reason: {{counts?.custom_collections?.reason}}</div>
-                                    <v-btn @click="getAndUpdateCustomCollections" :loading="isLoading"
-                                           class="mt-2" variant="tonal" color="success" density="compact" prependIcon="mdi-download">
-                                        Import Custom Collections
-                                    </v-btn>
+<!--                                    <v-btn @click="getAndUpdateCustomCollections" :loading="isLoading"-->
+<!--                                           class="mt-2" variant="tonal" color="success" density="compact" prependIcon="mdi-download">-->
+<!--                                        Import Custom Collections-->
+<!--                                    </v-btn>-->
                                 </div>
 
                             </v-col>
@@ -200,15 +200,16 @@
                                     <h2>Total: {{scats_count}} / {{counts?.smart_collections?.count}}</h2>
                                     <div class="text-body-1" v-if="counts?.smart_collections?.available">Scope: Available</div>
                                     <div class="text-red" v-if="counts?.smart_collections?.reason">Reason: {{counts?.smart_collections?.reason}}</div>
-                                    <v-btn @click="getAndUpdateSmartCollections" :loading="isLoading"
-                                           class="mt-2" variant="tonal" color="success" density="compact" prependIcon="mdi-download">
-                                        Import Smart Collections
-                                    </v-btn>
+<!--                                    <v-btn @click="getAndUpdateSmartCollections" :loading="isLoading"-->
+<!--                                           class="mt-2" variant="tonal" color="success" density="compact" prependIcon="mdi-download">-->
+<!--                                        Import Smart Collections-->
+<!--                                    </v-btn>-->
                                 </div>
                             </v-col>
                         </v-row>
                     </v-card-text>
                 </v-card>
+                <ShopifyCollections :shopifyDomain="shopifyDetail?.shop_domain" />
             </v-window-item>
             <v-window-item value="customers">
                 <v-card class="mb-3" v-if="counts.customers">
@@ -292,10 +293,11 @@ import ShopifyCustomers from "./shopify/ShopifyCustomers.vue";
 import ShopifyOrders from "./shopify/ShopifyOrders.vue";
 import ShopifyPages from "./shopify/ShopifyPages.vue";
 import ShopifyBlogs from "./shopify/ShopifyBlogs.vue";
+import ShopifyCollections from "./shopify/ShopifyCollections.vue";
 
 export default {
     name: "SuperShopifysetup",
-    components: {ShopifyBlogs, ShopifyPages, ShopifyOrders, ShopifyCustomers, ShopifyProducts},
+    components: {ShopifyCollections, ShopifyBlogs, ShopifyPages, ShopifyOrders, ShopifyCustomers, ShopifyProducts},
     computed: {
         dayjs() {
             return dayjs

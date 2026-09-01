@@ -21,6 +21,8 @@ class Cat extends Model
         'cat_rule',
         'sort_order',
         'shop_id',
+        'thirdparty_id',
+        'thirdparty_handle',
         'meta_title',
         'meta_desc',
     ];
