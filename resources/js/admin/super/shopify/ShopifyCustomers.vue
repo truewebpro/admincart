@@ -70,16 +70,16 @@
                     <template #item.total_spent="{item}">
                         <div>£{{item.total_spent}}</div>
                     </template>
-<!--                    <template #item.actions="{item}">-->
-<!--                        <v-btn v-if="!item.customer_id" @click="createCustomerInSystem(item)" size="small"-->
-<!--                               color="success" variant="outlined" density="comfortable">-->
-<!--                            Create-->
-<!--                        </v-btn>-->
-<!--                        <v-btn v-else size="small"-->
-<!--                               color="success" variant="tonal" density="comfortable">-->
-<!--                            Done-->
-<!--                        </v-btn>-->
-<!--                    </template>-->
+                    <template #item.actions="{item}">
+                        <v-btn v-if="!item.customer_id" @click="createCustomerInSystem(item)" size="small"
+                               color="success" :loading="createLoading" variant="outlined" density="comfortable">
+                            Create
+                        </v-btn>
+                        <v-btn v-else size="small"
+                               color="success" variant="tonal" density="comfortable">
+                            Done
+                        </v-btn>
+                    </template>
                 </v-data-table-server>
             </v-card>
         </v-col>
@@ -108,6 +108,7 @@ export default {
             selectedCustomer:{},
             scusts:[],
             isLoading: false,
+            createLoading: false,
             scustsHeader:[
                 {title:"ID",key:'thirdparty_id'},
                 {title:"Name",key:'first_name'},
@@ -116,6 +117,7 @@ export default {
                 {title:"Orders Count",key:'orders_count'},
                 {title:"Spent",key:'total_spent'},
                 {title:"Addresses",key:'addresses'},
+                {title:"",key:'actions'},
             ],
         }
     },
@@ -196,22 +198,22 @@ export default {
                     this.isLoading = false;
                 })
             console.log('ids',edata);
-        }
-        // createCustomerInSystem(item){
-        //     this.isLoading = true;
-        //     axios.post('/superadmin/shopify/create-single-customer',{
-        //         id:item.id
-        //     }).then((resp)=>{
-        //         console.log("respIn",resp.data);
-        //         this.getSyncedCustomer();
-        //     })
-        //         .catch((err)=>{
-        //             console.log(err)
-        //         })
-        //         .finally(()=>{
-        //             this.isLoading = false
-        //         })
-        // },
+        },
+        createCustomerInSystem(item){
+            this.createLoading = true;
+            axios.post(`/superadmin/shopify/${this.shop_id}/create-single-customer`,{
+                id:item.id
+            }).then((resp)=>{
+                console.log("respIn",resp.data);
+                this.getSyncedCustomer();
+            })
+                .catch((err)=>{
+                    console.log(err)
+                })
+                .finally(()=>{
+                    this.createLoading = false
+                })
+        },
 
     }
 }

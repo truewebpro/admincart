@@ -108,6 +108,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/shopify/{shopId}/sync-customers', [ScustController::class, 'sync']);
         Route::get('/shopify/{shopId}/synced-customers', [ScustController::class, 'index']);
         Route::post('/shopify/{shopId}/import-customers', [ScustController::class, 'import']);
+        Route::post('/shopify/{shopId}/create-single-customer', [ScustController::class, 'createSingleCustomer']);
         // Customer Import Bulk Operations
         Route::post('/shopify/{shopId}/bulk-sync-customers/start', [ScustController::class, 'startBulkSync']);
         Route::get('/shopify/{shopId}/bulk-sync-customers/status', [ScustController::class, 'checkBulkSyncStatus']);

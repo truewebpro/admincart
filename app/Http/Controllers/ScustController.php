@@ -8,6 +8,7 @@ use App\Models\CustomerShop;
 use App\Models\Scust;
 use App\Models\ShopifyShop;
 use App\Services\ShopifyService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -224,7 +225,7 @@ class ScustController extends Controller
                             [
                                 'address_title' => 'Shipping',
                                 'fname'         => $address['first_name'] ?? $customer->fname,
-                                'lname'         => $address['last_name'] ?? $customer->lname,
+                                'lname'         => $address['last_name'] ?? $customer->lname ?? $customer->fname,
                                 'address_line1' => $address['address1'] ?? '',
                                 'address_line2' => $address['address2'] ?? null,
                                 'city'          => $address['city'] ?? '',
@@ -281,6 +282,90 @@ class ScustController extends Controller
         $cleaned = str_replace(['.', '_', '-'], ' ', $localPart);
 
         return ucwords(trim($cleaned)) ?: 'Customer';
+    }
+
+    public function createSingleCustomer(Request $request,int $shopId): JsonResponse
+    {
+//        dd($request->all());
+        $validated = $request->validate([
+            'id' => ['integer', 'exists:scusts,id'],
+        ]);
+        $scust = Scust::where('shop_id',$shopId)
+            ->where('id', $validated['id'])
+            ->whereNull('customer_id')->first();
+        if (! $scust) {
+            return response()->json(['success' => false, 'message' => 'Customer not found']);
+        }
+
+        $customer = Customer::where('email', $scust->email)->first();
+        if (! $customer) {
+            $customer = Customer::create([
+                'fname'    => $scust->first_name ?: $this->nameFromEmail($scust->email),
+                'lname'    => $scust->last_name,
+                'email'    => $scust->email,
+                'password' => Hash::make(Str::random(32)),
+                'phone'    => $scust->phone,
+                'status'   => 'active',
+            ]);
+        }
+        $customer->update([
+            'fname' => $scust->first_name ?? $customer->fname,
+            'lname' => $scust->last_name ?? $customer->lname,
+            'phone' => $scust->phone ?? $customer->phone,
+        ]);
+
+        $seenAddressIds = [];
+        foreach ($scust->addresses ?? [] as $address) {
+            $shopifyAddressId = isset($address['id']) ? (string) $address['id'] : null;
+            $seenAddressIds[] = $shopifyAddressId;
+            CustomerAddress::updateOrCreate(
+                ['customer_id' => $customer->customer_id, 'thirdparty_id' => $shopifyAddressId],
+                [
+                    'address_title' => 'Shipping',
+                    'fname'         => $address['first_name'] ?? $customer->fname,
+                    'lname'         => $address['last_name'] ?? $customer->lname ?? $customer->fname,
+                    'address_line1' => $address['address1'] ?? '',
+                    'address_line2' => $address['address2'] ?? null,
+                    'city'          => $address['city'] ?? '',
+                    'postcode'      => $address['zip'] ?? '',
+                    'country'       => $address['country_code'] ?? 'GB',
+                    'phone'         => $address['phone'] ?? null,
+                    'is_default'    => (bool) ($address['default'] ?? false),
+                ]
+            );
+        }
+        CustomerAddress::where('customer_id', $customer->customer_id)
+            ->whereNotNull('thirdparty_id')
+            ->whereNotIn('thirdparty_id', $seenAddressIds ?: ['__none__'])
+            ->delete();
+
+        $tags = ! empty($scust->tags)
+            ? array_map('trim', explode(',', $scust->tags))
+            : null;
+
+        CustomerShop::updateOrCreate(
+            ['customer_id' => $customer->customer_id, 'shop_id' => $shopId],
+            [
+                'thirdparty_id' => $scust->thirdparty_id,
+                'thirdparty_orders_count'  => $scust->orders_count ?? 0,
+                'thirdparty_spent'         => $scust->total_spent ?? 0,
+                'ctags'         => $tags,
+                'status'        => 'active',
+                'registered_at' => $scust->shopify_created_at ?? now(),
+            ]
+        );
+
+        $scust->update([
+            'customer_id'  => $customer->customer_id,
+            'imported_at'  => now(),
+        ]);
+
+
+        return response()->json([
+            'success' => true,
+            'scust' => $scust,
+            'customer' => $customer,
+        ]);
     }
 
 }
