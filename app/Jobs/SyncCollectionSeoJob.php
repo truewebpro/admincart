@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 
 class SyncCollectionSeoJob implements ShouldQueue, ShouldBeUnique
 {
@@ -24,7 +25,7 @@ class SyncCollectionSeoJob implements ShouldQueue, ShouldBeUnique
     // period regardless of this value — but setting an explicit
     // timeout is still good practice so a genuinely stuck job doesn't
     // run forever.
-    public int $timeout = 300; // 5 minutes
+    public int $timeout = 280; // matches Pro's 300s worker --timeout, set slightly LOWER so Laravel's own timeout handling fires first with a clean, catchable failure — rather than the worker process being hard-killed at exactly 300s
 
     public function __construct(protected int $shopId)
     {
@@ -91,7 +92,7 @@ class SyncCollectionSeoJob implements ShouldQueue, ShouldBeUnique
             // outcome, so a failed/crashed job doesn't leave the UI
             // permanently showing "already running" for up to the full
             // 10-minute cache TTL.
-            \Illuminate\Support\Facades\Cache::forget("collection_seo_sync_running_{$this->shopId}");
+            Cache::forget("collection_seo_sync_running_{$this->shopId}");
         }
     }
 }
