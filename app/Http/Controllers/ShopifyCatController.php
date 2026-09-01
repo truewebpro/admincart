@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\MissingShopifyScopeException;
+use App\Jobs\SyncCollectionSeoJob;
 use App\Models\Brand;
 use App\Models\Cat;
 use App\Models\ProductType;
@@ -11,6 +12,7 @@ use App\Models\ShopifyShop;
 use App\Services\ImageService;
 use App\Services\ShopifyCollectionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class ShopifyCatController extends Controller
@@ -157,56 +159,28 @@ class ShopifyCatController extends Controller
      */
     public function syncSeo(int $shopId)
     {
-        $shopifyShop = ShopifyShop::where('shop_id', $shopId)->firstOrFail();
-        $service = new ShopifyCollectionService($shopifyShop);
+        $lockKey = "collection_seo_sync_running_{$shopId}"; // our own explicit flag — not relying on Laravel's internal ShouldBeUnique lock storage, which is an implementation detail
 
-        $cats = Cat::where('shop_id', $shopId)
-            ->whereNotNull('thirdparty_id')
-            ->get(['cat_id', 'thirdparty_id','shop_id','cat_slug']);
-
-        if ($cats->isEmpty()) {
-            return response()->json(['success' => true, 'updated' => 0]);
-        }
-
-        $shopifyIds = $cats->pluck('thirdparty_id')->map(fn ($id) => (int) $id)->all();
-
-        try {
-            $seoData = $service->getCollectionsSeo($shopifyIds);
-        } catch (MissingShopifyScopeException $e) {
+        if (Cache::has($lockKey)) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage(),
-                'required_scope' => $e->requiredScope,
-            ], 403);
-        } catch (\RuntimeException $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 502);
+                'message' => 'A SEO sync is already running for this shop — please wait for it to finish.',
+            ], 409);
         }
 
-        $updated = 0;
+        // Set BEFORE dispatch so the message is accurate whether the job is
+        // still queued or actively processing — the job itself clears this
+        // in a finally block when it completes (success or failure).
+        Cache::put($lockKey, true, now()->addMinutes(10));
 
-        foreach ($cats as $cat) {
-            $seo = $seoData[(int) $cat->thirdparty_id] ?? null;
+        SyncCollectionSeoJob::dispatch($shopId);
 
-            if (! $seo) {
-                continue;
-            }
-
-            $updates = [];
-            if (! empty($seo['title'])) {
-                $updates['meta_title'] = $seo['title'];
-            }
-            if (! empty($seo['description'])) {
-                $updates['meta_desc'] = $seo['description'];
-            }
-
-            if ($updates) {
-                $cat->update($updates);
-                $updated++;
-            }
-        }
-
-        return response()->json(['success' => true, 'updated' => $updated]);
+        return response()->json([
+            'success' => true,
+            'message' => 'SEO sync started in the background. This may take a minute for large catalogs.',
+        ]);
     }
+
 
     public function backfillThirdpartyIds(int $shopId)
     {
