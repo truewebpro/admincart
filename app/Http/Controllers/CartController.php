@@ -266,8 +266,8 @@ class CartController extends Controller
                 $this->startStripePayment($cart, $request);
                 $this->logEvent($cart,'start_stripe_payment',[
                     'checkout_id' => $request->checkout_id,
-                    'order_items' => $request['order_items'],
-                    'cart_data' => $request['cart_data'],
+                    'order_items' =>  $cart->items()->get()->toArray(),
+                    'cart_data' => $cart,
                 ]);
                 break;
 
@@ -278,6 +278,31 @@ class CartController extends Controller
                     'payment_intent_id' => $request->payment_intent_id,
                 ]);
                 return $this->stripePaymentConfirm($cart, $request);
+
+            case "start_cybersource_payment":
+                $this->startCyberSourcePayment($cart, $request);
+                $this->logEvent($cart,'start_cybersource_payment',[
+                    'checkout_id' => $request->checkout_id,
+                    'order_items' =>  $cart->items()->get()->toArray(),
+                    'cart_data' => $cart,
+                ]);
+                break;
+
+            case "cybersource_cancel_payment":
+                $this->cyberSourceCancelPayment($cart, $request);
+                $this->logEvent($cart,'cybersource_cancel_payment',[
+                    'checkout_id' => $request->checkout_id,
+                    'reason' => $request->reason,
+                ]);
+                break;
+
+            case "cybersource_payment_confirm":
+                $this->logEvent($cart,'cybersource_payment_confirm',[
+                    'checkout_id' => $request->checkout_id,
+                    'transaction_id' => $request->transaction_id,
+                    'decision' => $request->decision,
+                ]);
+                return $this->cyberSourcePaymentConfirm($cart, $request);
 
             default:
                 return response()->json([
@@ -482,6 +507,21 @@ class CartController extends Controller
     {
         $cart->update([
             'cart_status' => 'world_pay_cancel'
+        ]);
+    }
+
+    private function startCyberSourcePayment($cart, $request)
+    {
+        $cart->update([
+            'checkout_id' => $request->checkout_id,
+            'cart_status' => 'start_cybersource_payment',
+        ]);
+    }
+
+    private function cyberSourceCancelPayment($cart, $request)
+    {
+        $cart->update([
+            'cart_status' => 'cybersource_cancel_payment'
         ]);
     }
 
@@ -911,6 +951,50 @@ class CartController extends Controller
             ]);
             $this->logEvent($cart, 'order_created', [
                 'order_id' => $order->order_id
+            ]);
+            DB::commit();
+            broadcast(new OrderCreated($order));
+            return response()->json([
+                'success'=>true,
+                'order_id'=>$order->order_id
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function cyberSourcePaymentConfirm($cart, $request)
+    {
+        if($cart->order_id){
+            return response()->json([
+                'success'=>true,
+                'order_id'=>$cart->order_id
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $order = $this->createOrderDetails(
+                $cart,
+                $request->checkout_id,
+                'paid',
+            );
+
+            $cart->update([
+                'order_id' => $order->order_id,
+                'checkout_id' => $request->checkout_id,
+                'cart_status' => 'converted',
+                'is_active'=>false,
+                'cart_token'=>$request->checkout_id,
+            ]);
+            $this->logEvent($cart, 'order_created', [
+                'order_id' => $order->order_id,
+                'checkout_id' => $request->checkout_id,
             ]);
             DB::commit();
             broadcast(new OrderCreated($order));
