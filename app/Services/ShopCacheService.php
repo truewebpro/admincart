@@ -59,6 +59,7 @@ class ShopCacheService
         Cache::forget(CacheKeys::searchTags($shopId));
         Cache::forget(CacheKeys::searchBrands($shopId));
         Cache::forget(CacheKeys::searchCats($shopId));
+        Cache::forget(CacheKeys::reviews($shopId));
     }
 
     public static function forgetCartPage(int $shopId): void {
@@ -118,6 +119,11 @@ class ShopCacheService
     public static function forgetProreviews(int $shopId): void
     {
         Cache::forget(CacheKeys::shopReviewSummary($shopId));
+    }
+
+    public static function forgetReviews(int $shopId): void
+    {
+        Cache::forget(CacheKeys::reviews($shopId));
     }
 
 }

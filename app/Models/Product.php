@@ -87,12 +87,19 @@ class Product extends Model
             ->select('highlights.*','features.ftitle','features.fimage');
     }
 
-    public function reviews()
+    public function creviews()
     {
         return $this->hasMany(Proreview::class, 'product_id', 'product_id')
             ->join('reviewers', 'reviewers.id', '=', 'proreviews.reviewer_id')
             ->select('proreviews.*','reviewers.first_name','reviewers.last_name')
             ->orderBy('proreviews.created_at','DESC');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'product_id', 'product_id')
+
+            ->orderBy('reviews.created_at','DESC');
     }
 
     public function specifics()

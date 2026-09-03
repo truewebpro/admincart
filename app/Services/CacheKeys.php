@@ -155,4 +155,9 @@ class CacheKeys
     {
         return "shop:$shopId:shop_review_summary";
     }
+
+    public static function reviews(int $shopId): string
+    {
+        return "shop:$shopId:reviews";
+    }
 }

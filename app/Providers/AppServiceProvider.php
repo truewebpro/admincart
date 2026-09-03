@@ -27,6 +27,7 @@ use App\Models\ProductFaq;
 use App\Models\ProductType;
 use App\Models\Proreview;
 use App\Models\RelatedCat;
+use App\Models\Review;
 use App\Models\Searchbrand;
 use App\Models\Searchcat;
 use App\Models\Searchtag;
@@ -61,6 +62,7 @@ use App\Observers\ProductObserver;
 use App\Observers\ProductTypeObserver;
 use App\Observers\ProreviewObserver;
 use App\Observers\RelatedCatObserver;
+use App\Observers\ReviewObserver;
 use App\Observers\SearchbrandObserver;
 use App\Observers\SearchcatObserver;
 use App\Observers\SearchtagObserver;
@@ -125,6 +127,7 @@ class AppServiceProvider extends ServiceProvider
         HomepageFaq::observe(HomepageFaqObserver::class);
         RelatedCat::observe(RelatedCatObserver::class);
         CustomerShop::observe(CustomerShopObserver::class);
+        Review::observe(ReviewObserver::class);
 
         View::composer('*', function ($view) {
             $view->with('currentShop', session('shop'));

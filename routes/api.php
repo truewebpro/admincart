@@ -18,6 +18,7 @@ use App\Http\Controllers\PageSettingController;
 use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromoController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SendcloudWebhookController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\SumupController;
@@ -70,6 +71,7 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/catsections/{slug}', [CatController::class, 'getCatSections']);
     Route::get('/pro/{slug}', [ProductController::class, 'getProduct']);
     Route::get('/product/{slug}', [ProductController::class, 'getProductData']);
+    Route::get('/product-reviews/{slug}', [ReviewController::class, 'getProductReviews']);
     Route::get('/productsections/{slug}', [ProductController::class, 'getProductLazyData']);
     Route::get('/products/all', [ProductController::class, 'searhProducts']);
     Route::get('/all-products', [ProductController::class, 'getAllProducts']);
@@ -135,6 +137,8 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
             Route::post('/address/add',[CustomerController::class,'addNewAddress']);
             Route::post('/address/update',[CustomerController::class,'updateAddress']);
             Route::post('/address/delete',[CustomerController::class,'deleteAddress']);
+            Route::post('/review/add',[ReviewController::class,'addReviewByCustomer']);
+            Route::put('/review/update',[ReviewController::class,'updateReviewByCustomer']);
 
             //Loyalty  and Reward Points Routes
             Route::middleware('resolve.customer-shop')->group(function () {
