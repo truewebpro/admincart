@@ -279,6 +279,29 @@ class CartController extends Controller
                 ]);
                 return $this->stripePaymentConfirm($cart, $request);
 
+            case "start_paypal_payment":
+                $this->startPaypal($cart, $request);
+                $this->logEvent($cart,'start_paypal_payment',[
+                    'checkout_id' => $request->checkout_id,
+                    'order_items' =>  $cart->items()->get()->toArray(),
+                    'cart_data' => $cart,
+                ]);
+                break;
+
+            case "paypal_payment_cancel":
+                $this->paypalPaymentCancel($cart, $request);
+                $this->logEvent($cart,'paypal_payment_cancel',[
+                    'checkout_id' => $request->checkout_id,
+                    'cancel_token' => $request->cancel_token,
+                ]);
+                break;
+
+            case "paypal_payment_confirm":
+                $this->logEvent($cart,'paypal_payment_confirm',[
+                    'checkout_id' => $request->checkout_id,
+                ]);
+                return $this->paypalPaymentConfirm($cart, $request);
+
             case "start_cybersource_payment":
                 $this->startCyberSourcePayment($cart, $request);
                 $this->logEvent($cart,'start_cybersource_payment',[
@@ -488,6 +511,14 @@ class CartController extends Controller
         ]);
     }
 
+    private function startPaypal($cart, $request)
+    {
+        $cart->update([
+            'checkout_id' => $request->checkout_id,
+            'cart_status' => 'start_paypal_payment',
+        ]);
+    }
+
     private function startStripePayment($cart, $request)
     {
         $cart->update([
@@ -507,6 +538,13 @@ class CartController extends Controller
     {
         $cart->update([
             'cart_status' => 'world_pay_cancel'
+        ]);
+    }
+
+    private function paypalPaymentCancel($cart, $request)
+    {
+        $cart->update([
+            'cart_status' => 'paypal_payment_cancel'
         ]);
     }
 
@@ -928,6 +966,47 @@ class CartController extends Controller
     }
 
     private function worldPayConfirm($cart, $request)
+    {
+        if($cart->order_id){
+            return response()->json([
+                'success'=>true,
+                'order_id'=>$cart->order_id
+            ]);
+        }
+        DB::beginTransaction();
+        try {
+            $order = $this->createOrderDetails(
+                $cart,
+                $request->checkout_id,
+                'paid',
+            );
+            $cart->update([
+                'order_id' => $order->order_id,
+                'checkout_id' => $request->checkout_id,
+                'cart_status' => 'converted',
+                'is_active'=>false,
+                'cart_token'=>$request->checkout_id,
+            ]);
+            $this->logEvent($cart, 'order_created', [
+                'order_id' => $order->order_id
+            ]);
+            DB::commit();
+            broadcast(new OrderCreated($order));
+            return response()->json([
+                'success'=>true,
+                'order_id'=>$order->order_id
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function paypalPaymentConfirm($cart, $request)
     {
         if($cart->order_id){
             return response()->json([

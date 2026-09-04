@@ -225,6 +225,15 @@ export default {
                         note:'',
                         test_mode:true,
                     }},
+                {payment_name:'Pay Pal',payment_method:'paypal',payment_icon:'payment/pay_pal.png',
+                    handling_fee:"0.00",fee_type:"fixed",
+                    payment_options:{
+                        environment:'dev',
+                        client_id:'',
+                        secret_key:'',
+                        note:'',
+                        test_mode:true,
+                    }},
                 {payment_name:'Others',payment_method:'others',payment_icon:'payment/others.png',
                     handling_fee:"0.00",fee_type:"fixed",
                     payment_options:{
