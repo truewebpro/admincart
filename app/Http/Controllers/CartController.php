@@ -1453,7 +1453,7 @@ class CartController extends Controller
                 'discount_code' => null,
                 'discount_source' => 'rule',
                 'discount_type' => $result['rule_type'] ?? 'auto', // 'bundle' | 'volume'
-                'discount_value' => null,
+                'discount_value' => 0,
                 'applied_amount' => round($ruleDiscount, 2),
                 'is_stackable' => false,
                 'meta' => [
