@@ -89,35 +89,7 @@ class CartController extends Controller
 
         return response()->json([
             'success' => true,
-            'cart' => [
-                'acart_id' => $cart->acart_id,
-                'cart_token' => $cart->cart_token,
-                'items_count' => $cart->items_count,
-                'subtotal' => $cart->subtotal,
-                'discount_amount' => $cart->discount_amount,
-                'coupon_discount' => $cart->coupon_discount,       // NEW
-                'rule_discount' => $cart->rule_discount,
-                'shipping_method' => $cart->shipping_method,
-                'shipping_amount' => $cart->shipping_amount,
-                'shipping_cost' => $cart->shipping_cost,
-                'shipping_protection_enabled' => $cart->shipping_protection_enabled,
-                'shipping_protection_fee' => $cart->shipping_protection_fee,
-                'payment_method' => $cart->payment_method,
-                'payment_fee' => $cart->payment_fee,
-                'tax_amount' => $cart->tax_amount,
-                'notes' => $cart->notes,
-                'cart_total' => $cart->cart_total,
-                'cart_version' => $cart->cart_version,
-                'checkout_id' => $cart->checkout_id,
-                'applied_coupons' => $cart->applied_coupons,
-                'rule_discounts' => $cart->discounts             // NEW
-                    ->where('discount_source', 'rule')
-                        ->map(fn($d) => [
-                            'name' => $d->meta['name'] ?? ucfirst($d->discount_type),
-                            'amount' => $d->applied_amount,
-                        ])
-                        ->values(),
-            ],
+            'cart' => $this->formatCartResponse($cart),
             'items' => $items
         ]);
     }
@@ -392,9 +364,27 @@ class CartController extends Controller
         return response()->json([
             'success' => true,
             'message' => $request->type." ". "success",
-            'cart' => $cart,
+            'cart' => $this->formatCartResponse($cart),
             'items' => $cartItems
         ]);
+    }
+
+    private function formatCartResponse($cart): array
+    {
+        $data = $cart->toArray();
+
+        $data['applied_coupons'] = $cart->applied_coupons;
+        $data['rule_discounts'] = $cart->discounts
+            ->where('discount_source', 'rule')
+            ->map(fn($d) => [
+                'name' => $d->meta['name'] ?? ucfirst($d->discount_type),
+                'amount' => $d->applied_amount,
+            ])
+            ->values();
+
+        unset($data['discounts']); // superseded by the curated rule_discounts above
+
+        return $data;
     }
 
     private function addItem($cart, $request)
