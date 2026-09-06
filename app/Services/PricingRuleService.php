@@ -16,6 +16,8 @@ class PricingRuleService
 
         $bestDiscount = 0;
         $appliedRuleName = null;
+        $appliedRuleId = null;
+        $appliedRuleType = null;
 
         foreach ($rules as $rule) {
 
@@ -32,6 +34,8 @@ class PricingRuleService
             if ($discount > $bestDiscount) {
                 $bestDiscount = $discount;
                 $appliedRuleName = $rule->name;
+                $appliedRuleId = $rule->id;
+                $appliedRuleType = $rule->type;
             }
 
             $bestDiscount = max($bestDiscount, $discount);
@@ -39,7 +43,9 @@ class PricingRuleService
 
         return [
             'discount' => $bestDiscount,
-            'applied_rule' => $appliedRuleName ?? null
+            'applied_rule' => $appliedRuleName ?? null,
+            'applied_rule_id' => $appliedRuleId ?? null,
+            'applied_rule_type' => $appliedRuleType ?? null,
         ];
     }
 

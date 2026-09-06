@@ -1554,9 +1554,10 @@ class HomeController extends Controller
                     'products' => $rule->products->pluck('product_id'),
                     'cats' => $rule->cats->pluck('cat_id'),
                     'is_currently_active' => $rule->isCurrentlyActive(),
-                    'label' => $rule->type === 'bundle'
-                        ? "Buy {$rule->min_qty} for £{$rule->price}"
-                        : "{$rule->discount_percent}% off {$rule->min_qty}+",
+                    'label' => $rule->label,
+//                    'label' => $rule->type === 'bundle'
+//                        ? "Buy {$rule->min_qty} for £{$rule->price}"
+//                        : "{$rule->discount_percent}% off {$rule->min_qty}+",
                 ];
             });
         ;
@@ -1696,7 +1697,7 @@ class HomeController extends Controller
                     'coupon_id' => $c->coupon_id,
                     'code' => $c->code,
                     'title' => $c->title,
-                    'display_title' => $c->display_title ?? $this->makeLabel($c),
+                    'display_title' => $c->display_title,
                     'is_auto' => $c->is_auto,
                     'is_editable_code' => !$c->is_auto,
                     'type' => $c->type,
@@ -1721,8 +1722,8 @@ class HomeController extends Controller
                     'has_conditions' => !empty($c->conditions),
 
                     // ✅ UI helpers
-                    'label' => $this->makeLabel($c),
-                    'is_currently_active' => $this->isActiveNow($c),
+                    'label' => $c->label,
+                    'is_currently_active' => $c->isCurrentlyActive(),
 
                 ];
             });

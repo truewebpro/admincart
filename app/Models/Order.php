@@ -85,6 +85,11 @@ class Order extends Model
         return $this->belongsTo(CustomerAddress::class, 'address_id', 'address_id');
     }
 
+    public function orderCoupons(): HasMany
+    {
+        return $this->hasMany(OrderCoupon::class, 'order_id', 'order_id');
+    }
+
     public function coupon(): BelongsTo
     {
         return $this->belongsTo(Coupon::class, 'coupon_id', 'coupon_id');

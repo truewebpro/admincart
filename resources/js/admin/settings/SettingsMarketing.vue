@@ -19,6 +19,7 @@
                         class="my-2">
                     <v-tab value="coups" class="bg-white">Coupons</v-tab>
                     <v-tab value="prule" class="bg-white">Pricing Rule (Products / Cats )</v-tab>
+                    <v-tab value="badges" class="bg-white">Badges</v-tab>
                 </v-tabs>
                 <v-tabs-window v-model="mtabs">
                     <v-tabs-window-item value="coups">
@@ -135,6 +136,9 @@
                                 </v-card>
                             </v-card-text>
                         </v-card>
+                    </v-tabs-window-item>
+                    <v-tabs-window-item value="badges">
+                        <BadgeManager/>
                     </v-tabs-window-item>
                 </v-tabs-window>
             </v-col>
@@ -301,13 +305,15 @@
 <script>
 import axios from "axios";
 import { VDateInput} from "vuetify/labs/VDateInput";
-import DiscountForm from "@/admin/settings/coupons/DiscountForm.vue";
-import BogoForm from "@/admin/settings/coupons/BogoForm.vue";
-import BundleForm from "@/admin/settings/coupons/BundleForm.vue";
+import DiscountForm from "../settings/coupons/DiscountForm.vue";
+import BogoForm from "../settings/coupons/BogoForm.vue";
+import BundleForm from "../settings/coupons/BundleForm.vue";
+import BadgeManager from "../settings/coupons/BadgeManager.vue";
 
 export default {
     name:"SettingsMarketing",
     components:{
+        BadgeManager,
         BundleForm,
         BogoForm,
         DiscountForm,

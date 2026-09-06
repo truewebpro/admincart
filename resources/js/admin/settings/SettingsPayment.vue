@@ -225,7 +225,7 @@ export default {
                         note:'',
                         test_mode:true,
                     }},
-                {payment_name:'Pay Pal',payment_method:'paypal',payment_icon:'payment/pay_pal.png',
+                {payment_name:'PayPal',payment_method:'paypal',payment_icon:'payment/pay_pal.png',
                     handling_fee:"0.00",fee_type:"fixed",
                     payment_options:{
                         environment:'dev',

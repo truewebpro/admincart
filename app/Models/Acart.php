@@ -82,4 +82,10 @@ class Acart extends Model
     {
         return $this->hasMany(AcartCoupon::class, 'acart_id', 'acart_id');
     }
+
+    public function discounts(): HasMany
+    {
+        return $this->hasMany(AcartDiscount::class, 'acart_id', 'acart_id');
+    }
+
 }

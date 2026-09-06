@@ -95,7 +95,7 @@ class OrderController extends Controller
     public function getOrderById($order_id)
     {
         $shopId = session('shop_id');
-        $order = Order::withTrashed()->with('orderItems.product','orderItems.variant','customer')
+        $order = Order::withTrashed()->with('orderItems.product','orderItems.variant','customer','orderCoupons.coupon')
             ->withCount('orderItems')
             ->where('order_id','=',$order_id)
             ->where('shop_id','=',$shopId)

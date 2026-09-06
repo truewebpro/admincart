@@ -18,6 +18,7 @@ use App\Http\Controllers\PageSettingController;
 use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromoController;
+use App\Http\Controllers\PromoLabelController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SendcloudWebhookController;
 use App\Http\Controllers\ShopController;
@@ -100,6 +101,8 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::post('/track/pageview', [TrackingController::class, 'pageview']);
     Route::post('/track/heartbeat', [TrackingController::class, 'heartbeat']);
 
+    //Promo Labels Routes
+    Route::get('/promo-labels', [PromoLabelController::class, 'index']);
     // Create SumUp checkout
     Route::post('/payment/sumup/create', [SumupController::class, 'createCheckout']);
 
@@ -170,16 +173,16 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
 });
 
 
-Route::prefix('migrate')->group(function () {
-    Route::get('/shops', [MigrateController::class, 'migrateShops']);
-    Route::get('/users', [MigrateController::class, 'migrateUsers']);
-    Route::get('/brands', [MigrateController::class, 'migrateBrands']);
-    Route::get('/tags', [MigrateController::class, 'migrateTags']);
-    Route::get('/product-types', [MigrateController::class, 'migrateProductTypes']);
-    Route::get('/poptions', [MigrateController::class, 'migratePoptions']);
-    Route::get('/blogs', [MigrateController::class, 'migrateBlogs']);
-    Route::get('/pages', [MigrateController::class, 'migratePages']);
-    Route::get('/policies', [MigrateController::class, 'migratePolicies']);
-    Route::get('/cats', [MigrateController::class, 'migrateCats']);
-    Route::get('/products', [MigrateController::class, 'migrateProducts']);
-});
+//Route::prefix('migrate')->group(function () {
+//    Route::get('/shops', [MigrateController::class, 'migrateShops']);
+//    Route::get('/users', [MigrateController::class, 'migrateUsers']);
+//    Route::get('/brands', [MigrateController::class, 'migrateBrands']);
+//    Route::get('/tags', [MigrateController::class, 'migrateTags']);
+//    Route::get('/product-types', [MigrateController::class, 'migrateProductTypes']);
+//    Route::get('/poptions', [MigrateController::class, 'migratePoptions']);
+//    Route::get('/blogs', [MigrateController::class, 'migrateBlogs']);
+//    Route::get('/pages', [MigrateController::class, 'migratePages']);
+//    Route::get('/policies', [MigrateController::class, 'migratePolicies']);
+//    Route::get('/cats', [MigrateController::class, 'migrateCats']);
+//    Route::get('/products', [MigrateController::class, 'migrateProducts']);
+//});

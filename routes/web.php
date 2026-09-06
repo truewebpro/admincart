@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\LoyaltyProductPointController;
 use App\Http\Controllers\Admin\LoyaltySettingController;
 use App\Http\Controllers\Admin\StoreCreditController as AdminStoreCreditController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\BadgeController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CatController;
@@ -311,12 +312,18 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/subscribe/section',[HomeController::class,'getShopSubscribeSection']);
         Route::post('/subscribe/section/update',[HomeController::class,'updateShopSubscribeSection']);
         Route::get('/search/alinks',[HomeController::class,'getAllLinks']);
+        // Coupon and marketing Routes
         Route::get('/coupons/list',[HomeController::class,'getAdminCouponsList']);
         Route::post('/coupon/save',[HomeController::class,'saveAdminCoupon']);
         Route::post('/coupon/delete',[HomeController::class,'deleteAdminCoupon']);
         Route::get('/pricing-rules/list',[HomeController::class,'getAdminPricingRules']);
         Route::post('/pricing-rule/save',[HomeController::class,'saveAdminPricingRule']);
         Route::post('/pricing-rule/delete',[HomeController::class,'deleteAdminPricingRule']);
+        Route::get('/badge/list', [BadgeController::class, 'list']);
+        Route::post('/badge/save', [BadgeController::class, 'save']);
+        Route::post('/badge/delete', [BadgeController::class, 'delete']);
+        Route::post('/badge/assign', [BadgeController::class, 'assign']);
+
         Route::get('/reviews/list',[HomeController::class,'getAdminReviewsList']);
         Route::post('/review/update',[HomeController::class,'updateAdminProductReview']);
         Route::post('/generate/ai',[HomeController::class,'allContentFromAi']);

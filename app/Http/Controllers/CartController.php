@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Events\OrderCreated;
 use App\Models\Acart;
 use App\Models\AcartCoupon;
+use App\Models\AcartDiscount;
 use App\Models\AcartEvent;
 use App\Models\AcartItem;
 use App\Models\Coupon;
 use App\Models\CustomerAddress;
 use App\Models\Order;
+use App\Models\OrderCoupon;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Setting;
@@ -35,7 +37,7 @@ class CartController extends Controller
                 'message' => 'cart_token missing'
             ],400);
         }
-        $cart = Acart::with('applied_coupons')
+        $cart = Acart::with('applied_coupons.coupon','discounts')
             ->where('shop_id', $shopId)
             ->where('is_active', true)
             ->where('cart_token', $cartToken)
@@ -93,6 +95,8 @@ class CartController extends Controller
                 'items_count' => $cart->items_count,
                 'subtotal' => $cart->subtotal,
                 'discount_amount' => $cart->discount_amount,
+                'coupon_discount' => $cart->coupon_discount,       // NEW
+                'rule_discount' => $cart->rule_discount,
                 'shipping_method' => $cart->shipping_method,
                 'shipping_amount' => $cart->shipping_amount,
                 'shipping_cost' => $cart->shipping_cost,
@@ -106,6 +110,13 @@ class CartController extends Controller
                 'cart_version' => $cart->cart_version,
                 'checkout_id' => $cart->checkout_id,
                 'applied_coupons' => $cart->applied_coupons,
+                'rule_discounts' => $cart->discounts             // NEW
+                    ->where('discount_source', 'rule')
+                        ->map(fn($d) => [
+                            'name' => $d->meta['name'] ?? ucfirst($d->discount_type),
+                            'amount' => $d->applied_amount,
+                        ])
+                        ->values(),
             ],
             'items' => $items
         ]);
@@ -122,7 +133,7 @@ class CartController extends Controller
                 'message' => 'cart_token missing'
             ]);
         }
-        $cart = Acart::with('applied_coupons')
+        $cart = Acart::with('applied_coupons.coupon','discounts')
             ->where('shop_id', $shopId)
             ->where('cart_token', $cartToken)
             ->where('is_active', true)
@@ -192,6 +203,24 @@ class CartController extends Controller
 
             case "customer_attached":
                 $this->attachCustomer($cart, $request);
+                break;
+
+            // Coupon Routes
+            case "coupon_applied":
+                $result = $this->addCouponToCart($cart, $request);
+                if (!$result['success']) {
+                    return response()->json($result);
+                }
+                $this->logEvent($cart, 'coupon_applied', [
+                    'code' => $result['code'],
+                ]);
+                break;
+
+            case "coupon_removed":
+                $this->removeCouponFromCart($cart, $request);
+                $this->logEvent($cart, 'coupon_removed', [
+                    'code' => $request->code,
+                ]);
                 break;
 
             case "start_viva_payment":
@@ -353,6 +382,8 @@ class CartController extends Controller
 
         $this->recalculateCart($cart);
 
+        $cart->load(['applied_coupons.coupon', 'discounts']);
+
         $cartItems = $cart->items()->with([
             'product:product_id,title,handle,featured_image',
             'variant:variant_id,sku,variant_image,option_values'
@@ -493,6 +524,52 @@ class CartController extends Controller
                 'address_id' => $updates['address_id'] ?? $cart->address_id,
             ]);
         }
+    }
+
+    private function addCouponToCart($cart, $request): array
+    {
+        if (!$request->filled('code')) {
+            return ['success' => false, 'message' => 'Coupon code is required'];
+        }
+
+        $code = strtoupper(preg_replace('/\s+/', '', $request->code));
+
+        $coupon = Coupon::where('shop_id', $cart->shop_id)
+            ->where('code', $code)
+            ->active()
+            ->first();
+
+        if (!$coupon) {
+            return ['success' => false, 'message' => 'Invalid coupon'];
+        }
+
+        // non-stackable coupon replaces whatever else was manually applied
+        if (!$coupon->is_stackable) {
+            AcartCoupon::where('acart_id', $cart->acart_id)->delete();
+        }
+
+        AcartCoupon::updateOrCreate(
+            [
+                'acart_id' => $cart->acart_id,
+                'coupon_code' => $code,
+            ],
+            [
+                'coupon_id' => $coupon->coupon_id,
+                'shop_id' => $cart->shop_id,
+                'type' => $coupon->type,
+                'value' => $coupon->value,
+                'priority' => $coupon->priority,
+            ]
+        );
+
+        return ['success' => true, 'message' => 'Coupon applied', 'code' => $code];
+    }
+
+    private function removeCouponFromCart($cart, $request): void
+    {
+        AcartCoupon::where('acart_id', $cart->acart_id)
+            ->where('coupon_code', $request->code)
+            ->delete();
     }
 
     private function startVivaPayment($cart, $request)
@@ -1166,6 +1243,7 @@ class CartController extends Controller
                 'shipped_quantity' => $shipped,
             ]);
         }
+        $this->copyCouponsToOrder($cart, $order);
         return $order;
     }
 
@@ -1206,6 +1284,7 @@ class CartController extends Controller
                 'coupon_id' => $cartData['coupon_id'],
                 'coupon_code' => $cartData['coupon_code'],
                 'discount_amount' => $cart->discount_amount,
+                'coupon_discount' => $cart->coupon_discount,
                 'subtotal' => $cartData['subtotal'],
                 'order_total' => $cartData['order_total'],
                 'tax_amount' => $cartData['tax_amount'],
@@ -1252,6 +1331,7 @@ class CartController extends Controller
                     'shipped_quantity' => $shipped,
                 ]);
             }
+            $this->copyCouponsToOrder($cart, $order);
             $cart->update([
                 'order_id' => $order->order_id,
                 'checkout_id' => $request->checkout_id,
@@ -1280,9 +1360,21 @@ class CartController extends Controller
 
     private function recalculateCart($cart)
     {
-        $subtotal = AcartItem::where('acart_id',$cart->acart_id)->sum('line_total');
-
         $itemCount = AcartItem::where('acart_id',$cart->acart_id)->sum('quantity');
+
+        $codes = AcartCoupon::where('acart_id', $cart->acart_id)
+            ->pluck('coupon_code')
+            ->toArray();
+
+        // PricingEngine reads items straight off the Acart model and folds
+        // in both auto pricing rules (bundle/volume) and coupon codes
+        // (manual + is_auto) in one pass — same engine checkout will use.
+        $result = app(PricingEngine::class)->calculate($cart, $codes);
+
+        $subtotal = $result['subtotal'];
+        $ruleDiscount = $result['rule_discount'] ?? 0;
+        $couponDiscount = $result['coupon_discount'] ?? 0;
+        $discountAmount = $result['total_discount'];
 
         $paymentFee = $this->calculatePaymentFee($cart, $subtotal);
 
@@ -1292,7 +1384,7 @@ class CartController extends Controller
         $preTaxTotal =
             (float)$subtotal
             + (float)$cart->shipping_cost
-            - (float)$cart->discount_amount
+            - (float)$discountAmount
             + (float)$paymentFee
             + (float)$cart->shipping_protection_fee;
 
@@ -1307,6 +1399,9 @@ class CartController extends Controller
         $cart->update([
             'items_count' => $itemCount,
             'subtotal' => $subtotal,
+            'discount_amount' => round($discountAmount, 2),
+            'coupon_discount' => round($couponDiscount, 2),
+            'rule_discount' => round($ruleDiscount, 2),
             'payment_fee' => $paymentFee,
             'tax_amount' => round($taxAmount, 2),
             'cart_total' => round($cartTotal, 2),
@@ -1314,6 +1409,60 @@ class CartController extends Controller
             'expires_at' => now()->addHours(48),
             'cart_version' => $cart->cart_version + 1,
         ]);
+
+        $breakdownCoupons = collect($result['coupon_breakdown']);
+        $breakdownCodes = $breakdownCoupons->pluck('code')->filter()->all();
+
+        AcartCoupon::where('acart_id', $cart->acart_id)
+            ->whereNotIn('coupon_code', $breakdownCodes)
+            ->delete();
+
+        if ($breakdownCoupons->isNotEmpty()) {
+            $couponMeta = Coupon::whereIn('coupon_id', $breakdownCoupons->pluck('coupon_id'))
+                ->get()
+                ->keyBy('coupon_id');
+
+            foreach ($breakdownCoupons as $c) {
+                $meta = $couponMeta->get($c['coupon_id']);
+
+                AcartCoupon::updateOrCreate(
+                    [
+                        'acart_id' => $cart->acart_id,
+                        'coupon_code' => $c['code'],
+                    ],
+                    [
+                        'coupon_id' => $c['coupon_id'],
+                        'shop_id' => $cart->shop_id,
+                        'type' => $c['type'],
+                        'value' => $meta->value ?? null,
+                        'priority' => $meta->priority ?? null,
+                        'discount_amount' => $c['discount'],
+                    ]
+                );
+            }
+        }
+
+        AcartDiscount::where('acart_id', $cart->acart_id)
+            ->where('discount_source', 'rule')
+            ->delete();
+
+        if ($ruleDiscount > 0 && $result['rule_name']) {
+            AcartDiscount::create([
+                'acart_id' => $cart->acart_id,
+                'shop_id' => $cart->shop_id,
+                'discount_code' => null,
+                'discount_source' => 'rule',
+                'discount_type' => $result['rule_type'] ?? 'auto', // 'bundle' | 'volume'
+                'discount_value' => null,
+                'applied_amount' => round($ruleDiscount, 2),
+                'is_stackable' => false,
+                'meta' => [
+                    'rule_id' => $result['rule_id'] ?? null,
+                    'name' => $result['rule_name'],
+                ],
+                'discount_status' => 'applied',
+            ]);
+        }
     }
 
     private function calculatePaymentFee($cart, $subtotal)
@@ -1613,16 +1762,22 @@ class CartController extends Controller
         }
     }
 
-    public function removeCoupon(Request $request)
+    private function copyCouponsToOrder($cart, $order): void
     {
-        $acart = Acart::where('cart_token', $request->cart_token)->first();
+        $coupons = AcartCoupon::where('acart_id', $cart->acart_id)->get();
 
-        AcartCoupon::where('acart_id', $acart->acart_id)
-            ->where('coupon_code', $request->code)
-            ->delete();
-
-        $this->recalculateCart($acart);
-
-        return response()->json(['success' => true]);
+        foreach ($coupons as $c) {
+            OrderCoupon::create([
+                'order_id' => $order->order_id,
+                'coupon_id' => $c->coupon_id,
+                'shop_id' => $cart->shop_id,
+                'coupon_code' => $c->coupon_code,
+                'discount_amount' => $c->discount_amount,
+                'type' => $c->type,
+                'value' => $c->value,
+                'priority' => $c->priority,
+            ]);
+        }
     }
+
 }

@@ -28,7 +28,7 @@ class PricingRule extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'price'=> 'float',
-        'discount_percent'=> 'integer',
+        'discount_percent'=> 'float',
         'starts_at' => 'datetime',
         'expires_at' => 'datetime'
     ];
@@ -41,6 +41,12 @@ class PricingRule extends Model
     public function cats(): BelongsToMany
     {
         return $this->belongsToMany(Cat::class, 'pricing_rule_cats', 'pricing_rule_id', 'cat_id');
+    }
+
+    public function badges(): BelongsToMany
+    {
+        return $this->belongsToMany(Badge::class, 'badge_rules', 'pricing_rule_id', 'badge_id')
+            ->withTimestamps();
     }
 
     public function scopeActive($query)
@@ -63,4 +69,24 @@ class PricingRule extends Model
             (!$this->starts_at || $this->starts_at <= $now) &&
             (!$this->expires_at || $this->expires_at >= $now);
     }
+
+    /**
+     * Prefer the merchant-set name (the same field PricingRuleService
+     * already uses for the cart-page rule-discount line) so the
+     * product-card/PDP badge and the cart line always show identical
+     * text — never two different labels for the same promo. Computed
+     * fallback only kicks in for legacy rows with no name set.
+     */
+    public function getLabelAttribute(): string
+    {
+        if (!empty($this->name)) {
+            return $this->name;
+        }
+
+        return $this->type === 'bundle'
+            ? sprintf('%d for £%s', $this->min_qty, number_format($this->price, 2))
+            : sprintf('%s%% off %d+', rtrim(rtrim(number_format($this->discount_percent, 2), '0'), '.'), $this->min_qty);
+    }
+
+
 }

@@ -20,4 +20,10 @@ class OrderCoupon extends Model
         'priority',
         'shop_id',
     ];
+
+    public function coupon()
+    {
+        return $this->hasOne(Coupon::class, 'coupon_id', 'coupon_id')
+            ->select(['coupon_id', 'code', 'display_title', 'type']);
+    }
 }

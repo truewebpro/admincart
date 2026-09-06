@@ -170,7 +170,11 @@
                                 <h4>Discount</h4>
                                 <div class="w-75">
                                     <div class="d-flex justify-space-between mb-1 pb-1 border-b-sm">
-                                        <div>{{orderDetail.coupon_code}}</div>
+                                        <div v-if="order_coupons?.length" v-for="(code,cdx) in order_coupons" :key="cdx" class="d-flex ga-2">
+                                            <v-chip density="compact" color="success">{{code?.coupon_code}}</v-chip>
+                                            <v-chip density="compact" color="primary">{{code?.coupon?.display_title}}</v-chip>
+                                        </div>
+                                        <div v-else>{{orderDetail.coupon_code}}</div>
                                         <div>- £{{ orderDetail.discount_amount}}</div>
                                     </div>
                                 </div>
@@ -605,6 +609,7 @@ export default {
             shippingOptions: [],
             shippingOptionsLoading: false,
             selectedShippingOption: null,
+            order_coupons:[],
         }
     },
     watch: {
@@ -652,6 +657,7 @@ export default {
                     this.previous_id = respData.previous_id;
                     this.next_id = respData.next_id;
                     this.latest_id = respData.latest_id;
+                    this.order_coupons = orderData.order_coupons || null;
                 })
         },
         goToOrder(id){

@@ -31,7 +31,9 @@ class PricingEngine
             'total_discount' => $ruleResult['discount'] + $couponResult['discount'],
             'final_total' => $subtotal - $ruleResult['discount'] - $couponResult['discount'],
             'coupon_breakdown' => $couponResult['breakdown'],
-            'rule_name' => $ruleResult['applied_rule']
+            'rule_name' => $ruleResult['applied_rule'],
+            'rule_id' => $ruleResult['applied_rule_id'],
+            'rule_type' => $ruleResult['applied_rule_type'],
         ];
     }
 

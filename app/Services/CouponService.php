@@ -9,15 +9,10 @@ class CouponService
 {
     public function apply($cart, $shopId, $codes = [],$customerId = null): array
     {
-        $totalDiscount = 0;
-        $breakdown = [];
-
         $codes = array_unique($codes);
 
         $subtotal = collect($cart)
             ->sum(fn($i) => $i['price'] * $i['qty']);
-
-        $remainingTotal = $subtotal;
 
         $coupons = Coupon::with(['products', 'cats'])
             ->where('shop_id', $shopId)
@@ -29,6 +24,12 @@ class CouponService
             ->orderBy('priority','asc')
             ->get();
 
+        $stackable = [];
+        $exclusive = [];
+
+        // First pass: evaluate EVERY eligible coupon (no early break), so
+        // exclusive (non-stackable) ones can be compared against each
+        // other below instead of just taking whichever sorted first.
         foreach ($coupons as $coupon) {
 
             // ✅ validate coupon
@@ -45,27 +46,59 @@ class CouponService
             if (empty($eligibleItems)) continue;
 
             $discount = $this->calculateDiscount($coupon, $eligibleItems);
+
+            if ($discount <= 0) continue;
+
+            $entry = ['coupon' => $coupon, 'discount' => $discount];
+
+            if ($coupon->is_stackable) {
+                $stackable[] = $entry;
+            } else {
+                $exclusive[] = $entry;
+            }
+        }
+
+        // Among mutually-exclusive coupons, only the single BEST one
+        // applies — not whichever happened to sort first by priority.
+        // This keeps a customer-facing "4 for £19.99" badge honest: the
+        // customer always gets whichever eligible auto-promo saves them
+        // the most, never a smaller one that merely came first.
+        $bestExclusive = collect($exclusive)->sortByDesc('discount')->first();
+
+        $applied = $stackable;
+        if ($bestExclusive) {
+            $applied[] = $bestExclusive;
+        }
+
+        // Second pass: apply the selected set, capping against a
+        // remaining-total so no single coupon's discount can push the
+        // running total below zero.
+        $totalDiscount = 0;
+        $remainingTotal = $subtotal;
+        $breakdown = [];
+
+        foreach ($applied as $entry) {
+            $coupon = $entry['coupon'];
+
+            $eligibleItems = $this->getEligibleItems($cart, $coupon);
             $eligibleTotal = collect($eligibleItems)
                 ->sum(fn($i) => $i['price'] * $i['qty']);
 
-            // 🔥 double safety
-            $discount = min($discount, $eligibleTotal);
-            $discount = min($discount, $remainingTotal); // safety
+            $discount = min($entry['discount'], $eligibleTotal);
+            $discount = min($discount, $remainingTotal);
 
             $totalDiscount += $discount;
             $remainingTotal -= $discount;
+
             $breakdown[] = [
                 'coupon_id' => $coupon->coupon_id,
-                'code' => $coupon->code ?: $coupon->display_title ?: $coupon->title,
+                'code' => $coupon->code,     // real code — always the persistence key
+                'label' => $coupon->label,   // friendly customer-facing text
                 'discount' => round($discount, 2),
                 'type' => $coupon->type,
                 'is_auto' => $coupon->is_auto,
                 'title' => $coupon->display_title,
             ];
-
-            if (!$coupon->is_stackable) {
-                break;
-            }
         }
 
         return [
@@ -76,7 +109,9 @@ class CouponService
 
     private function isValid($coupon, $subtotal, $customerId):bool
     {
-        // min order
+        // min order — checked against the ORIGINAL cart subtotal, not a
+        // running total that shrinks as other coupons apply. A coupon
+        // with no min_order_amount always passes this check.
         if ($coupon->min_order_amount && $subtotal < $coupon->min_order_amount) {
             return false;
         }
