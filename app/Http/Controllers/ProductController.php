@@ -330,11 +330,13 @@ class ProductController extends Controller
                     'brands' => Brand::query()
                         ->select('brand_id', 'brand_name')
                         ->where('shop_id', $shopId)
+                        ->orderBy('brand_name', 'ASC')
                         ->get(),
 
                     'ptypes' => ProductType::query()
                         ->select('product_type_id', 'product_type_name')
                         ->where('shop_id', $shopId)
+                        ->orderBy('product_type_name', 'ASC')
                         ->get(),
                 ];
             }

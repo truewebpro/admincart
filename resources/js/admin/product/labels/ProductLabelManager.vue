@@ -50,171 +50,194 @@
                             </div>
                         </template>
                     </v-data-table>
-                    <!-- Create / Edit dialog -->
-                    <v-dialog v-model="showLabelDialog" max-width="600">
-                        <v-card>
-                            <v-card-title>{{ isEditMode ? 'Edit Label' : 'Create Label' }}</v-card-title>
-                            <v-card-text>
-                                <v-text-field
-                                    variant="underlined" density="comfortable" persistentPlaceholder
-                                    v-model="defaultLabel.label" label="Label Text"
-                                    placeholder="e.g. New Arrival"
-                                />
-                                <v-switch
-                                    v-model="defaultLabel.use_label" color="primary" density="comfortable"
-                                    label="Show this text (off = image only)"
-                                />
-
-                                <div class="mb-4">
-                                    <v-img v-if="defaultLabel.image != null" :src="cdn+defaultLabel.image" max-height="100"></v-img>
-                                    <v-file-upload v-model="imageFile" density="compact"
-                                                   icon="mdi-tag-plus"
-                                                   accept="image/*" title="Label Image (Optional)"
-                                                   browse-text="Image (Optional)"></v-file-upload>
-                                </div>
-
-                                <v-select
-                                    variant="underlined" density="comfortable" persistentPlaceholder
-                                    v-model="defaultLabel.position"
-                                    :items="positions"
-                                    item-title="label"
-                                    item-value="value"
-                                    label="Position"
-                                />
-
-                                <v-row dense>
-                                    <v-col cols="6">
-                                        <v-text-field
-                                            variant="underlined" density="comfortable" persistentPlaceholder
-                                            v-model="defaultLabel.color" label="Text Color" placeholder="#FFFFFF"
-                                        />
-                                    </v-col>
-                                    <v-col cols="6">
-                                        <v-text-field
-                                            variant="underlined" density="comfortable" persistentPlaceholder
-                                            v-model="defaultLabel.bg_color" label="Background Color" placeholder="#16A34A"
-                                        />
-                                    </v-col>
-                                </v-row>
-
-                                <v-combobox
-                                    variant="underlined" density="comfortable" persistentPlaceholder
-                                    v-model="defaultLabel.style"
-                                    :items="['solid', 'outline', 'ribbon']"
-                                    label="Style"
-                                />
-
-                                <v-switch
-                                    v-model="defaultLabel.is_active" color="primary" density="comfortable"
-                                    label="Active"
-                                />
-                            </v-card-text>
-                            <v-card-actions>
-                                <v-spacer />
-                                <v-btn variant="text" @click="showLabelDialog = false">Cancel</v-btn>
-                                <v-btn color="primary" @click="saveLabel" :loading="saveLoading">Save</v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog>
-
-                    <!-- Rule builder dialog -->
-                    <v-dialog v-model="showRulesDialog" max-width="700">
-                        <v-card>
-                            <v-card-title>Rules for "{{ rulesLabel?.label }}"</v-card-title>
-                            <v-card-text>
-                                <p class="text-caption text-medium-emphasis mb-3">
-                                    A label with no rules is manual (assign products directly instead).
-                                    Any rules here make it auto-apply — products are re-evaluated on save.
-                                </p>
-
-                                <div v-for="(rule, idx) in rules" :key="idx" class="d-flex ga-2 align-center mb-2">
-                                    <v-select
-                                        v-model="rule.column" :items="columnOptions" item-title="label" item-value="value"
-                                        label="Field" density="compact" variant="outlined" style="max-width:140px"
-                                        @update:model-value="onColumnChange(rule)"
-                                    />
-                                    <v-select
-                                        v-model="rule.relation" :items="relationOptionsFor(rule.column)" item-title="label" item-value="value"
-                                        label="Condition" density="compact" variant="outlined" style="max-width:160px"
-                                    />
-                                    <v-select
-                                        v-if="rule.column === 'brand'"
-                                        v-model="rule.condition" :items="brands" item-title="brand_name" item-value="brand_id"
-                                        label="Brand" density="compact" variant="outlined"
-                                    />
-                                    <v-select
-                                        v-else-if="rule.column === 'type'"
-                                        v-model="rule.condition" :items="productTypes" item-title="product_type_name" item-value="product_type_id"
-                                        label="Product Type" density="compact" variant="outlined"
-                                    />
-                                    <v-text-field
-                                        v-else
-                                        v-model="rule.condition" label="Value" density="compact" variant="outlined"
-                                    />
-                                    <v-select
-                                        v-if="idx === 0"
-                                        v-model="rule.join_type" :items="[{value:'and',label:'Match ALL (AND)'},{value:'or',label:'Match ANY (OR)'}]"
-                                        item-title="label" item-value="value"
-                                        label="Combine rules" density="compact" variant="outlined" style="max-width:180px"
-                                    />
-                                    <v-btn icon="mdi-close" size="small" variant="text" color="red" @click="removeRule(idx)" />
-                                </div>
-
-                                <v-btn variant="outlined" prependIcon="mdi-plus" size="small" @click="addRule">
-                                    Add Condition
-                                </v-btn>
-                            </v-card-text>
-                            <v-card-actions>
-                                <v-spacer />
-                                <v-btn variant="text" @click="showRulesDialog = false">Cancel</v-btn>
-                                <v-btn color="primary" @click="saveRules" :loading="rulesLoading">Save & Re-sync Products</v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog>
-
-                    <!-- Manual assign dialog -->
-                    <v-dialog v-model="showAssignDialog" max-width="600">
-                        <v-card>
-                            <v-card-title>Assign Products to "{{ assigningLabel?.label }}"</v-card-title>
-                            <v-card-text>
-                                <v-autocomplete
-                                    v-model="assignSearch"
-                                    :items="productOptions"
-                                    item-title="title"
-                                    item-value="product_id"
-                                    label="Search products"
-                                    chips
-                                    multiple
-                                    closable-chips
-                                    variant="underlined"
-                                    density="comfortable"
-                                    no-filter
-                                    @update:search="onProductSearch"
-                                />
-                            </v-card-text>
-                            <v-card-actions>
-                                <v-spacer />
-                                <v-btn variant="text" @click="showAssignDialog = false">Cancel</v-btn>
-                                <v-btn color="primary" @click="saveAssign" :loading="assignLoading">Save</v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog>
-
-                    <!-- Delete confirm -->
-                    <v-dialog v-model="deleteDialog" max-width="400">
-                        <v-card>
-                            <v-card-title>Delete Label?</v-card-title>
-                            <v-card-text>This removes it from every product it's on. This can't be undone.</v-card-text>
-                            <v-card-actions>
-                                <v-spacer />
-                                <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
-                                <v-btn color="red" @click="deleteLabel" :loading="deleteLoading">Delete</v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog>
+                </v-card>
+            </v-col>
+            <v-col class="bg-grey-lighten-4" v-if="labels.length > 0" v-for="(item,index) in labels" :key="index" cols="6" lg="3">
+                <v-card class="section-card position-relative">
+                    <div class="position-relative">
+                        <v-img :src="cdn+'noimage.png'"></v-img>
+                        <div
+                            class="px-2 label"
+                            :class="item.position + ' ' + item.style"
+                            :style="'background-color:'+item.bg_color + '; color:'+item.color"
+                        >{{item.label}}</div>
+                    </div>
+                    <v-card-text class="text-center">
+                        <div class="font-weight-bold">Brand</div>
+                        <div>Product Title as in card</div>
+                        <v-rating density="compact"/>
+                        <div>
+                            <span class="text-h5">$4.99</span>
+                        </div>
+                        <v-btn density="compact" size="small">Earn Reward Points</v-btn>
+                        <v-divider class="my-2"/>
+                        <v-btn block>Quick Buy</v-btn>
+                    </v-card-text>
                 </v-card>
             </v-col>
         </v-row>
+        <!-- Create / Edit dialog -->
+        <v-dialog v-model="showLabelDialog" max-width="600">
+            <v-card>
+                <v-card-title>{{ isEditMode ? 'Edit Label' : 'Create Label' }}</v-card-title>
+                <v-card-text>
+                    <v-text-field
+                        variant="underlined" density="comfortable" persistentPlaceholder
+                        v-model="defaultLabel.label" label="Label Text"
+                        placeholder="e.g. New Arrival"
+                    />
+                    <v-switch
+                        v-model="defaultLabel.use_label" color="primary" density="comfortable"
+                        label="Show this text (off = image only)"
+                    />
+
+                    <div class="mb-4">
+                        <v-img v-if="defaultLabel.image != null" :src="cdn+defaultLabel.image" max-height="100"></v-img>
+                        <v-file-upload v-model="imageFile" density="compact"
+                                       icon="mdi-tag-plus"
+                                       accept="image/*" title="Label Image (Optional)"
+                                       browse-text="Image (Optional)"></v-file-upload>
+                    </div>
+
+                    <v-select
+                        variant="underlined" density="comfortable" persistentPlaceholder
+                        v-model="defaultLabel.position"
+                        :items="positions"
+                        item-title="label"
+                        item-value="value"
+                        label="Position"
+                    />
+
+                    <v-row dense>
+                        <v-col cols="6">
+                            <v-text-field
+                                variant="underlined" density="comfortable" persistentPlaceholder
+                                v-model="defaultLabel.color" label="Text Color" placeholder="#FFFFFF"
+                            />
+                        </v-col>
+                        <v-col cols="6">
+                            <v-text-field
+                                variant="underlined" density="comfortable" persistentPlaceholder
+                                v-model="defaultLabel.bg_color" label="Background Color" placeholder="#16A34A"
+                            />
+                        </v-col>
+                    </v-row>
+
+                    <v-combobox
+                        variant="underlined" density="comfortable" persistentPlaceholder
+                        v-model="defaultLabel.style"
+                        :items="['solid', 'outline', 'ribbon']"
+                        label="Style"
+                    />
+
+                    <v-switch
+                        v-model="defaultLabel.is_active" color="primary" density="comfortable"
+                        label="Active"
+                    />
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn variant="text" @click="showLabelDialog = false">Cancel</v-btn>
+                    <v-btn color="primary" @click="saveLabel" :loading="saveLoading">Save</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <!-- Rule builder dialog -->
+        <v-dialog v-model="showRulesDialog" max-width="700">
+            <v-card>
+                <v-card-title>Rules for "{{ rulesLabel?.label }}"</v-card-title>
+                <v-card-text>
+                    <p class="text-caption text-medium-emphasis mb-3">
+                        A label with no rules is manual (assign products directly instead).
+                        Any rules here make it auto-apply — products are re-evaluated on save.
+                    </p>
+
+                    <div v-for="(rule, idx) in rules" :key="idx" class="d-flex ga-2 align-center mb-2">
+                        <v-select
+                            v-model="rule.column" :items="columnOptions" item-title="label" item-value="value"
+                            label="Field" density="compact" variant="outlined" style="max-width:140px"
+                            @update:model-value="onColumnChange(rule)"
+                        />
+                        <v-select
+                            v-model="rule.relation" :items="relationOptionsFor(rule.column)" item-title="label" item-value="value"
+                            label="Condition" density="compact" variant="outlined" style="max-width:160px"
+                        />
+                        <v-select
+                            v-if="rule.column === 'brand'"
+                            v-model="rule.condition" :items="brands" item-title="brand_name" item-value="brand_id"
+                            label="Brand" density="compact" variant="outlined"
+                        />
+                        <v-select
+                            v-else-if="rule.column === 'type'"
+                            v-model="rule.condition" :items="productTypes" item-title="product_type_name" item-value="product_type_id"
+                            label="Product Type" density="compact" variant="outlined"
+                        />
+                        <v-text-field
+                            v-else
+                            v-model="rule.condition" label="Value" density="compact" variant="outlined"
+                        />
+                        <v-select
+                            v-if="idx === 0"
+                            v-model="rule.join_type" :items="[{value:'and',label:'Match ALL (AND)'},{value:'or',label:'Match ANY (OR)'}]"
+                            item-title="label" item-value="value"
+                            label="Combine rules" density="compact" variant="outlined" style="max-width:180px"
+                        />
+                        <v-btn icon="mdi-close" size="small" variant="text" color="red" @click="removeRule(idx)" />
+                    </div>
+
+                    <v-btn variant="outlined" prependIcon="mdi-plus" size="small" @click="addRule">
+                        Add Condition
+                    </v-btn>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn variant="text" @click="showRulesDialog = false">Cancel</v-btn>
+                    <v-btn color="primary" @click="saveRules" :loading="rulesLoading">Save & Re-sync Products</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <!-- Manual assign dialog -->
+        <v-dialog v-model="showAssignDialog" max-width="600">
+            <v-card>
+                <v-card-title>Assign Products to "{{ assigningLabel?.label }}"</v-card-title>
+                <v-card-text>
+                    <v-autocomplete
+                        v-model="assignSearch"
+                        :items="productOptions"
+                        item-title="title"
+                        item-value="product_id"
+                        label="Search products"
+                        chips
+                        multiple
+                        closable-chips
+                        variant="underlined"
+                        density="comfortable"
+                        no-filter
+                        @update:search="onProductSearch"
+                    />
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn variant="text" @click="showAssignDialog = false">Cancel</v-btn>
+                    <v-btn color="primary" @click="saveAssign" :loading="assignLoading">Save</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <!-- Delete confirm -->
+        <v-dialog v-model="deleteDialog" max-width="400">
+            <v-card>
+                <v-card-title>Delete Label?</v-card-title>
+                <v-card-text>This removes it from every product it's on. This can't be undone.</v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
+                    <v-btn color="red" @click="deleteLabel" :loading="deleteLoading">Delete</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 
@@ -414,8 +437,13 @@ export default {
 
         openAssign(l) {
             this.assigningLabel = l;
-            this.assignSearch = [];
+            const assigned = l.assigned_products || [];
+            this.assignSearch = assigned.map(p => p.product_id);
+            const existingIds = new Set(this.productOptions.map(p => p.product_id));
+            const toAdd = assigned.filter(p => !existingIds.has(p.product_id));
+            this.productOptions = [...this.productOptions, ...toAdd];
             this.showAssignDialog = true;
+
         },
         async saveAssign() {
             this.assignLoading = true;
@@ -459,4 +487,13 @@ export default {
 </script>
 
 <style scoped>
+.label {
+    position: absolute;
+    &.top-left{top:4px;left:4px}
+    &.bottom-left{bottom:4px;left:4px}
+    &.top-right{top:4px;right:4px}
+    &.bottom-right{bottom:4px;right:4px}
+    &.top-center{text-align:center;top:4px;left:50%;translate:-50%;width: 95%}
+    &.bottom-center{text-align:center;bottom:0;left:50%;translate:-50%;width: 95%}
+}
 </style>
