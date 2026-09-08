@@ -24,7 +24,7 @@ class ProductLabelController extends Controller
         $shopId = session('shop_id');
 
         $labels = ProductLabel::withCount('products')
-            ->with('rules')
+            ->with(['rules', 'products:product_id,title'])
             ->where('shop_id', $shopId)
             ->orderBy('created_at', 'desc')
             ->get()
@@ -41,6 +41,10 @@ class ProductLabelController extends Controller
                     'is_active' => $l->is_active,
                     'products_count' => $l->products_count,
                     'is_smart' => $l->rules->isNotEmpty(),
+                    'assigned_products' => $l->products->map(fn ($p) => [
+                        'product_id' => $p->product_id,
+                        'title' => $p->title,
+                    ]),
                     'rules' => $l->rules->map(fn ($r) => [
                         'id' => $r->id,
                         'column' => $r->column->value,
