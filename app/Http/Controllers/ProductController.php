@@ -72,7 +72,10 @@ class ProductController extends Controller
         $sproduct->variants = collect(
             $this->attachLoyaltyPointsToMany($shopId, $sproduct->variants)
         );
-        $prolabels = Product::with('productLabels')->where('handle',$slug)->first();
+        $prolabels = Product::with('productLabels')
+            ->where('shop_id',$shopId)
+            ->where('handle',$slug)
+            ->first();
         $sproduct->labels = $prolabels->productLabels->map->toLabelArray()->filter()->values() ?? [];
         return response()->json([
             'status' => true,
