@@ -59,46 +59,87 @@ class HomepageController extends Controller
             CacheKeys::lazySections($shopId),
             now()->addHours(12),
             function () use ($shopId) {
-                $homepage = Homepage::with('lsections')
-                    ->where('shop_id','=',$shopId)
-                    ->first();
-                if (!$homepage) {
-                    return [];
-                }
-                $asections = $homepage->lsections ?? collect();
-                foreach ($asections as &$section) {
-                    if ($section->stype_slug !== 'featured_products') {
-                        continue;
-                    }
-                    $sectionJson = $section->section_json;
-                    $stypeJson = $sectionJson['stype_json'];
-                    $catId = $stypeJson['cat_id'];
-                    $cat = Cat::where('cat_id', $catId)->first();
-                    $products = Product::with(['variants.astock', 'brand', 'ptype'])
-                        ->where('shop_id','=',$shopId)
-                        ->withCount('reviews')->withAvg('reviews','rating')
-                        ->whereIn('product_id', function ($query) use ($catId) {
-                            $query->select('product_id')
-                                ->from('catpros')
-                                ->where('cat_id', $catId);
-                        })
-                        ->limit($stypeJson['plimit'] ?? 12)
-                        ->get();
-                    $allVariants = $products->flatMap(fn ($product) => $product->variants);
-                    $this->attachLoyaltyPointsToMany($shopId, $allVariants);
-                    $stypeJson['cat_slug'] = $cat->cat_slug ?? null;
-                    $stypeJson['cat_image'] = $cat->cat_image ?? null;
-                    $stypeJson['catpros'] = $products ?? [];
-                    $sectionJson['stype_json'] = $stypeJson;
-                    $section->section_json = $sectionJson;
-                }
-                return $asections;
+//                $homepage = Homepage::with('lsections')
+//                    ->where('shop_id','=',$shopId)
+//                    ->first();
+//                if (!$homepage) {
+//                    return [];
+//                }
+//                $asections = $homepage->lsections ?? collect();
+//                foreach ($asections as &$section) {
+//                    if ($section->stype_slug !== 'featured_products') {
+//                        continue;
+//                    }
+//                    $sectionJson = $section->section_json;
+//                    $stypeJson = $sectionJson['stype_json'];
+//                    $catId = $stypeJson['cat_id'];
+//                    $cat = Cat::where('cat_id', $catId)->first();
+//                    $products = Product::with(['variants.astock', 'brand', 'ptype','productLabels'])
+//                        ->where('shop_id','=',$shopId)
+//                        ->withCount('reviews')->withAvg('reviews','rating')
+//                        ->whereIn('product_id', function ($query) use ($catId) {
+//                            $query->select('product_id')
+//                                ->from('catpros')
+//                                ->where('cat_id', $catId);
+//                        })
+//                        ->limit($stypeJson['plimit'] ?? 12)
+//                        ->get();
+//                    $products->each(function ($product) {
+//                        $product->labels = $product->productLabels->map->toLabelArray()->filter()->values();
+//                        $product->unsetRelation('productLabels');
+//                    });
+//                    $allVariants = $products->flatMap(fn ($product) => $product->variants);
+//                    $this->attachLoyaltyPointsToMany($shopId, $allVariants);
+//                    $stypeJson['cat_slug'] = $cat->cat_slug ?? null;
+//                    $stypeJson['cat_image'] = $cat->cat_image ?? null;
+//                    $stypeJson['catpros'] = $products ?? [];
+//                    $sectionJson['stype_json'] = $stypeJson;
+//                    $section->section_json = $sectionJson;
+//                }
+//                return $asections;
             }
         );
+        $homepage = Homepage::with('lsections')
+            ->where('shop_id','=',$shopId)
+            ->first();
+        if (!$homepage) {
+            return [];
+        }
+        $asections = $homepage->lsections ?? collect();
+        foreach ($asections as &$section) {
+            if ($section->stype_slug !== 'featured_products') {
+                continue;
+            }
+            $sectionJson = $section->section_json;
+            $stypeJson = $sectionJson['stype_json'];
+            $catId = $stypeJson['cat_id'];
+            $cat = Cat::where('cat_id', $catId)->first();
+            $products = Product::with(['variants.astock', 'brand', 'ptype','productLabels'])
+                ->where('shop_id','=',$shopId)
+                ->withCount('reviews')->withAvg('reviews','rating')
+                ->whereIn('product_id', function ($query) use ($catId) {
+                    $query->select('product_id')
+                        ->from('catpros')
+                        ->where('cat_id', $catId);
+                })
+                ->limit($stypeJson['plimit'] ?? 12)
+                ->get();
+            $products->each(function ($product) {
+                $product->labels = $product->productLabels->map->toLabelArray()->filter()->values();
+                $product->unsetRelation('productLabels');
+            });
+            $allVariants = $products->flatMap(fn ($product) => $product->variants);
+            $this->attachLoyaltyPointsToMany($shopId, $allVariants);
+            $stypeJson['cat_slug'] = $cat->cat_slug ?? null;
+            $stypeJson['cat_image'] = $cat->cat_image ?? null;
+            $stypeJson['catpros'] = $products ?? [];
+            $sectionJson['stype_json'] = $stypeJson;
+            $section->section_json = $sectionJson;
+        }
 
         return response()->json([
             'success' => true,
-            'hsections' => $data,
+            'hsections' => $asections,
         ]);
 
     }

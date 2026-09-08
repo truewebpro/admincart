@@ -66,38 +66,21 @@ class BrandController extends Controller
                 'brand_id',
                 'tags'
             )
-            ->with('brand','variants.astock')
+            ->with('brand','variants.astock','productLabels')
             ->withCount('reviews')
             ->withAvg('reviews','rating')
             ->where('brand_id', $brand->brand_id)
             ->where('product_status', 'Active')
             ->paginate(12);
 
+        $brand_products->getCollection()->each(function ($product) {
+            $product->labels = $product->productLabels->map->toLabelArray()->filter()->values();
+            $product->unsetRelation('productLabels');
+        });
+
         $allVariants = $brand_products->getCollection()->flatMap(fn ($product) => $product->variants);
         $this->attachLoyaltyPointsToMany($shopId, $allVariants);
-//        $brand_products = Cache::remember(
-//            CacheKeys::brandProducts($shopId, $brand_slug),
-//            now()->addHours(6),
-//            function () use ($brand) {
-//                return Product::query()
-//                    ->select(
-//                        'product_id',
-//                        'title',
-//                        'handle',
-//                        'featured_image',
-//                        'product_status',
-//                        'product_type_id',
-//                        'brand_id',
-//                        'tags'
-//                    )
-//                    ->with('brand','variants.astock')
-//                    ->withCount('reviews')
-//                    ->withAvg('reviews','rating')
-//                    ->where('brand_id', $brand->brand_id)
-//                    ->where('product_status', 'Active')
-//                    ->paginate(12);
-//            }
-//        );
+
 
         return response()->json([
             'status' => true,
@@ -106,8 +89,7 @@ class BrandController extends Controller
         ]);
     }
 
-    public function
-    getBrandSections(Request $request,$shopname,$brand_slug)
+    public function getBrandSections(Request $request,$shopname,$brand_slug)
     {
         $shopId = $request->shop_id;
         $data = Cache::remember(

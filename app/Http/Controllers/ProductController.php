@@ -72,7 +72,8 @@ class ProductController extends Controller
         $sproduct->variants = collect(
             $this->attachLoyaltyPointsToMany($shopId, $sproduct->variants)
         );
-
+        $prolabels = Product::with('productLabels')->where('handle',$slug)->first();
+        $sproduct->labels = $prolabels->productLabels->map->toLabelArray()->filter()->values() ?? [];
         return response()->json([
             'status' => true,
             'type' => "Product",
@@ -101,7 +102,7 @@ class ProductController extends Controller
                 $addons = Product::query()
                     ->select('product_id','title','handle','featured_image','product_status','product_type_id',
                         'brand_id','tags')
-                    ->with('brand','ptype','variants.astock')
+                    ->with('brand','ptype','variants.astock','productLabels')
                     ->withCount('reviews')->withAvg('reviews','rating')
                     ->where('shop_id','=',$shopId)->where('brand_id','=',$sproduct->brand_id)
                     ->whereNotIn('products.product_id', [$sproduct->product_id])
@@ -111,7 +112,7 @@ class ProductController extends Controller
                 $related_products = Product::query()
                     ->select('product_id','title','handle','featured_image','product_status','product_type_id',
                         'brand_id','tags')
-                    ->with('brand','ptype','variants.astock')
+                    ->with('brand','ptype','variants.astock','productLabels')
                     ->withCount('reviews')->withAvg('reviews','rating')
                     ->where('shop_id','=',$shopId)->where('product_type_id','=',$sproduct->product_type_id)
                     ->whereNotIn('products.product_id', [$sproduct->product_id])
@@ -123,7 +124,7 @@ class ProductController extends Controller
                     if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
                         $catId = $sectionArray['section_json']['stype_json']['cat_id'];
                         $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
-                        $products = Product::with(['variants.astock', 'brand', 'ptype'])
+                        $products = Product::with(['variants.astock', 'brand', 'ptype','productLabels'])
                             ->where('shop_id','=',$shopId)
                             ->whereIn('product_id', function ($query) use ($catId) {
                                 $query->select('product_id')
@@ -132,6 +133,10 @@ class ProductController extends Controller
                             })
                             ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
                             ->get();
+                        $products->each(function ($product) {
+                            $product->labels = $product->productLabels->map->toLabelArray()->filter()->values();
+                            $product->unsetRelation('productLabels');
+                        });
                         $allVariants = $products->flatMap(fn ($product) => $product->variants);
                         $this->attachLoyaltyPointsToMany($shopId, $allVariants);
                         $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
@@ -157,9 +162,17 @@ class ProductController extends Controller
                 'slug' => $slug,
             ]);
         }
+        $data['addons']->each(function ($product) {
+            $product->labels = $product->productLabels->map->toLabelArray()->filter()->values();
+            $product->unsetRelation('productLabels');
+        });
         $allAddons = $data['addons']->flatMap(fn ($product) => $product->variants);
         $this->attachLoyaltyPointsToMany($shopId, $allAddons);
 
+        $data['related_products']->each(function ($product) {
+            $product->labels = $product->productLabels->map->toLabelArray()->filter()->values();
+            $product->unsetRelation('productLabels');
+        });
         $allRpros = $data['related_products']->flatMap(fn ($product) => $product->variants);
         $this->attachLoyaltyPointsToMany($shopId, $allRpros);
 
@@ -249,7 +262,7 @@ class ProductController extends Controller
         $rquery = $request->q;
         $query = Product::query()
             ->select('product_id','title','handle','featured_image','product_status','product_type_id', 'brand_id','tags')
-            ->with('variants.astock','brand','ptype')
+            ->with('variants.astock','brand','ptype','productLabels')
             ->withCount('reviews')->withAvg('reviews','rating')
             ->withMin('variants','price')
             ->withSum('astock','quantity')
@@ -299,6 +312,10 @@ class ProductController extends Controller
                 $query->latest();
         }
         $products = $query->paginate(24);
+        $products->getCollection()->each(function ($product) {
+            $product->labels = $product->productLabels->map->toLabelArray()->filter()->values();
+            $product->unsetRelation('productLabels');
+        });
         $allVariants = $products->getCollection()->flatMap(fn ($product) => $product->variants);
         $this->attachLoyaltyPointsToMany($shopId, $allVariants);
 

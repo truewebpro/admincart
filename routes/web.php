@@ -21,6 +21,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PageSettingController;
 use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductLabelController;
 use App\Http\Controllers\PromoController;
 use App\Http\Controllers\ScustController;
 use App\Http\Controllers\SectionController;
@@ -212,6 +213,14 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/product/review/add',[ProductController::class,'addAdminProductReview']);
         Route::post('/product/update-unit-pack',[ProductController::class,'updateUnitPack']);
         Route::post('/product/save-tier-pricing',[ProductController::class,'saveTierPricing']);
+        //Product Labels Routes
+        Route::get('/product-label/list', [ProductLabelController::class, 'list']);
+        Route::get('/product-label/products', [ProductLabelController::class, 'products']);
+        Route::post('/product-label/save', [ProductLabelController::class, 'save']);
+        Route::post('/product-label/delete', [ProductLabelController::class, 'delete']);
+        Route::post('/product-label/save-rules', [ProductLabelController::class, 'saveRules']);
+        Route::post('/product-label/assign-products', [ProductLabelController::class, 'assignProducts']);
+
         Route::post('/product/add-faq',[FaqController::class,'addProductFaq']);
         Route::post('/product/edit-faq',[FaqController::class,'editProductFaq']);
         Route::post('/product/delete-faq',[FaqController::class,'deleteProductFaq']);

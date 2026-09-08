@@ -60,6 +60,7 @@
                     <v-list-item :to="{name:'tags'}" color="primary" title="Tags"  prepend-icon="mdi-tag-multiple" link/>
                     <v-list-item :to="{name:'poptions'}" color="primary" title="Options" prepend-icon="mdi-filter-variant" link/>
                     <v-list-item :to="{name:'Features'}" color="primary" title="Features" prepend-icon="mdi-feature-search-outline" link/>
+                    <v-list-item :to="{name:'ProductLabelManager'}" color="primary" title="Labels" prepend-icon="mdi-tag-plus" link/>
                 </v-list-group>
                 <v-list-item link :to="{name:'customers'}" color="primary" prepend-icon="mdi-account" title="Customers">
                 </v-list-item>

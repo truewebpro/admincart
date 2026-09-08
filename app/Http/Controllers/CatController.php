@@ -119,17 +119,16 @@ class CatController extends Controller
             ->join('catpros', 'products.product_id', '=', 'catpros.product_id')
                 ->where('catpros.cat_id', $catId)
                 ->where('products.shop_id', $shopId)
-            ->with(['variants.astock', 'brand', 'ptype'])
-//            ->where('shop_id','=',$shopId)
+            ->with(['variants.astock', 'brand', 'ptype','productLabels'])
             ->withCount('reviews')
             ->withAvg('reviews','rating')
-//            ->whereIn('product_id', function ($query) use ($catId) {
-//                $query->select('product_id')
-//                    ->from('catpros')
-//                    ->where('cat_id', $catId);
-//            })
             ->orderBy('catpros.position','asc')
             ->paginate(24);
+
+        $alpros->getCollection()->each(function ($product) {
+            $product->labels = $product->productLabels->map->toLabelArray()->filter()->values();
+            $product->unsetRelation('productLabels');
+        });
         $allVariants = $alpros->getCollection()->flatMap(fn ($product) => $product->variants);
         $this->attachLoyaltyPointsToMany($shopId, $allVariants);
 
@@ -175,7 +174,7 @@ class CatController extends Controller
                         $catSlug = Cat::where('cat_id', $catId)->value('cat_slug');
                         $products = Product::query()
                             ->select('product_id','title','handle','featured_image','product_status','product_type_id',
-                                'brand_id','tags')->with(['variants.astock', 'brand', 'ptype'])
+                                'brand_id','tags')->with(['variants.astock', 'brand', 'ptype','productLabels'])
                             ->where('shop_id','=',$shopId)
                             ->withCount('reviews')->withAvg('reviews','rating')
                             ->whereIn('product_id', function ($query) use ($catId) {
@@ -185,6 +184,10 @@ class CatController extends Controller
                             })
                             ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
                             ->get();
+                        $products->each(function ($product) {
+                            $product->labels = $product->productLabels->map->toLabelArray()->filter()->values();
+                            $product->unsetRelation('productLabels');
+                        });
                         $allVariants = $products->flatMap(fn ($product) => $product->variants);
                         $this->attachLoyaltyPointsToMany($shopId, $allVariants);
                         $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;

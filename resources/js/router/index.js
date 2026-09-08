@@ -9,6 +9,7 @@ import CartView from "@/admin/order/CartView.vue";
 import ProductsList from "@/admin/product/ProductsList.vue";
 import ProductNew from "@/admin/product/ProductNew.vue";
 import ProductEdit from "@/admin/product/ProductEdit.vue";
+import ProductLabelManager from "@/admin/product/labels/ProductLabelManager.vue";
 import InventoryList from "@/admin/stock/InventoryList.vue";
 import Cats from "@/admin/cat/Cats.vue";
 import CatNew from "@/admin/cat/CatNew.vue";
@@ -113,6 +114,7 @@ const routes = [
     {path: '/products',name: 'products',component:ProductsList},
     {path: '/products/new',name: 'productsnew',component:ProductNew},
     {path: '/products/:product_id',name: 'ProductEdit',component:ProductEdit,props: true},
+    {path: '/product-label-manager',name: 'ProductLabelManager',component:ProductLabelManager},
     {path: '/inventory',name: 'InventoryList',component:InventoryList},
     {path: '/categories',name: 'cats',component: Cats},
     {path: '/categories/new',name: 'catnew',component: CatNew},
