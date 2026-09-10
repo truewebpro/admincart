@@ -26,7 +26,12 @@ class OrderController extends Controller
         $query = Order::withTrashed()
             ->with('trackingEvents')
             ->withCount('orderItems')
-            ->where('shop_id','=',$shopId);
+            ->where('shop_id','=',$shopId)
+            ->withSum([
+                'paymentTransactions as refunded_minor' => fn ($q) => $q
+                    ->whereIn('type', ['refund', 'void'])
+                    ->whereIn('status', ['succeeded', 'pending']),
+            ], 'amount_minor');
         if ($search) {
             $terms = preg_split('/\s+/', trim($search));
             $query->where(function ($q) use ($terms) {
@@ -100,6 +105,7 @@ class OrderController extends Controller
             ->where('order_id','=',$order_id)
             ->where('shop_id','=',$shopId)
             ->first();
+
         $previous = Order::where('order_id', '<', $order_id)
             ->where('shop_id','=',$shopId)
             ->orderBy('order_id', 'desc')
@@ -111,6 +117,7 @@ class OrderController extends Controller
             ->first();
 
         $latest = Order::latest()->where('shop_id','=',$shopId)->value('order_id');
+
         if($order){
             $logs = OrderLog::where('order_id','=',$order_id)
                 ->latest()->get();
@@ -118,6 +125,7 @@ class OrderController extends Controller
                 'success' => true,
                 'order' => $order,
                 'logs' => $logs,
+                'refunded' => $order->refundedMinor() / 100,
                 'previous_id' => $previous?->order_id,
                 'next_id' => $next?->order_id,
                 'latest_id' => $latest,

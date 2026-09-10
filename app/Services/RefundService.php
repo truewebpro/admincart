@@ -129,7 +129,9 @@ class RefundService
 
     private function finalise(Order $order, PaymentTransaction $attempt, GatewayResponse $response): PaymentTransaction
     {
-        return DB::transaction(function () use ($order, $attempt, $response) {
+        // Ledger first, on its own. Whatever happens next, what the provider
+        // told us is recorded.
+        DB::transaction(function () use ($attempt, $response) {
             $attempt->forceFill([
                 'status' => $response->successful
                     ? ($response->status === 'pending'
@@ -142,18 +144,29 @@ class RefundService
                 'response_payload'       => $response->raw,
                 'meta'                   => $response->meta ?: $attempt->meta,
             ])->save();
+        });
 
-            if ($response->successful) {
+        if ($response->successful) {
+            try {
                 $charge = $attempt->parent;
 
                 $order->forceFill([
-                    'refunded_minor' => $charge->refundedMinor(),
-                    'payment_status' => $charge->refundableMinor() === 0 ? 'refunded' : 'partially_refunded',
+                    'payment_status' => $charge->refundableMinor() === 0
+                        ? 'refunded'
+                        : 'partially_refunded',
                 ])->save();
+            } catch (\Throwable $e) {
+                // The refund stands regardless. A stale payment_status is a
+                // display problem; losing the ledger row is not.
+                Log::error('Refund succeeded but the order status could not be updated', [
+                    'order_id'       => $order->getKey(),
+                    'transaction_id' => $attempt->id,
+                    'reason'         => $e->getMessage(),
+                ]);
             }
+        }
 
-            return $attempt->fresh();
-        });
+        return $attempt->fresh();
     }
 
     private function assertRefundable(PaymentTransaction $charge, int $amountMinor): void

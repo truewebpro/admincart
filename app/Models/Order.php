@@ -110,4 +110,35 @@ class Order extends Model
         return $this->hasMany(OrderTrackingEvent::class, 'order_id', 'order_id')
             ->orderBy('event_at','asc');
     }
+
+    public function paymentTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\PaymentTransaction::class, 'order_id', 'order_id');
+    }
+
+    /**
+     * Total returned to the customer, in minor units.
+     *
+     * Pending rows count: Worldpay and Cybersource confirm asynchronously, and
+     * money in flight must not look refundable a second time.
+     */
+    public function refundedMinor(): int
+    {
+        return (int) $this->paymentTransactions()
+            ->whereIn('type', [
+                \App\Models\PaymentTransaction::TYPE_REFUND,
+                \App\Models\PaymentTransaction::TYPE_VOID,
+            ])
+            ->whereIn('status', [
+                \App\Models\PaymentTransaction::STATUS_SUCCEEDED,
+                \App\Models\PaymentTransaction::STATUS_PENDING,
+            ])
+            ->sum('amount_minor');
+    }
+
+    public function getRefundedTotalAttribute(): float
+    {
+        return $this->refundedMinor() / 100;
+    }
+
 }
