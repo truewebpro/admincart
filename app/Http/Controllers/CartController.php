@@ -225,6 +225,7 @@ class CartController extends Controller
             case "viva_payment_confirm":
                 $this->logEvent($cart,'viva_payment_confirm',[
                     'orderCode' => $request->checkout_id,
+                    'transaction_id' => $request->transaction_id,
                 ]);
                 return $this->vivaPaymentConfirm($cart, $request);
 
@@ -254,6 +255,7 @@ class CartController extends Controller
             case "viva_wallet_confirm":
                 $this->logEvent($cart,'viva_wallet_confirm',[
                     'orderCode' => $request->checkout_id,
+                    'transaction_id' => $request->transaction_id,
                 ]);
                 return $this->payByVivaWallet($cart, $request);
 
@@ -633,6 +635,9 @@ class CartController extends Controller
     private function vivaPaymentConfirm($cart, $request)
     {
         if($cart->order_id){return response()->json(['success'=>true, 'order_id'=>$cart->order_id]);}
+
+        $this->recordVivaPayment($cart, $request);
+
         $acartEvent = AcartEvent::where('acart_id',$cart->acart_id)
             ->where('event_type','=','start_viva_payment')
             ->where('event_data->orderCode','=',$request->checkout_id)
@@ -999,6 +1004,8 @@ class CartController extends Controller
                 'order_id'=>$cart->order_id
             ]);
         }
+        $this->recordVivaPayment($cart, $request);
+
         DB::beginTransaction();
         try {
             $order = $this->createOrderDetails(
@@ -1769,5 +1776,47 @@ class CartController extends Controller
             ]);
         }
     }
+
+    private function recordVivaPayment($cart, $request): void
+    {
+        // Accept whichever name the storefront forwards.
+        $transactionId = $request->input('transaction_id')
+            ?? $request->input('t')
+            ?? $request->input('TransactionId');
+
+        if (blank($transactionId) || blank($request->checkout_id)) {
+            return;
+        }
+
+        try {
+            $payment = VivaPayment::firstOrNew([
+                'shop_id'    => $cart->shop_id,
+                'order_code' => (string) $request->checkout_id,
+            ]);
+
+            // The webhook carries far more detail, so don't clobber a row it
+            // has already filled in — only supply what is still missing.
+            $payment->shop_id    = $cart->shop_id;
+            $payment->order_code = (string) $request->checkout_id;
+
+            if (blank($payment->transaction_id)) {
+                $payment->transaction_id = $transactionId;
+            }
+
+            $payment->status_id = $payment->status_id ?: 'F';
+            $payment->amount    = $payment->amount ?: $cart->cart_total;
+
+            $payment->save();
+        } catch (\Throwable $e) {
+            // Never break checkout over this. The webhook, or the admin order
+            // screen syncing on view, will fill the gap.
+            \Log::warning('Could not record the Viva payment reference', [
+                'shop_id'     => $cart->shop_id,
+                'order_code'  => $request->checkout_id,
+                'reason'      => $e->getMessage(),
+            ]);
+        }
+    }
+
 
 }

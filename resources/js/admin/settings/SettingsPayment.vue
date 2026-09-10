@@ -10,6 +10,9 @@
                         <template #title>
                             <div class="text-h5 font-weight-bold">Payment Methods</div>
                         </template>
+                        <template #append>
+                            <v-btn :to="{name:'SettingsPaymentGateways'}">Payment Gateways</v-btn>
+                        </template>
                     </v-card-item>
                 </v-card>
             </v-col>

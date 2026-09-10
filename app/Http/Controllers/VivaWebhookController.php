@@ -12,6 +12,7 @@ use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\Stock;
 use App\Models\VivaPayment;
+use App\Payments\ChargeResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -57,6 +58,12 @@ class VivaWebhookController extends Controller
             if($cart->order_id){
                 return response()->json(['success'=>true, 'order_id'=>$cart->order_id]);
             }
+        }
+        $order = Order::where('shop_id', $shopId)
+            ->where('checkout_id', $vpay->order_code)
+            ->first();
+        if ($order && $order->payment_status === 'paid') {
+            app(ChargeResolver::class)->sync((int) $shopId, $order);
         }
 
 //        $acartEvent = AcartEvent::where('acart_id',$cart->acart_id)

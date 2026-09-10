@@ -24,7 +24,7 @@
                 <v-menu>
                     <template v-slot:activator="{props}">
                         <v-btn v-bind="props" variant="tonal" class="text-none me-2" color="primary" append-icon="mdi-chevron-down"
-                               density="compact">More Actions</v-btn>
+                               density="comfortable">More Actions</v-btn>
                     </template>
                     <v-list nav density="compact">
                         <v-list-item base-color="dark" v-if="orderDetail.deleted_at" @click="markAsRestore">
@@ -35,6 +35,9 @@
                         </v-list-item>
                         <v-list-item base-color="error">
                             <v-list-item-title><v-icon class="me-2">mdi-trash-can-outline</v-icon>Delete Order</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item base-color="warning" @click="refundDialog = true">
+                            <v-list-item-title><v-icon class="me-2">mdi-cash-refund</v-icon>Refund / Cancel</v-list-item-title>
                         </v-list-item>
                         <v-list-item base-color="dark" @click="generateInvoice(order_id)">
                             <v-list-item-title><v-icon class="me-2">mdi-file-outline</v-icon>PDF Invoice</v-list-item-title>
@@ -71,203 +74,222 @@
                     </v-stepper>
                 </v-card>
             </v-col>
-            <v-col cols="12" md="9">
-                <v-card class="border-sm">
-                    <v-card-title class="text-capitalize d-flex ga-2 font-weight-medium">
-                        <v-icon>mdi-package-variant</v-icon>
-                        <v-chip :color="fulfillmentChip.color" :prepend-icon="fulfillmentChip.icon" variant="flat"
-                                density="compact" class="ms-2 text-capitalize">
-                            {{ fulfillmentChip.label }}
-                        </v-chip>
-                        <v-chip density="compact" class="font-weight-medium">{{orderDetail.order_items_count}}</v-chip>
-                    </v-card-title>
-                    <v-card-subtitle class="font-weight-medium">{{dayjs(orderDetail.placed_at).format('D MMMM [at] h:mm a')}}</v-card-subtitle>
-                    <v-card-text>
-                        <v-row v-for="(oitem,index) in oitems" :key="index" class="border-b-sm">
-                            <v-col cols="12" md="auto">
-                                <div v-if="oitem.variant.variant_image" class="border rounded">
-                                    <v-img :src="cdn+oitem.variant.variant_image" max-width="75" min-width="75" width="75" class="rounded"></v-img>
-                                </div>
-                                <div v-else-if="oitem.product.featured_image">
-                                    <v-img :src="cdn+oitem.product.featured_image" max-width="75" min-width="75" width="75" class="rounded"></v-img>
-                                </div>
-                                <div v-else>
-                                    <v-img :src="cdn+'noimage.png'"></v-img>
-                                </div>
-                            </v-col>
-                            <v-col cols="12" md="6">
-                                <h3 class="font-weight-bold">{{oitem.title}}</h3>
-                                <div v-if="oitem.options">
-                                    <div v-for="(opt,index) in oitem.options">
-                                       <v-chip density="compact">
-                                           <span class="me-1 font-weight-medium">{{opt.name}}</span>
-                                           <span class="ms-1 font-weight-medium">{{opt.value}}</span>
-                                       </v-chip>
-                                    </div>
-                                </div>
-                                <div><b>SKU: </b>{{oitem?.variant?.sku}}</div>
-                            </v-col>
-                            <v-col cols="12" md="2" class="text-end">£{{(oitem.price).toFixed(2)}} x {{oitem.quantity}}</v-col>
-                            <v-col cols="12" md="2" class="text-end">£{{(oitem.total).toFixed(2)}}</v-col>
-                        </v-row>
-                    </v-card-text>
-                    <v-card-actions>
-                        <v-spacer />
-                        <v-btn
-                            v-for="(btn, i) in availableActions"
-                            :key="i"
-                            @click="runAction(btn)"
-                            :variant="btn.variant || 'elevated'"
-                            :color="btn.color || 'primary'"
-                            density="compact"
-                            class="text-none font-weight-bold"
-                        >
-                            {{ btn.label }}
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-                <v-card class="border-sm mt-3">
-                    <v-card-title class="text-capitalize">
-                        <v-icon>mdi-cash-sync</v-icon>
-                        <v-chip :color="paymentChip.color" variant="flat" density="compact" class="ms-2 text-capitalize">
-                            {{ paymentChip.label }}
-                        </v-chip>
-                    </v-card-title>
-                    <v-card-text>
-                        <div class="d-flex flex-column">
-                            <div class="d-flex justify-space-between my-1">
-                                <h4>Subtotal</h4>
-                                <div class="w-75">
-                                    <div class="d-flex justify-space-between mb-1 pb-1 border-b-sm">
-                                        <div>{{ oitems.length }} item<span v-if="oitems.length > 1">s</span></div>
-                                        <div>£{{ (orderDetail.subtotal) }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-space-between my-1 align-center">
-                                <h4>Shipping</h4>
-                                <div class="w-75">
-                                    <div class="d-flex justify-space-between">
-                                        <div>{{ orderDetail.shipping_method }}</div>
-                                        <div>£{{ (orderDetail.shipping_cost) }}</div>
-                                    </div>
-                                    <div v-if="orderDetail?.shipping_protection_fee" class="mb-1 pb-1 border-b-sm d-flex justify-space-between">
-                                        <div>Protection Fee</div>
-                                        <div>£{{ (orderDetail.shipping_protection_fee).toFixed(2) }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-if="orderDetail?.payment_fee" class="d-flex justify-space-between my-1 align-center">
-                                <h4>Payment</h4>
-                                <div class="w-75">
-                                    <div  class="mb-1 pb-1 border-b-sm d-flex justify-space-between">
-                                        <div>{{ orderDetail.payment_method }} Surcharge fee</div>
-                                        <div>£{{ (orderDetail.payment_fee).toFixed(2) }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-space-between my-1">
-                                <h4>Discount</h4>
-                                <div class="w-75">
-                                    <div class="d-flex justify-space-between mb-1 pb-1 border-b-sm">
-                                        <div v-if="order_coupons?.length" v-for="(code,cdx) in order_coupons" :key="cdx" class="d-flex ga-2">
-                                            <v-chip density="compact" color="success">{{code?.coupon_code}}</v-chip>
-                                            <v-chip density="compact" color="primary">{{code?.coupon?.display_title}}</v-chip>
-                                        </div>
-                                        <div v-else>{{orderDetail.coupon_code}}</div>
-                                        <div>- £{{ orderDetail.discount_amount}}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-space-between my-1 pb-1 border-b-sm">
-                                <h4>VAT @ 20%</h4>
-                                <div></div>
-                                <div>£{{ orderDetail.tax_amount }}</div>
-                            </div>
-                            <div class="d-flex justify-space-between my-1 pb-1 border-b-sm font-weight-medium">
-                                <h3>Total</h3>
-                                <div></div>
-                                <div>£{{ orderDetail.order_total }}</div>
-                            </div>
-                            <div v-if="pstatus === 'pending'" class="d-flex justify-space-between py-1 border-b-sm">
-                                <h4>Paid</h4>
-                                <div></div>
-                                <div>£{{ 0.00.toFixed(2) }}</div>
-                            </div>
-                            <div v-if="pstatus === 'pending'" class="bg-red-accent-1 px-2 d-flex justify-lg-space-between py-1 border-b-sm">
-                                <h4>Balance</h4>
-                                <div></div>
-                                <div>£{{ orderDetail.order_total.toFixed(2) }}</div>
-                            </div>
-                        </div>
-                    </v-card-text>
-                    <v-card-actions>
-                        <v-spacer />
-                        <v-btn @click="sendInvoicetoCustomer" variant="outlined" color="black" density="compact" class="text-none font-weight-bold">
-                            Send Invoice
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-                <v-card class="border-sm mt-3">
-                    <v-card-title>Timeline</v-card-title>
-                </v-card>
-                <div>
-                    <v-timeline align="start" side="end" density="compact" dotColor="green" size="x-small">
-                        <v-timeline-item id="otimeline" v-for="(log,index) in logs" :key="index" class="w-100">
-                                <div class="w-100 d-flex flex-wrap align-center justify-space-between ga-1">
-                                    <div class="d-flex ga-1 align-center flex-wrap">
-                                        <div v-if="log.source !== 'system'">By {{log.source}}</div>
-                                        <div v-if="log.meta">
-                                            {{log.event}} from <span>{{log.meta.from}} to {{log.meta.to}}</span>
-                                        </div>
-                                        <div class="text-body-2">{{log.description}}</div>
-                                    </div>
-                                    <div class="text-body-2">{{dayjs(log.created_at).format('hh:mm a')}}</div>
-                                </div>
-                        </v-timeline-item>
-                    </v-timeline>
-                </div>
-            </v-col>
-            <v-col cols="12" md="3">
-                <v-card class="border-sm">
-                    <v-card-title>Notes</v-card-title>
-                    <v-card-text>
-                        {{orderDetail.notes}}
-                    </v-card-text>
-                </v-card>
-                <v-card class="border-sm mt-3">
-                    <v-card-title class="d-flex justify-space-between align-center">
-                        Customer
-                        <v-btn :disabled="!canEditAddress" size="small" variant="outlined" color="primary" density="comfortable" @click="openAddressDialog">
-                            Edit Address
-                        </v-btn>
-                    </v-card-title>
-                    <v-card-text>
-                        <div class="font-weight-medium">{{customer.fname}} {{customer?.lname}}</div>
-<!--                        <div class="font-weight-medium">{{customer.email}}</div>-->
-                        <h3 class="small my-2">Contact Information</h3>
-                        <div class="font-weight-medium">{{customer.email}}</div>
-                        <div class="font-weight-medium">+44 {{customer?.phone}}</div>
-                        <h3 class="small my-2 d-flex justify-space-between align-center">
-                            Shipping Address
-                            <v-chip size="x-small" color="orange" v-if="logs.some(l => l.event === 'address_updated')">
-                                Updated
-                            </v-chip></h3>
-                        <div class="font-weight-medium">{{orderDetail.shipping_name}}</div>
-                        <div class="font-weight-medium">{{orderDetail.shipping_address_line1}}</div>
-                        <div class="font-weight-medium">{{orderDetail.shipping_address_line2}}</div>
-                        <div class="font-weight-medium">{{orderDetail.shipping_city}}</div>
-                        <div class="font-weight-medium">{{orderDetail.shipping_postcode}}</div>
-                        <div class="font-weight-medium">{{orderDetail.shipping_country}}</div>
-                        <div class="font-weight-medium">+44 {{orderDetail.shipping_phone}}</div>
-                        <div v-if="orderDetail.shipment_name" class="font-weight-medium">
-                            <b>Shipping via:</b> {{ orderDetail.shipment_name }}
-                        </div>
-
-                    </v-card-text>
-                </v-card>
-            </v-col>
         </v-row>
+        <v-tabs v-model="otabs" density="comfortable" class="my-2">
+            <v-tab value="general" class="bg-white">General</v-tab>
+            <v-tab value="transactions" class="bg-white">Transactions</v-tab>
+        </v-tabs>
+        <v-window v-model="otabs">
+            <v-window-item value="general">
+                <v-row dense>
+                    <v-col cols="12" md="9">
+                        <v-card class="border-sm">
+                            <v-card-title class="text-capitalize d-flex ga-2 font-weight-medium">
+                                <v-icon>mdi-package-variant</v-icon>
+                                <v-chip :color="fulfillmentChip.color" :prepend-icon="fulfillmentChip.icon" variant="flat"
+                                        density="compact" class="ms-2 text-capitalize">
+                                    {{ fulfillmentChip.label }}
+                                </v-chip>
+                                <v-chip density="compact" class="font-weight-medium">{{orderDetail.order_items_count}}</v-chip>
+                            </v-card-title>
+                            <v-card-subtitle class="font-weight-medium">{{dayjs(orderDetail.placed_at).format('D MMMM [at] h:mm a')}}</v-card-subtitle>
+                            <v-card-text>
+                                <v-row v-for="(oitem,index) in oitems" :key="index" class="border-b-sm">
+                                    <v-col cols="12" md="auto">
+                                        <div v-if="oitem.variant.variant_image" class="border rounded">
+                                            <v-img :src="cdn+oitem.variant.variant_image" max-width="75" min-width="75" width="75" class="rounded"></v-img>
+                                        </div>
+                                        <div v-else-if="oitem.product.featured_image">
+                                            <v-img :src="cdn+oitem.product.featured_image" max-width="75" min-width="75" width="75" class="rounded"></v-img>
+                                        </div>
+                                        <div v-else>
+                                            <v-img :src="cdn+'noimage.png'"></v-img>
+                                        </div>
+                                    </v-col>
+                                    <v-col cols="12" md="6">
+                                        <h3 class="font-weight-bold">{{oitem.title}}</h3>
+                                        <div v-if="oitem.options">
+                                            <div v-for="(opt,index) in oitem.options">
+                                                <v-chip density="compact">
+                                                    <span class="me-1 font-weight-medium">{{opt.name}}</span>
+                                                    <span class="ms-1 font-weight-medium">{{opt.value}}</span>
+                                                </v-chip>
+                                            </div>
+                                        </div>
+                                        <div><b>SKU: </b>{{oitem?.variant?.sku}}</div>
+                                    </v-col>
+                                    <v-col cols="12" md="2" class="text-end">£{{(oitem.price).toFixed(2)}} x {{oitem.quantity}}</v-col>
+                                    <v-col cols="12" md="2" class="text-end">£{{(oitem.total).toFixed(2)}}</v-col>
+                                </v-row>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer />
+                                <v-btn
+                                    v-for="(btn, i) in availableActions"
+                                    :key="i"
+                                    @click="runAction(btn)"
+                                    :variant="btn.variant || 'elevated'"
+                                    :color="btn.color || 'primary'"
+                                    density="compact"
+                                    class="text-none font-weight-bold"
+                                >
+                                    {{ btn.label }}
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                        <v-card class="border-sm mt-3">
+                            <v-card-title class="text-capitalize">
+                                <v-icon>mdi-cash-sync</v-icon>
+                                <v-chip :color="paymentChip.color" variant="flat" density="compact" class="ms-2 text-capitalize">
+                                    {{ paymentChip.label }}
+                                </v-chip>
+                            </v-card-title>
+                            <v-card-text>
+                                <div class="d-flex flex-column">
+                                    <div class="d-flex justify-space-between my-1">
+                                        <h4>Subtotal</h4>
+                                        <div class="w-75">
+                                            <div class="d-flex justify-space-between mb-1 pb-1 border-b-sm">
+                                                <div>{{ oitems.length }} item<span v-if="oitems.length > 1">s</span></div>
+                                                <div>£{{ (orderDetail.subtotal) }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-space-between my-1 align-center">
+                                        <h4>Shipping</h4>
+                                        <div class="w-75">
+                                            <div class="d-flex justify-space-between">
+                                                <div>{{ orderDetail.shipping_method }}</div>
+                                                <div>£{{ (orderDetail.shipping_cost) }}</div>
+                                            </div>
+                                            <div v-if="orderDetail?.shipping_protection_fee" class="mb-1 pb-1 border-b-sm d-flex justify-space-between">
+                                                <div>Protection Fee</div>
+                                                <div>£{{ (orderDetail.shipping_protection_fee).toFixed(2) }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="orderDetail?.payment_fee" class="d-flex justify-space-between my-1 align-center">
+                                        <h4>Payment</h4>
+                                        <div class="w-75">
+                                            <div  class="mb-1 pb-1 border-b-sm d-flex justify-space-between">
+                                                <div>{{ orderDetail.payment_method }} Surcharge fee</div>
+                                                <div>£{{ (orderDetail.payment_fee).toFixed(2) }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-space-between my-1">
+                                        <h4>Discount</h4>
+                                        <div class="w-75">
+                                            <div class="d-flex justify-space-between mb-1 pb-1 border-b-sm">
+                                                <div v-if="order_coupons?.length" v-for="(code,cdx) in order_coupons" :key="cdx" class="d-flex ga-2">
+                                                    <v-chip density="compact" color="success">{{code?.coupon_code}}</v-chip>
+                                                    <v-chip density="compact" color="primary">{{code?.coupon?.display_title}}</v-chip>
+                                                </div>
+                                                <div v-else>{{orderDetail.coupon_code}}</div>
+                                                <div>- £{{ orderDetail.discount_amount}}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-space-between my-1 pb-1 border-b-sm">
+                                        <h4>VAT @ 20%</h4>
+                                        <div></div>
+                                        <div>£{{ orderDetail.tax_amount }}</div>
+                                    </div>
+                                    <div class="d-flex justify-space-between my-1 pb-1 border-b-sm font-weight-medium">
+                                        <h3>Total</h3>
+                                        <div></div>
+                                        <div>£{{ orderDetail.order_total }}</div>
+                                    </div>
+                                    <div v-if="pstatus === 'pending'" class="d-flex justify-space-between py-1 border-b-sm">
+                                        <h4>Paid</h4>
+                                        <div></div>
+                                        <div>£{{ 0.00.toFixed(2) }}</div>
+                                    </div>
+                                    <div v-if="pstatus === 'pending'" class="bg-red-accent-1 px-2 d-flex justify-lg-space-between py-1 border-b-sm">
+                                        <h4>Balance</h4>
+                                        <div></div>
+                                        <div>£{{ orderDetail.order_total.toFixed(2) }}</div>
+                                    </div>
+                                </div>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer />
+                                <v-btn @click="sendInvoicetoCustomer" variant="outlined" color="black" density="compact" class="text-none font-weight-bold">
+                                    Send Invoice
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                        <v-card class="border-sm mt-3">
+                            <v-card-title>Timeline</v-card-title>
+                        </v-card>
+                        <div>
+                            <v-timeline align="start" side="end" density="compact" dotColor="green" size="x-small">
+                                <v-timeline-item id="otimeline" v-for="(log,index) in logs" :key="index" class="w-100">
+                                    <div class="w-100 d-flex flex-wrap align-center justify-space-between ga-1">
+                                        <div class="d-flex ga-1 align-center flex-wrap">
+                                            <div v-if="log.source !== 'system'">By {{log.source}}</div>
+                                            <div v-if="log.meta">
+                                                {{log.event}} from <span>{{log.meta.from}} to {{log.meta.to}}</span>
+                                            </div>
+                                            <div class="text-body-2">{{log.description}}</div>
+                                        </div>
+                                        <div class="text-body-2">{{dayjs(log.created_at).format('hh:mm a')}}</div>
+                                    </div>
+                                </v-timeline-item>
+                            </v-timeline>
+                        </div>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                        <v-card class="border-sm">
+                            <v-card-title>Notes</v-card-title>
+                            <v-card-text>
+                                {{orderDetail.notes}}
+                            </v-card-text>
+                        </v-card>
+                        <v-card class="border-sm mt-3">
+                            <v-card-title class="d-flex justify-space-between align-center">
+                                Customer
+                                <v-btn :disabled="!canEditAddress" size="small" variant="outlined" color="primary" density="comfortable" @click="openAddressDialog">
+                                    Edit Address
+                                </v-btn>
+                            </v-card-title>
+                            <v-card-text>
+                                <div class="font-weight-medium">{{customer.fname}} {{customer?.lname}}</div>
+                                <!--                        <div class="font-weight-medium">{{customer.email}}</div>-->
+                                <h3 class="small my-2">Contact Information</h3>
+                                <div class="font-weight-medium">{{customer.email}}</div>
+                                <div class="font-weight-medium">+44 {{customer?.phone}}</div>
+                                <h3 class="small my-2 d-flex justify-space-between align-center">
+                                    Shipping Address
+                                    <v-chip size="x-small" color="orange" v-if="logs.some(l => l.event === 'address_updated')">
+                                        Updated
+                                    </v-chip></h3>
+                                <div class="font-weight-medium">{{orderDetail.shipping_name}}</div>
+                                <div class="font-weight-medium">{{orderDetail.shipping_address_line1}}</div>
+                                <div class="font-weight-medium">{{orderDetail.shipping_address_line2}}</div>
+                                <div class="font-weight-medium">{{orderDetail.shipping_city}}</div>
+                                <div class="font-weight-medium">{{orderDetail.shipping_postcode}}</div>
+                                <div class="font-weight-medium">{{orderDetail.shipping_country}}</div>
+                                <div class="font-weight-medium">+44 {{orderDetail.shipping_phone}}</div>
+                                <div v-if="orderDetail.shipment_name" class="font-weight-medium">
+                                    <b>Shipping via:</b> {{ orderDetail.shipment_name }}
+                                </div>
+
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </v-window-item>
+            <v-window-item value="transactions">
+                Transaction tab
+                <v-row dense>
+                    <v-col cols="12" md="12">
+                        <PaymentTransactionsTable :orderId="this.order_id"/>
+                    </v-col>
+                </v-row>
+            </v-window-item>
+        </v-window>
+
         <v-dialog v-model="markPaidDialog" max-width="350">
             <v-card>
                 <v-card-title>Payment Status</v-card-title>
@@ -346,13 +368,19 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <RefundOrderDialog v-model="refundDialog"
+                           :order-id="this.order_id"
+                           @refunded="getOrderDetail"/>
     </v-container>
 </template>
 <script>
 import axios from "axios";
 import dayjs from "dayjs";
+import PaymentTransactionsTable from "@/components/payments/PaymentTransactionsTable.vue";
+import RefundOrderDialog from "@/components/payments/RefundOrderDialog.vue";
 export default {
     name:"OrderView",
+    components: {RefundOrderDialog, PaymentTransactionsTable},
     props:{
         order_id:[Number,String]
     },
@@ -571,6 +599,8 @@ export default {
     },
     data(){
         return{
+            otabs:'general',
+            refundDialog:false,
             cdn:this.$store.state.cdn,
             orderDetail:{},
             customer: {},

@@ -49,6 +49,7 @@ import Settings from "@/admin/settings/Settings.vue";
 import SettingsGeneral from "@/admin/settings/SettingsGeneral.vue";
 import SettingsShipping from "@/admin/settings/SettingsShipping.vue";
 import SettingsPayment from "@/admin/settings/SettingsPayment.vue";
+import SettingsPaymentGateways from "@/admin/settings/SettingsPaymentGateways.vue";
 import SettingsPrinting from "@/admin/settings/SettingsPrinting.vue";
 import SettingsMarketing from "@/admin/settings/SettingsMarketing.vue";
 import SettingsInventory from "@/admin/settings/SettingsInventory.vue";
@@ -165,6 +166,7 @@ const routes = [
     {path: '/settings/general',name: 'SettingsGeneral',component: SettingsGeneral},
     {path: '/settings/shipping',name: 'SettingsShipping',component: SettingsShipping},
     {path: '/settings/payment',name: 'SettingsPayment',component: SettingsPayment},
+    {path: '/settings/payment-gateways',name: 'SettingsPaymentGateways',component: SettingsPaymentGateways},
     {path: '/settings/printing',name: 'SettingsPrinting',component: SettingsPrinting},
     {path: '/settings/marketing',name: 'SettingsMarketing',component: SettingsMarketing},
     {path: '/settings/inventory',name: 'SettingsInventory',component: SettingsInventory},

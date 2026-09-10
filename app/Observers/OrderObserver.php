@@ -4,15 +4,21 @@ namespace App\Observers;
 
 use App\Models\Order;
 use App\Models\OrderLog;
+use App\Payments\ChargeResolver;
+use Illuminate\Support\Facades\Log;
 
 class OrderObserver
 {
+    public function __construct(private readonly ChargeResolver $charges)
+    {
+    }
+
     /**
      * Handle the Order "created" event.
      */
     public function created(Order $order): void
     {
-        //
+        $this->syncCharge($order);
     }
 
     /**
@@ -56,6 +62,13 @@ class OrderObserver
                 ],
             ]);
         }
+
+        // Covers orders marked paid after the fact, and references that arrive
+        // late — Viva writes viva_payments from its webhook, which can land
+        // either side of the order being created.
+        if ($order->isDirty(['payment_status', 'checkout_id', 'order_total'])) {
+            $this->syncCharge($order);
+        }
     }
 
     /**
@@ -81,4 +94,22 @@ class OrderObserver
     {
         //
     }
+
+    private function syncCharge(Order $order): void
+    {
+        if ($order->payment_status !== 'paid') {
+            return;
+        }
+
+        try {
+            $this->charges->sync((int) $order->shop_id, $order);
+        } catch (\Throwable $e) {
+            Log::warning('Could not record the charge for an order', [
+                'order_id' => $order->order_id,
+                'shop_id'  => $order->shop_id,
+                'reason'   => $e->getMessage(),
+            ]);
+        }
+    }
+
 }

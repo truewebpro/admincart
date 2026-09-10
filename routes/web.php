@@ -4,6 +4,9 @@ use App\Http\Controllers\Admin\LoyaltyActionApprovalController;
 use App\Http\Controllers\Admin\LoyaltyEarnActionController;
 use App\Http\Controllers\Admin\LoyaltyProductPointController;
 use App\Http\Controllers\Admin\LoyaltySettingController;
+use App\Http\Controllers\Admin\PaymentGatewayController;
+use App\Http\Controllers\Admin\PaymentTransactionController;
+use App\Http\Controllers\Admin\RefundController;
 use App\Http\Controllers\Admin\StoreCreditController as AdminStoreCreditController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BadgeController;
@@ -436,6 +439,27 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/loyalty/action-completions', [LoyaltyActionApprovalController::class, 'index']);
         Route::post('/loyalty/action-completions/{completion}/approve', [LoyaltyActionApprovalController::class, 'approve']);
         Route::post('/loyalty/action-completions/{completion}/reject', [LoyaltyActionApprovalController::class, 'reject']);
+
+        // Gateway configuration
+        Route::get('payment-gateways/schema', [PaymentGatewayController::class, 'schema'])->name('payment-gateway.schema');
+        Route::get('payment-gateways', [PaymentGatewayController::class, 'index'])->name('payment-gateway.index');
+        Route::put('payment-gateways/{provider}', [PaymentGatewayController::class, 'store'])->name('payment-gateway.store');
+        Route::delete('payment-gateways/{provider}', [PaymentGatewayController::class, 'destroy'])->name('payment-gateway.destroy');
+
+        // Read-only credential check. Throttled: it hits the live provider.
+        Route::post('payment-gateways/{provider}/test', [PaymentGatewayController::class, 'test'])
+            ->middleware('throttle:10,1')
+            ->name('payment-gateway.test');
+
+        // Transaction log
+        Route::get('payment-transactions', [PaymentTransactionController::class, 'index'])->name('transactions.index');
+        Route::get('payment-transactions/{transaction}', [PaymentTransactionController::class, 'show'])->name('transactions.show');
+
+        // Refunds and cancellations
+        Route::get('orders/{order}/refunds', [RefundController::class, 'show'])->name('refunds.show');
+        Route::post('orders/{order}/refunds', [RefundController::class, 'store'])
+            ->middleware('throttle:20,1')
+            ->name('refunds.store');
 
 
     });

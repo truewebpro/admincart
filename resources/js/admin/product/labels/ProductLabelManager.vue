@@ -52,7 +52,8 @@
                     </v-data-table>
                 </v-card>
             </v-col>
-            <v-col class="bg-grey-lighten-4" v-if="labels.length > 0" v-for="(item,index) in labels" :key="index" cols="6" lg="3">
+            <v-col class="bg-grey-lighten-4" v-if="labels.length > 0" v-for="(item,index) in labels" :key="index"
+                   cols="6" lg="3">
                 <v-card class="section-card position-relative">
                     <div class="position-relative">
                         <v-img :src="cdn+'noimage.png'"></v-img>
