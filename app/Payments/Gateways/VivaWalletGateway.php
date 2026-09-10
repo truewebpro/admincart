@@ -167,7 +167,7 @@ class VivaWalletGateway implements PaymentGatewayInterface
     private function baseUrl(): string
     {
         return $this->config->isSandbox()
-            ? 'https://demo-api.vivapayments.com'
-            : 'https://api.vivapayments.com';
+            ? 'https://demo.vivapayments.com'
+            : 'https://www.vivapayments.com';
     }
 }
