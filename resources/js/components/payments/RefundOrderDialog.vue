@@ -281,6 +281,7 @@ export default {
                 })
                 .finally(() => {
                     this.saving = false;
+                    this.close();
                 });
         },
 

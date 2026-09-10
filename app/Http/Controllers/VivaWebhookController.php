@@ -27,14 +27,21 @@ class VivaWebhookController extends Controller
 
     public function handleWebhook(Request $request,$shopname)
     {
-        Log::info('✅ Viva Webhook Received:', $request->all());
+        $shopId = $request->shop_id;
+        Log::info('✅ Viva Webhook Received:'." ".$shopname.'shop id '. $shopId, $request->all());
         $rdata = $request->all();
         if (!isset($rdata['EventData'])) {
             Log::error('Webhook missing EventData', $rdata);
             return response()->json(['error'=>'Invalid payload'],400);
         }
+
+        $eventId = $rdata['EventTypeId'];
+        if($eventId == '4865'){
+            return response()->json(['success'=>true]);
+        }
+
         $payload = $rdata['EventData'];
-        $shopId = $request->shop_id;
+
         $vpay = VivaPayment::updateOrCreate(
             [
                 'order_code' => $payload['OrderCode'],
@@ -291,7 +298,7 @@ class VivaWebhookController extends Controller
 //            $apiKey = 'Emqyzp4F7T78JtW9JQy805R';
             if($request->shopname === "vapecraze"){
                 $merchantId = 'd7c8be6e-b3ba-4a52-aa42-3232b57bb886';
-                $apiKey = 'Emqyzp4F7T78JtW9JQy805R';
+                $apiKey = 'fHBpJfoEmqyzp4F7T78JtW9JQy805R';
             }
             if($request->shopname === "vapeportwholesale"){
                 $merchantId = 'c104ea18-8667-42b8-86d3-cdfe6e56760b';
