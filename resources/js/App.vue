@@ -1,5 +1,41 @@
 <template>
     <v-app>
+        <v-app-bar density="compact" elevation="0" color="grey-lighten-5" border scroll-behavior="hide">
+            <template v-slot:prepend>
+                <v-img class="ms-2" width="32" height="32" :src="cdn+this.$store.state.shop.shop_slug+'/favicon.ico'"></v-img>
+            </template>
+            <template #title>
+                <v-img width="100" height="25" :src="cdn+'poweredby400x100.png'"></v-img>
+            </template>
+            <template #default>
+                <div v-if="isSuperAdmin" class="hidden-sm-and-down d-lg-flex ga-3">
+                    <v-btn prepend-icon="mdi-view-dashboard-outline" link :to="{name:'SuperAdminDashboard'}">Dashboard</v-btn>
+                    <v-btn prependIcon="mdi-store" link :to="{name:'SuperAdminShops'}">Shops</v-btn>
+                    <v-btn link :to="{name:'SuperShopifysetup'}">
+                        <v-img class="me-1" width="16" height="16" :src="cdn+'icons/shopify.png'"/>
+                        Shopify
+                    </v-btn>
+                    <v-btn link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">Plans</v-btn>
+                </div>
+                <v-spacer/>
+            </template>
+            <template v-slot:append>
+                <v-menu>
+                    <template v-slot:activator="{props}">
+                        <v-btn v-bind="props" variant="tonal" class="text-none me-2" color="primary" append-icon="mdi-chevron-down"
+                               density="comfortable">{{ this.$store.state.shop.shop_name }}</v-btn>
+                    </template>
+                    <v-list nav density="compact">
+                        <v-list-item baseColor="primary" prependIcon="mdi-account" :title="this.$store.state.user.name"></v-list-item>
+                        <v-list-item baseColor="red" prepend-icon="mdi-logout">
+                            <v-list-item-title>
+                                <v-btn @click="logout" color="red" variant="tonal" density="compact" class="text-none" title="Logout">Logout</v-btn>
+                            </v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+            </template>
+        </v-app-bar>
         <v-navigation-drawer
             color="grey-lighten-5"
             v-model="drawer"
@@ -12,22 +48,22 @@
             <v-list density="compact" nav color="primary"
                     class="fw-bold d-flex flex-column fill-height overflow-y-auto"
                     activeClass="bg-blue-lighten-5">
-                <v-list-item v-if="this.$store.state.shop.shop_slug" base-color="dark"
-                             :prepend-avatar="cdn+this.$store.state.shop.shop_slug+'/favicon.ico'">
-                    <v-list-item-title>
-                        <v-img class="ms-2" width="100" height="25" :src="cdn+'poweredby400x100.png'"></v-img>
-                    </v-list-item-title>
-                </v-list-item>
-                <v-divider></v-divider>
-                <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperAdminDashboard'}" prepend-icon="mdi-view-dashboard-outline">
-                    <v-list-item-title>Super Dashboard</v-list-item-title>
-                </v-list-item>
-                <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperAdminShops'}" prepend-icon="mdi-store">
-                    <v-list-item-title>Shops</v-list-item-title>
-                </v-list-item>
-                <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperShopifysetup'}" :prependAvatar="cdn+'icons/shopify.png'">
-                    <v-list-item-title>Shopify</v-list-item-title>
-                </v-list-item>
+<!--                <v-list-item v-if="this.$store.state.shop.shop_slug" base-color="dark"-->
+<!--                             :prepend-avatar="cdn+this.$store.state.shop.shop_slug+'/favicon.ico'">-->
+<!--                    <v-list-item-title>-->
+<!--                        <v-img class="ms-2" width="100" height="25" :src="cdn+'poweredby400x100.png'"></v-img>-->
+<!--                    </v-list-item-title>-->
+<!--                </v-list-item>-->
+<!--                <v-divider></v-divider>-->
+<!--                <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperAdminDashboard'}" prepend-icon="mdi-view-dashboard-outline">-->
+<!--                    <v-list-item-title>Super Dashboard</v-list-item-title>-->
+<!--                </v-list-item>-->
+<!--                <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperAdminShops'}" prepend-icon="mdi-store">-->
+<!--                    <v-list-item-title>Shops</v-list-item-title>-->
+<!--                </v-list-item>-->
+<!--                <v-list-item v-if="isSuperAdmin" link :to="{name:'SuperShopifysetup'}" :prependAvatar="cdn+'icons/shopify.png'">-->
+<!--                    <v-list-item-title>Shopify</v-list-item-title>-->
+<!--                </v-list-item>-->
                 <v-list-item class="d-none" link to="/dashboard" prepend-icon="mdi-view-dashboard-outline">
                     <v-list-item-title> <span v-if="isSuperAdmin">Shop</span> Dashboard</v-list-item-title>
                 </v-list-item>
@@ -145,24 +181,24 @@
                     <v-list-item link :to="{name:'LoyaltyActionReviewQueue'}" color="success" prepend-icon="mdi-queue-first-in-last-out" title="Review Queue"></v-list-item>
                 </v-list-group>
                 <v-spacer/>
-                <v-list-item v-if="isSuperAdmin" link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">
-                    <v-list-item-title>Plans</v-list-item-title>
-                </v-list-item>
+<!--                <v-list-item v-if="isSuperAdmin" link :to="{name:'PlansList'}" prepend-icon="mdi-credit-card">-->
+<!--                    <v-list-item-title>Plans</v-list-item-title>-->
+<!--                </v-list-item>-->
 
 
                 <v-list-item link :to="{name:'IntegrateList'}" color="primary" prepend-icon="mdi-apps" title="Integration">
                 </v-list-item>
                 <v-list-item link :to="{name:'Settings'}" color="primary" prepend-icon="mdi-cog" title="Settings">
                 </v-list-item>
-                <v-divider class="my-1"></v-divider>
-                <v-list-item prepend-icon="mdi-logout">
-                    <v-list-item-title>
-                        <v-btn @click="logout" color="red" variant="tonal" density="compact" class="text-none" title="Logout">Logout</v-btn>
-                    </v-list-item-title>
-                </v-list-item>
+<!--                <v-divider class="my-1"></v-divider>-->
+<!--                <v-list-item prepend-icon="mdi-logout">-->
+<!--                    <v-list-item-title>-->
+<!--                        <v-btn @click="logout" color="red" variant="tonal" density="compact" class="text-none" title="Logout">Logout</v-btn>-->
+<!--                    </v-list-item-title>-->
+<!--                </v-list-item>-->
             </v-list>
         </v-navigation-drawer>
-        <v-main class="py-1 bg-grey-lighten-3">
+        <v-main maxHeight="100vh" class="py1 overflow-x-auto bg-grey-lighten-3">
 <!--            <v-container class="pa-0 mt-1 mb-1" v-if="isSuperAdmin">-->
 <!--                <v-row dense>-->
 <!--                    <v-col cols="6" md="9">-->
