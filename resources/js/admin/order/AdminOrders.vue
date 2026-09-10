@@ -86,21 +86,15 @@
                                     </td>
                                     <td>
                                         <div class="d-flex ga-2 align-center">
-                                            <v-img v-if="item.payment_method === 'Viva Smart'" max-width="36" max-height="36"
-                                                   :src="cdn+'payment/viva_smart.png'"/>
-                                            <v-img v-if="item.payment_method === 'Stripe'" max-width="36" max-height="36"
-                                                   :src="cdn+'payment/stripe.png'"/>
-                                            <v-img v-if="item.payment_method === 'Bank Transfer' || item.payment_method === 'Bank Deposit'" max-width="36" max-height="36"
-                                                   :src="cdn+'payment/bank_transfer.png'"/>
-                                            <v-chip v-if="item.payment_status === 'pending' || item.payment_status === 'unpaid'
-                                                        || item.payment_status === 'refunded' || item.payment_status === 'partially_refunded'
-                                                        || item.payment_status === 'expired' || item.payment_status === 'voided'"
-                                                    color="red" density="compact" variant="outlined" class="text-capitalize font-weight-medium">
-                                                {{item.payment_status}}
-                                            </v-chip>
-                                            <v-chip v-else-if="item.payment_status === 'paid' || item.payment_status === 'partially_paid'"
-                                                    color="green" density="compact" variant="outlined" class="text-capitalize font-weight-medium">
-                                                {{item.payment_status}}
+                                            <v-img v-if="paymentImage(item.payment_method)"
+                                                   width="32" max-width="32" max-height="32" height="32"
+                                                   :src="paymentImage(item.payment_method)"
+                                                   :alt="item.payment_method"/>
+                                            <v-chip v-if="item.payment_status"
+                                                    :color="paymentStatusColor(item.payment_status)"
+                                                    density="compact" variant="outlined"
+                                                    class="text-capitalize font-weight-medium">
+                                                {{ item.payment_status }}
                                             </v-chip>
                                         </div>
                                     </td>
@@ -203,7 +197,20 @@ export default {
                 {title:'Items',key:'order_items_count'},
                 {title:'Delivery Method',value:'shipping_method'},
                 {title:'Label Status',value:'label_status'},
-            ]
+            ],
+            paymentIcons: {
+                banktransfer: 'bank_transfer.png',
+                bankdeposit:  'bank_transfer.png',
+                vivasmart:    'viva_smart.png',
+                vivawallet:   'viva_smart.png',
+                stripe:       'stripe.png',
+                worldpay:     'world_pay.png',
+                creditcard:   'credit_card.png',
+                cybersource:  'credit_card.png',
+                paypal:       'paypal.png',
+            },
+            refundedStatuses: ['pending', 'unpaid', 'refunded', 'partially_refunded', 'expired', 'voided'],
+            paidStatuses: ['paid', 'partially_paid'],
         }
     },
     created() {
@@ -249,7 +256,17 @@ export default {
             } finally {
                 this.isLoading = false;
             }
-        }
+        },
+        paymentImage(method) {
+            const key = String(method || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const file = this.paymentIcons[key];
+            return file ? this.cdn + 'payment/' + file : null;
+        },
+        paymentStatusColor(status) {
+            if (this.paidStatuses.includes(status)) return 'green';
+            if (this.refundedStatuses.includes(status)) return 'red';
+            return 'grey';
+        },
     },
     watch: {
         osearch() {
