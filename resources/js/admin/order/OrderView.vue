@@ -281,7 +281,6 @@
                 </v-row>
             </v-window-item>
             <v-window-item value="transactions">
-                Transaction tab
                 <v-row dense>
                     <v-col cols="12" md="12">
                         <PaymentTransactionsTable :orderId="this.order_id"/>
