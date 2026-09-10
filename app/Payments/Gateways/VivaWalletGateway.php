@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
 /**
  * Viva Wallet exposes one endpoint for both operations:
  *
- *   DELETE /api/transactions/{transactionId}?amount={minor}
+ *   DELETE /api/transactions/{transactionId}/?amount=&sourceCode=&currencyCode=
  *
  * Viva decides whether that becomes a cancellation or a refund based on
  * whether the transaction has cleared yet, so cancel() delegates to refund().
@@ -21,6 +21,25 @@ use Illuminate\Support\Facades\Http;
  */
 class VivaWalletGateway implements PaymentGatewayInterface
 {
+    /**
+     * Viva wants ISO 4217 *numeric* currency codes, not the alpha ones.
+     * Add rows as needed.
+     */
+    private const CURRENCY_CODES = [
+        'GBP' => '826',
+        'EUR' => '978',
+        'USD' => '840',
+        'CHF' => '756',
+        'SEK' => '752',
+        'DKK' => '208',
+        'NOK' => '578',
+        'PLN' => '985',
+        'RON' => '946',
+        'BGN' => '975',
+        'CZK' => '203',
+        'HUF' => '348',
+    ];
+
     public function __construct(private readonly ShopPaymentGateway $config)
     {
     }
@@ -49,17 +68,27 @@ class VivaWalletGateway implements PaymentGatewayInterface
             throw GatewayException::misconfigured('Viva Wallet', 'merchant ID and API key are both required.');
         }
 
+        if (blank($request->gatewayTransactionId)) {
+            return GatewayResponse::failure(
+                'missing_transaction_id',
+                'No Viva transaction id is stored for this payment, so there is nothing to refund.'
+            );
+        }
+
         $query = ['amount' => $request->amountMinor];
 
         if ($source = $this->config->credential('source_code')) {
             $query['sourceCode'] = $source;
         }
 
-        if ($request->reason) {
-            $query['customerTrns'] = mb_substr($request->reason, 0, 255);
+        if ($currency = $this->currencyCode($request->currency)) {
+            $query['currencyCode'] = $currency;
         }
 
-        $url = $this->baseUrl() . '/api/transactions/' . rawurlencode($request->gatewayTransactionId);
+        // Viva documents this path with a trailing slash before the query
+        // string. Without it the request routes nowhere and comes back as a
+        // 404 with an empty body.
+        $url = $this->baseUrl() . '/api/transactions/' . rawurlencode($request->gatewayTransactionId) . '/';
 
         $response = Http::withBasicAuth($merchantId, $apiKey)
             ->acceptJson()
@@ -84,7 +113,14 @@ class VivaWalletGateway implements PaymentGatewayInterface
         return GatewayResponse::failure(
             code: $errorCode !== null ? (string) $errorCode : (string) $response->status(),
             message: $body['ErrorText'] ?? $body['message'] ?? 'Viva Wallet rejected the refund.',
-            raw: $body ?: ['http_status' => $response->status(), 'body' => $response->body()],
+            // Keep the URL and query on failures so a 404 can be diagnosed from
+            // the log screen. No credentials here — auth travels in the header.
+            raw: array_merge($body ?: [], [
+                'http_status'   => $response->status(),
+                'request_url'   => $url,
+                'request_query' => $query,
+                'raw_body'      => $body ? null : $response->body(),
+            ]),
         );
     }
 
@@ -106,12 +142,13 @@ class VivaWalletGateway implements PaymentGatewayInterface
         $response = Http::withBasicAuth($merchantId, $apiKey)
             ->acceptJson()
             ->timeout(config('payments.timeout', 30))
-            ->get($this->baseUrl() . '/api/transactions/' . $probe);
+            ->get($this->baseUrl() . '/api/transactions/' . $probe . '/');
 
         if (in_array($response->status(), [401, 403], true)) {
             return GatewayResponse::failure(
                 (string) $response->status(),
-                'Viva Wallet rejected these credentials. Check the merchant ID and API key.',
+                'Viva Wallet rejected these credentials. Check the Merchant ID and API Key under '
+                . 'Settings → API access → Access Credentials — not the Client ID and Secret.',
                 ['http_status' => $response->status()],
             );
         }
@@ -120,6 +157,11 @@ class VivaWalletGateway implements PaymentGatewayInterface
             'http_status' => $response->status(),
             'environment' => $this->config->environment,
         ]);
+    }
+
+    private function currencyCode(string $currency): ?string
+    {
+        return self::CURRENCY_CODES[strtoupper($currency)] ?? null;
     }
 
     private function baseUrl(): string
