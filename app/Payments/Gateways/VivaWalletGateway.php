@@ -89,12 +89,15 @@ class VivaWalletGateway implements PaymentGatewayInterface
         // string. Without it the request routes nowhere and comes back as a
         // 404 with an empty body.
         $url = $this->baseUrl() . '/api/transactions/' . rawurlencode($request->gatewayTransactionId) . '/';
+        $url = $this->baseUrl()
+            . '/api/transactions/' . rawurlencode($request->gatewayTransactionId) . '/'
+            . '?' . http_build_query($query);
 
         $response = Http::withBasicAuth($merchantId, $apiKey)
             ->acceptJson()
             ->timeout(config('payments.timeout', 30))
             ->retry(2, 500, throw: false)
-            ->delete($url, $query);
+            ->delete($url);
 
         $body = $response->json() ?? [];
 
