@@ -302,6 +302,7 @@ class CartController extends Controller
             case "paypal_payment_confirm":
                 $this->logEvent($cart,'paypal_payment_confirm',[
                     'checkout_id' => $request->checkout_id,
+                    'capture_id' => $request->capture_id,
                 ]);
                 return $this->paypalPaymentConfirm($cart, $request);
 
