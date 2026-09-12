@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\MissingShopifyScopeException;
+use App\Jobs\SyncBlogSeoJob;
 use App\Models\Blog;
 use App\Models\ShopifyShop;
 use App\Models\ShopUser;
 use App\Services\ImageService;
 use App\Services\ShopifyBlogService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ShopifyBlogController extends Controller
 {
@@ -273,54 +275,22 @@ class ShopifyBlogController extends Controller
 
     public function syncSeo(int $shopId)
     {
-        $shopifyShop = ShopifyShop::where('shop_id', $shopId)->firstOrFail();
-        $service = new ShopifyBlogService($shopifyShop);
+        $lockKey = "blog_seo_sync_running_{$shopId}";
 
-        $blogs = Blog::where('shop_id', $shopId)
-            ->whereNotNull('thirdparty_id')
-            ->get(['blog_id', 'thirdparty_id','shop_id','blog_slug']); // adjust 'id' to your actual PK if different — see note in create()
-
-        if ($blogs->isEmpty()) {
-            return response()->json(['success' => true, 'updated' => 0]);
-        }
-
-        $shopifyIds = $blogs->pluck('thirdparty_id')->map(fn ($id) => (int) $id)->all();
-
-        try {
-            $seoData = $service->getArticlesSeo($shopifyIds);
-        } catch (MissingShopifyScopeException $e) {
+        if (Cache::has($lockKey)) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage(),
-                'required_scope' => $e->requiredScope,
-            ], 403);
-        } catch (\RuntimeException $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 502);
+                'message' => 'A SEO sync is already running for this shop — please wait for it to finish.',
+            ], 409);
         }
 
-        $updated = 0;
+        Cache::put($lockKey, true, now()->addMinutes(10));
 
-        foreach ($blogs as $blog) {
-            $seo = $seoData[(int) $blog->thirdparty_id] ?? null;
+        SyncBlogSeoJob::dispatch($shopId);
 
-            if (! $seo) {
-                continue;
-            }
-
-            $updates = [];
-            if (! empty($seo['title'])) {
-                $updates['meta_title'] = $seo['title'];
-            }
-            if (! empty($seo['description'])) {
-                $updates['meta_desc'] = $seo['description']; // matches your existing column name (meta_desc, not meta_description)
-            }
-
-            if ($updates) {
-                $blog->update($updates);
-                $updated++;
-            }
-        }
-
-        return response()->json(['success' => true, 'updated' => $updated]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Article SEO sync started in the background.',
+        ]);
     }
 }

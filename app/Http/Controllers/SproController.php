@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SyncProductSeoJob;
 use App\Models\Brand;
 use App\Models\Location;
 use App\Models\Poptions;
@@ -15,6 +16,7 @@ use App\Models\Tag;
 use App\Models\Variant;
 use App\Services\ShopifyService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -295,44 +297,20 @@ class SproController extends Controller
 
     public function syncProductSeo(int $shopId)
     {
-        $shopifyShop = ShopifyShop::where('shop_id', $shopId)->firstOrFail();
-        $service = new ShopifyService($shopifyShop);
+        $lockKey = "product_seo_sync_running_{$shopId}";
+        if (Cache::has($lockKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A SEO sync is already running for this shop — please wait for it to finish.',
+            ], 409);
+        }
 
-        $updated = 0;
-
-        Product::where('shop_id', $shopId)
-            ->whereNotNull('thirdparty_id')
-            ->select('product_id', 'thirdparty_id','shop_id','handle')
-            ->chunk(100, function ($products) use ($service, &$updated) {
-                $shopifyIds = $products->pluck('thirdparty_id')->map(fn ($id) => (int) $id)->all();
-
-                $seoData = $service->getProductsSeo($shopifyIds);
-
-                foreach ($products as $product) {
-                    $seo = $seoData[(int) $product->thirdparty_id] ?? null;
-
-                    if (! $seo) {
-                        continue;
-                    }
-
-                    $updates = [];
-
-                    if (! empty($seo['title'])) {
-                        $updates['meta_title'] = $seo['title'];
-                    }
-
-                    if (! empty($seo['description'])) {
-                        $updates['meta_desc'] = $seo['description'];
-                    }
-
-                    if ($updates) {
-                        $product->update($updates);
-                        $updated++;
-                    }
-                }
-            });
-
-        return response()->json(['success' => true, 'updated' => $updated]);
+        Cache::put($lockKey, true, now()->addMinutes(10));
+        SyncProductSeoJob::dispatch($shopId);
+        return response()->json([
+            'success' => true,
+            'message' => 'Product SEO sync started in the background.',
+        ]);
     }
 
 
