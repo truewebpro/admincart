@@ -5,11 +5,20 @@
                 <v-card-text>
                     <h2>Total: {{liveCollections?.length || 0}}</h2>
                     <h3>Collections Created: {{acats?.length || 0}} / {{liveCollections?.length || 0}}</h3>
-                    <v-btn v-if="liveCollections?.length" class="mt-2 me-2" variant="tonal" color="success"
-                           density="compact" :loading="seoSyncLoading" @click="syncCollectionsSeo" prependIcon="mdi-sync">Sync Seo</v-btn>
-                    <v-btn v-if="acats?.length" class="mt-2" variant="tonal" color="success"
-                           density="compact" :loading="syncLoading" @click="backfillThirdpartyIds" prependIcon="mdi-sync">Sync Old Collections</v-btn>
-
+                    <div class="d-flex align-center ga-2">
+                        <v-btn v-if="liveCollections?.length" class="mt-2 me-2" variant="tonal" color="success"
+                               density="compact" :loading="seoSyncLoading" @click="syncCollectionsSeo"
+                               prependIcon="mdi-sync">Sync Seo</v-btn>
+                        <SyncStatusWidget
+                            job-type="collection_seo_sync"
+                            :shop-id="shop_id"
+                            :sync-endpoint="`/superadmin/shopify/${shop_id}/collections/sync-seo`"
+                        />
+                    </div>
+                    <div class="d-flex align-center ga-2">
+                        <v-btn v-if="acats?.length" class="mt-2" variant="tonal" color="success"
+                               density="compact" :loading="syncLoading" @click="backfillThirdpartyIds" prependIcon="mdi-sync">Sync Old Collections</v-btn>
+                    </div>
                 </v-card-text>
             </v-card>
         </v-col>
@@ -90,9 +99,11 @@
 </template>
 <script>
 import axios from "axios";
+import SyncStatusWidget from "@/components/SyncStatusWidget.vue";
 
 export default {
     name: "ShopifyCollections",
+    components: {SyncStatusWidget},
     props: {
         shopifyDomain: [String],
     },
@@ -111,6 +122,7 @@ export default {
             liveCollections: [],
             typeFilter: 'all',
 
+            seoSyncLoading: false,
             loading: false,
             creatingIds: [],
             showResultSnackbar: false,
@@ -177,7 +189,7 @@ export default {
 
         syncCollectionsSeo() {
             this.seoSyncLoading = true;
-            return axios.get(`/superadmin/shopify/${this.shop_id}/collections/sync-seo`)
+            return axios.post(`/superadmin/shopify/${this.shop_id}/collections/sync-seo`)
                 .then((resp) => {
                     if (resp.data.success) {
                         window.Toast.success('SEO sync complete — ' + (resp.data.updated ?? 0) + ' updated');

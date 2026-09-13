@@ -275,22 +275,12 @@ class ShopifyBlogController extends Controller
 
     public function syncSeo(int $shopId)
     {
-        $lockKey = "blog_seo_sync_running_{$shopId}";
-
-        if (Cache::has($lockKey)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'A SEO sync is already running for this shop — please wait for it to finish.',
-            ], 409);
-        }
-
-        Cache::put($lockKey, true, now()->addMinutes(10));
-
         SyncBlogSeoJob::dispatch($shopId);
 
         return response()->json([
             'success' => true,
             'message' => 'Article SEO sync started in the background.',
         ]);
+
     }
 }

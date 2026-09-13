@@ -5,8 +5,16 @@
                 <v-card-text>
                     <h2>Total: {{liveBlogs?.length || 0}}</h2>
                     <h3>Articles Created: {{ablogs?.length || 0}} / {{liveArticles?.length || 0}}</h3>
-                    <v-btn v-if="liveBlogs?.length" class="mt-2 me-2" variant="tonal" color="success"
-                           density="compact" :loading="syncLoading" @click="syncBlogsSeo" prependIcon="mdi-sync">Sync Seo</v-btn>
+                    <div class="d-flex align-center ga-2 mt-2 me-2">
+                        <v-btn v-if="liveBlogs?.length" variant="tonal" color="success"
+                               density="compact" :loading="syncLoading" @click="syncBlogsSeo" prependIcon="mdi-sync">Sync Seo</v-btn>
+                        <SyncStatusWidget
+                            job-type="blog_seo_sync"
+                            :shop-id="shop_id"
+                            :sync-endpoint="`/superadmin/shopify/${shop_id}/blogs/sync-seo`"
+                        />
+                    </div>
+
                     <v-btn v-if="ablogs?.length" class="mt-2" variant="tonal" color="success"
                            density="compact" :loading="syncLoading" @click="backfillThirdpartyIds" prependIcon="mdi-sync">Sync Old Articles</v-btn>
                 </v-card-text>
@@ -76,9 +84,11 @@
 <script>
 import dayjs from "dayjs";
 import axios from "axios";
+import SyncStatusWidget from "@/components/SyncStatusWidget.vue";
 
 export default {
     name: "ShopifyBlogs",
+    components: {SyncStatusWidget},
     computed: {
         dayjs() {
             return dayjs
@@ -184,7 +194,7 @@ export default {
         },
         async syncBlogsSeo(){
             this.syncLoading = true;
-            await axios.get(`/superadmin/shopify/${this.shop_id}/blogs/sync-seo`)
+            await axios.post(`/superadmin/shopify/${this.shop_id}/blogs/sync-seo`)
                 .then((resp)=>{
                     if(resp.data.success){
                         window.Toast.success('Seo Sync Success'+ resp.data?.updated)

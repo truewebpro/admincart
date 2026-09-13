@@ -303,62 +303,35 @@ class SproController extends Controller
 
     public function syncProductSeo(int $shopId)
     {
-        $lockKey = "product_seo_sync_running_{$shopId}";
-        if (Cache::has($lockKey)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'A SEO sync is already running for this shop — please wait for it to finish.',
-            ], 409);
-        }
-
-        Cache::put($lockKey, true, now()->addMinutes(10));
         SyncProductSeoJob::dispatch($shopId);
+
         return response()->json([
             'success' => true,
             'message' => 'Product SEO sync started in the background.',
         ]);
+
     }
 
     public function backfillVariantThirdpartyIds(int $shopId)
     {
-        $lockKey = "variant_backfill_running_{$shopId}";
-
-        if (Cache::has($lockKey)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'A variant backfill is already running for this shop — please wait for it to finish.',
-            ], 409);
-        }
-
-        Cache::put($lockKey, true, now()->addHour());
-
         BackfillVariantThirdpartyIdsJob::dispatch($shopId);
 
         return response()->json([
             'success' => true,
-            'message' => 'Variant backfill started in the background. This can take a while for large catalogs — check storage/logs for progress.',
+            'message' => 'Variant backfill started in the background. This can take a while for large catalogs — check /job-runs for progress.',
         ]);
+
     }
 
     public function syncVariantCostPrice(int $shopId)
     {
-        $lockKey = "variant_cost_sync_running_{$shopId}";
-
-        if (Cache::has($lockKey)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'A cost-price sync is already running for this shop — please wait for it to finish.',
-            ], 409);
-        }
-
-        Cache::put($lockKey, true, now()->addMinutes(10));
-
         SyncVariantCostPriceJob::dispatch($shopId);
 
         return response()->json([
             'success' => true,
             'message' => 'Cost price sync started in the background.',
         ]);
+
     }
 
 

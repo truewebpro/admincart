@@ -135,10 +135,10 @@ export default {
         },
         syncPagesSeo(){
             this.syncLoading = true;
-            return axios.get(`/superadmin/shopify/${this.shop_id}/pages/sync-seo`)
+            return axios.post(`/superadmin/shopify/${this.shop_id}/pages/sync-seo`)
                 .then((resp)=>{
                     if(resp.data.success){
-                        window.Toast.success('Seo Sync Success'+ resp.data?.updated)
+                        window.Toast.success('Seo Sync Success '+ resp.data?.updated)
                     }
                 })
                 .finally(()=>{

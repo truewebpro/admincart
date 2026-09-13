@@ -17,6 +17,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DraftOrderController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\HomepageController;
+use App\Http\Controllers\JobRunController;
 use App\Http\Controllers\MailtrapController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
@@ -105,7 +106,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/shopify/import-and-save-scats', [ShopifyController::class, 'importSmartCollections']);
         Route::post('/shopify/add', [ShopifyController::class, 'addShopDetails']);
         Route::get('/shopify/sync-products', [SproController::class, 'sync']);
-        Route::get('/shopify/sync-products-seo/{id}', [SproController::class, 'syncProductSeo']);
+        Route::post('/shopify/{shopId}/sync-products-seo', [SproController::class, 'syncProductSeo']);
         Route::get('/shopify/all-products', [SproController::class, 'index']);
         Route::post('/shopify/create-single-product', [SproController::class, 'createSingleProduct']);
         Route::post('/shopify/import-products', [SproController::class, 'import']);
@@ -128,18 +129,21 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         //Shopify pages routes
         Route::get('/shopify/{shopId}/pages/live', [ShopifyPageController::class, 'live']);
         Route::post('/shopify/{shopId}/pages/{pageId}/create', [ShopifyPageController::class, 'create']);
-        Route::get('/shopify/{shopId}/pages/sync-seo', [ShopifyPageController::class, 'syncSeo']);
+        Route::post('/shopify/{shopId}/pages/sync-seo', [ShopifyPageController::class, 'syncSeo']);
         // Shopify blogs/Articles routes
         Route::get('/shopify/{shopId}/blogs/live', [ShopifyBlogController::class, 'liveBlogs']);
         Route::get('/shopify/{shopId}/blogs/{blogId}/articles/live', [ShopifyBlogController::class, 'liveArticles']);
         Route::post('/shopify/{shopId}/blogs/{blogId}/articles/{articleId}/create', [ShopifyBlogController::class, 'create']);
-        Route::get('/shopify/{shopId}/blogs/sync-seo', [ShopifyBlogController::class, 'syncSeo']);
+        Route::post('/shopify/{shopId}/blogs/sync-seo', [ShopifyBlogController::class, 'syncSeo']);
         Route::post('/shopify/{shopId}/blogs/backfill-thirdparty-ids', [ShopifyBlogController::class, 'backfillThirdpartyIds']);
         // Shopify Collections Routes
         Route::get('/shopify/{shopId}/collections/live', [ShopifyCatController::class, 'liveCollections']);
         Route::post('/shopify/{shopId}/collections/{type}/{collectionId}/create', [ShopifyCatController::class, 'create']);
         Route::post('/shopify/{shopId}/collections/backfill-thirdparty-ids', [ShopifyCatController::class, 'backfillThirdpartyIds']);
-        Route::get('/shopify/{shopId}/collections/sync-seo', [ShopifyCatController::class, 'syncSeo']);
+        Route::post('/shopify/{shopId}/collections/sync-seo', [ShopifyCatController::class, 'syncSeo']);
+
+        //Jon Runs API to see List
+        Route::get('/shopify/{shopId}/job-runs', [JobRunController::class, 'index']);
 
         Route::post('/shops/assign-user',[SuperadminController::class, 'assignUserToShop']);
         Route::get('/shop-users', [SuperadminController::class, 'shopUsers']);

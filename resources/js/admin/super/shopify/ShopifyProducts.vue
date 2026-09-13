@@ -5,16 +5,37 @@
                 <v-card-text>
                     <h2>Total: {{spros?.length || 0}}</h2>
                     <h3>Products Created: {{products_created || 0}} / {{stotal || 0}}</h3>
-                    <v-btn @click="syncProductsSeo" :loading="syncLoading" class="mt-2 me-2"
-                           variant="tonal" color="success" density="compact" prependIcon="mdi-sync">
-                        Sync Products SEO
-                    </v-btn>
-                    <v-btn v-if="spros?.length" class="mt-2 me-2" variant="tonal" color="success"
-                           density="compact" :loading="syncLoading" @click="backfillThirdpartyVariantIds"
-                           prependIcon="mdi-sync">Sync Old Product Variants</v-btn>
-                    <v-btn v-if="spros?.length" class="mt-2" variant="tonal" color="success"
-                           density="compact" :loading="syncLoading" @click="syncVariantCostPrice"
-                           prependIcon="mdi-sync">Sync Variants Cost Price</v-btn>
+                    <div class="d-flex align-center ga-2">
+                        <v-btn @click="syncProductsSeo" :loading="syncLoading" class="mt-2 me-2"
+                               variant="tonal" color="success" density="compact" prependIcon="mdi-sync">
+                            Sync Products SEO
+                        </v-btn>
+                        <SyncStatusWidget
+                            job-type="product_seo_sync"
+                            :shop-id="shop_id"
+                            :sync-endpoint="`/superadmin/shopify/${shop_id}/sync-products-seo`"
+                        />
+                    </div>
+                    <div class="d-flex align-center ga-2">
+                        <v-btn v-if="spros?.length" class="mt-2 me-2" variant="tonal" color="success"
+                               density="compact" :loading="syncLoading" @click="backfillThirdpartyVariantIds"
+                               prependIcon="mdi-sync">Sync Old Product Variants</v-btn>
+                        <SyncStatusWidget
+                            job-type="variant_backfill"
+                            :shop-id="shop_id"
+                            :sync-endpoint="`/superadmin/shopify/${shop_id}/variants/backfill-thirdparty-ids`"
+                        />
+                    </div>
+                    <div class="d-flex align-center ga-2">
+                        <v-btn v-if="spros?.length" class="mt-2" variant="tonal" color="success"
+                               density="compact" :loading="syncLoading" @click="syncVariantCostPrice"
+                               prependIcon="mdi-sync">Sync Variants Cost Price</v-btn>
+                        <SyncStatusWidget
+                            job-type="variant_cost_sync"
+                            :shop-id="shop_id"
+                            :sync-endpoint="`/superadmin/shopify/${shop_id}/variants/sync-cost-price`"
+                        />
+                    </div>
                 </v-card-text>
             </v-card>
         </v-col>
@@ -122,9 +143,11 @@ import {mergeProps} from "vue";
 import debounce from "lodash/debounce";
 import dayjs from "dayjs";
 import axios from "axios";
+import SyncStatusWidget from "@/components/SyncStatusWidget.vue";
 
 export default {
     name: "ShopifyProducts",
+    components: {SyncStatusWidget},
     data(){
         return{
             shop_id:this.$store.state.shop_id,
@@ -213,7 +236,7 @@ export default {
         },
         syncProductsSeo(){
             this.syncLoading = true;
-            axios.get('/superadmin/shopify/sync-products-seo/'+this.shop_id)
+            axios.post(`/superadmin/shopify/${this.shop_id}/sync-products-seo`)
                 .then((resp)=>{
                     const respData = resp.data;
                     if(resp.data.success){
