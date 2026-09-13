@@ -83,55 +83,21 @@ class ShopifyPageService
     {
         $this->ensureScope('pages');
 
-        $token = $this->getAccessToken();
+        $nodes = $this->batchFetchNodes(
+            'Page',
+            $shopifyPageIds,
+            '... on Page { id metaTitle: metafield(namespace: "global", key: "title_tag") { value } metaDescription: metafield(namespace: "global", key: "description_tag") { value } }', // <- confirm this wrapper is present
+            100
+        );
+
         $results = [];
-
-        foreach (array_chunk($shopifyPageIds, 100) as $chunk) {
-            $gids = array_map(fn ($id) => "gid://shopify/Page/{$id}", $chunk);
-            $gidList = implode(',', array_map(fn ($gid) => "\"{$gid}\"", $gids));
-
-            $query = <<<GRAPHQL
-            query {
-              nodes(ids: [{$gidList}]) {
-                ... on Page {
-                  id
-                  metaTitle: metafield(namespace: "global", key: "title_tag") {
-                    value
-                  }
-                  metaDescription: metafield(namespace: "global", key: "description_tag") {
-                    value
-                  }
-                }
-              }
-            }
-            GRAPHQL;
-
-            $response = Http::withHeaders([
-                'X-Shopify-Access-Token' => $token,
-                'Content-Type'           => 'application/json',
-            ])->post(
-                "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/graphql.json",
-                ['query' => $query]
-            );
-
-            if ($response->failed()) {
-                throw new RuntimeException('Shopify page SEO GraphQL request failed: ' . $response->body());
-            }
-
-            foreach ($response->json('data.nodes', []) as $node) {
-                if (! $node) {
-                    continue;
-                }
-
-                $numericId = (int) basename($node['id']);
-
-                $results[$numericId] = [
-                    'title'       => $node['metaTitle']['value'] ?? null,
-                    'description' => $node['metaDescription']['value'] ?? null,
-                ];
-            }
+        foreach ($nodes as $node) {
+            $numericId = (int) basename($node['id']);
+            $results[$numericId] = [
+                'title'       => $node['metaTitle']['value'] ?? null,
+                'description' => $node['metaDescription']['value'] ?? null,
+            ];
         }
-
         return $results;
     }
 }

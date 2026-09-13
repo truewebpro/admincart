@@ -123,6 +123,17 @@ class SuperadminController extends Controller
         ]);
     }
 
+    public function updatePlanSlug(Request $request, $shop_id)
+    {
+        $shop = Shop::findOrFail($shop_id);
+        $shop->plan_slug = $request->input('plan_slug');
+        $shop->save();
+        return response()->json([
+            'success' => true,
+            'shop' => $shop
+        ]);
+    }
+
     public function assignUserToShop(Request $request)
     {
         $validated = $request->validate([

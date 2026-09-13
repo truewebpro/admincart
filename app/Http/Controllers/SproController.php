@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\BackfillVariantThirdpartyIdsJob;
 use App\Jobs\SyncProductSeoJob;
+use App\Jobs\SyncVariantCostPriceJob;
 use App\Models\Brand;
 use App\Models\Location;
 use App\Models\Poptions;
@@ -86,9 +88,11 @@ class SproController extends Controller
         $page = $query->paginate($perPage);
 
         $stotal = Spro::where('shop_id',$shopId)->count();
+        $products_created = Product::where('shop_id',$shopId)->count() ?? null;
         return response()->json([
             'items'       => $page,
             'stotal'     => $stotal,
+            'products_created'     => $products_created,
         ]);
     }
 
@@ -214,6 +218,7 @@ class SproController extends Controller
             }
             $sku = 'p'.$spro['id'].'_'.$vindex;
             $avariants['sku'] = $sku;
+            $avariants['thirdparty_id'] = $svariant['id'] ?? null;
             $avariants['price'] = (float) $svariant['price'];
             $avariants['compareprice'] = isset($svariant['compare_at_price']) ? (float) $svariant['compare_at_price'] : null;
             $avariants['barcode'] = $svariant['barcode'] ?? null;
@@ -230,6 +235,7 @@ class SproController extends Controller
         foreach ($pvariants as $pvariant) {
             $variant = Variant::create([
                 'sku' => $pvariant['sku'],
+                'thirdparty_id' => $pvariant['thirdparty_id'],
                 'price' => $pvariant['price'],
                 'compareprice' => $pvariant['compareprice'],
                 'costprice' => 0,
@@ -237,7 +243,7 @@ class SproController extends Controller
                 'variant_image' => $pvariant['variant_image'],
                 'istax' => true,
                 'isdefault' => $pvariant['isdefault'],
-                'weight' => 0.25,
+                'weight' => 0.01,
                 'options' => $pvariant['options'],
                 'option_values' => $pvariant['option_values'],
                 'product_id' => $product->product_id,
@@ -310,6 +316,48 @@ class SproController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Product SEO sync started in the background.',
+        ]);
+    }
+
+    public function backfillVariantThirdpartyIds(int $shopId)
+    {
+        $lockKey = "variant_backfill_running_{$shopId}";
+
+        if (Cache::has($lockKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A variant backfill is already running for this shop — please wait for it to finish.',
+            ], 409);
+        }
+
+        Cache::put($lockKey, true, now()->addHour());
+
+        BackfillVariantThirdpartyIdsJob::dispatch($shopId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Variant backfill started in the background. This can take a while for large catalogs — check storage/logs for progress.',
+        ]);
+    }
+
+    public function syncVariantCostPrice(int $shopId)
+    {
+        $lockKey = "variant_cost_sync_running_{$shopId}";
+
+        if (Cache::has($lockKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A cost-price sync is already running for this shop — please wait for it to finish.',
+            ], 409);
+        }
+
+        Cache::put($lockKey, true, now()->addMinutes(10));
+
+        SyncVariantCostPriceJob::dispatch($shopId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cost price sync started in the background.',
         ]);
     }
 

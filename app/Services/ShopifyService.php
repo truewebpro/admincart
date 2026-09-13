@@ -121,6 +121,24 @@ class ShopifyService
         return $all;
     }
 
+    public function getProductById(string $productId): array
+    {
+        $this->ensureScope('products');
+
+        $token = $this->getAccessToken();
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $token,
+        ])->get("https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/products/{$productId}.json");
+
+        if ($response->failed()) {
+            throw new RuntimeException('Shopify product fetch failed: ' . $response->body());
+        }
+
+        return $response->json('product', []);
+    }
+
+
     /**
      * Fetch all blogs (a store can have multiple, e.g. "News", "Guides").
      */
@@ -497,55 +515,45 @@ class ShopifyService
     {
         $this->ensureScope('products');
 
-        $token = $this->getAccessToken();
+        $nodes = $this->batchFetchNodes(
+            'Product',
+            $shopifyProductIds,
+            '... on Product { id seo { title description } }', // <- confirm this wrapper is present
+            100
+        );
+
         $results = [];
-
-        foreach (array_chunk($shopifyProductIds, 100) as $chunk) {
-            $gids = array_map(fn ($id) => "gid://shopify/Product/{$id}", $chunk);
-            $gidList = implode(',', array_map(fn ($gid) => "\"{$gid}\"", $gids));
-
-            $query = <<<GRAPHQL
-            query {
-              nodes(ids: [{$gidList}]) {
-                ... on Product {
-                  id
-                  seo {
-                    title
-                    description
-                  }
-                }
-              }
-            }
-            GRAPHQL;
-
-            $response = Http::withHeaders([
-                'X-Shopify-Access-Token' => $token,
-                'Content-Type'           => 'application/json',
-            ])->post(
-                "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/graphql.json",
-                ['query' => $query]
-            );
-
-            if ($response->failed()) {
-                throw new RuntimeException('Shopify SEO GraphQL request failed: ' . $response->body());
-            }
-
-            foreach ($response->json('data.nodes', []) as $node) {
-                if (! $node) {
-                    continue; // product no longer exists / was deleted on Shopify
-                }
-
-                $numericId = (int) basename($node['id']); // "gid://shopify/Product/123" -> 123
-
-                $results[$numericId] = [
-                    'title'       => $node['seo']['title'] ?? null,
-                    'description' => $node['seo']['description'] ?? null,
-                ];
-            }
+        foreach ($nodes as $node) {
+            $numericId = (int) basename($node['id']);
+            $results[$numericId] = [
+                'title'       => $node['seo']['title'] ?? null,
+                'description' => $node['seo']['description'] ?? null,
+            ];
         }
-
         return $results;
     }
+
+    public function getVariantsCostPrice(array $shopifyVariantIds): array
+    {
+        $this->ensureScope('products');
+
+        $nodes = $this->batchFetchNodes(
+            'ProductVariant',
+            $shopifyVariantIds,
+            '... on ProductVariant { id inventoryItem { unitCost { amount } } }', // <- fixed, confirmed needed
+            100
+        );
+
+        $results = [];
+        foreach ($nodes as $node) {
+            $numericId = (int) basename($node['id']);
+            $amount = $node['inventoryItem']['unitCost']['amount'] ?? null;
+            $results[$numericId] = $amount !== null ? (float) $amount : null;
+        }
+        return $results;
+    }
+
+
 
     public function importCustomersSinceId(callable $onBatch, int $limit = 250, int $startingSinceId = 0): void
     {

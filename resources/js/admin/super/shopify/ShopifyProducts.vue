@@ -1,6 +1,24 @@
 <template>
     <v-row dense>
         <v-col cols="12">
+            <v-card class="mb-3" v-if="spros?.length">
+                <v-card-text>
+                    <h2>Total: {{spros?.length || 0}}</h2>
+                    <h3>Products Created: {{products_created || 0}} / {{stotal || 0}}</h3>
+                    <v-btn @click="syncProductsSeo" :loading="syncLoading" class="mt-2 me-2"
+                           variant="tonal" color="success" density="compact" prependIcon="mdi-sync">
+                        Sync Products SEO
+                    </v-btn>
+                    <v-btn v-if="spros?.length" class="mt-2 me-2" variant="tonal" color="success"
+                           density="compact" :loading="syncLoading" @click="backfillThirdpartyVariantIds"
+                           prependIcon="mdi-sync">Sync Old Product Variants</v-btn>
+                    <v-btn v-if="spros?.length" class="mt-2" variant="tonal" color="success"
+                           density="compact" :loading="syncLoading" @click="syncVariantCostPrice"
+                           prependIcon="mdi-sync">Sync Variants Cost Price</v-btn>
+                </v-card-text>
+            </v-card>
+        </v-col>
+        <v-col cols="12">
             <v-card>
                 <v-card-title>Fetched Products</v-card-title>
                 <v-text-field v-model="product_search" class="ma-2" clearable density="compact" variant="outlined"
@@ -103,11 +121,15 @@
 import {mergeProps} from "vue";
 import debounce from "lodash/debounce";
 import dayjs from "dayjs";
+import axios from "axios";
 
 export default {
     name: "ShopifyProducts",
     data(){
         return{
+            shop_id:this.$store.state.shop_id,
+            syncLoading:false,
+            products_created:0,
             product_search:"",
             stotal:0,
             page: 1,
@@ -181,12 +203,58 @@ export default {
                 this.totalItems = allData.total;
                 this.page = allData.current_page;
                 this.stotal = respData.stotal;
+                this.products_created = respData.products_created;
             }
             catch (e) {
                 console.error("Failed to load products", e);
             } finally {
                 this.isLoading = false;
             }
+        },
+        syncProductsSeo(){
+            this.syncLoading = true;
+            axios.get('/superadmin/shopify/sync-products-seo/'+this.shop_id)
+                .then((resp)=>{
+                    const respData = resp.data;
+                    if(resp.data.success){
+                        window.Toast.success(`Success ${respData.message}`)
+                    }
+                    return this.getSyncedProducts();
+                })
+                .catch((err)=>{
+                    console.log("Sync Errors",err)
+                })
+                .finally(()=>{
+                    this.syncLoading = false;
+                })
+        },
+        async backfillThirdpartyVariantIds(){
+            this.syncLoading = true;
+            await axios.post(`/superadmin/shopify/${this.shop_id}/variants/backfill-thirdparty-ids`)
+                .then((resp)=>{
+                    const respData = resp.data;
+                    if(resp.data.success){
+                        window.Toast.success(`Success ${respData.message}`)
+                    }
+                    return this.getSyncedProducts(); // refresh so newly-backfilled rows show as "Saved" immediately
+                })
+                .finally(()=>{
+                    this.syncLoading = false;
+                })
+        },
+        async syncVariantCostPrice(){
+            this.syncLoading = true;
+            await axios.post(`/superadmin/shopify/${this.shop_id}/variants/sync-cost-price`)
+                .then((resp)=>{
+                    const respData = resp.data;
+                    if(resp.data.success){
+                        window.Toast.success(`Success ${respData.message}`)
+                    }
+                    return this.getSyncedProducts(); // refresh so newly-backfilled rows show as "Saved" immediately
+                })
+                .finally(()=>{
+                    this.syncLoading = false;
+                })
         },
         createProductInSystem(item){
             this.isLoading = true;

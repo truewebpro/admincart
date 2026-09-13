@@ -109,6 +109,8 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/shopify/all-products', [SproController::class, 'index']);
         Route::post('/shopify/create-single-product', [SproController::class, 'createSingleProduct']);
         Route::post('/shopify/import-products', [SproController::class, 'import']);
+        Route::post('/shopify/{shopId}/variants/backfill-thirdparty-ids', [SproController::class, 'backfillVariantThirdpartyIds']);
+        Route::post('/shopify/{shopId}/variants/sync-cost-price', [SproController::class, 'syncVariantCostPrice']);
         // Customer Import Routes
         Route::post('/shopify/{shopId}/sync-customers', [ScustController::class, 'sync']);
         Route::get('/shopify/{shopId}/synced-customers', [ScustController::class, 'index']);
@@ -144,6 +146,7 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::put('/shop/update/{shop_id}', [SuperadminController::class, 'updateShop']);
         Route::put('/shop/update-subdomain/{shop_id}', [SuperadminController::class, 'updateShopSubdomain']);
         Route::put('/shop/update-order-prefix/{shop_id}', [SuperadminController::class, 'updateOrderPrefix']);
+        Route::put('/shop/update-plan-slug/{shop_id}', [SuperadminController::class, 'updatePlanSlug']);
         Route::post('/shop/add', [SuperadminController::class, 'storeShop']);
         Route::post('/switch-shop', [SuperadminController::class, 'switchShop']);
         Route::get('/shops/check-slug', [SuperadminController::class, 'checkSlug']);

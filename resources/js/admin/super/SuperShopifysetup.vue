@@ -166,10 +166,6 @@
                                            variant="tonal" color="success" density="compact" prependIcon="mdi-download">
                                         Import Products
                                     </v-btn>
-                                    <v-btn @click="syncProductsSeo" :loading="syncLoading" class="mt-2"
-                                           variant="tonal" color="green" density="compact" prependIcon="mdi-sync">
-                                        Sync Products SEO
-                                    </v-btn>
                                 </div>
                             </v-col>
                         </v-row>
@@ -294,6 +290,7 @@ import ShopifyOrders from "./shopify/ShopifyOrders.vue";
 import ShopifyPages from "./shopify/ShopifyPages.vue";
 import ShopifyBlogs from "./shopify/ShopifyBlogs.vue";
 import ShopifyCollections from "./shopify/ShopifyCollections.vue";
+import axios from "axios";
 
 export default {
     name: "SuperShopifysetup",

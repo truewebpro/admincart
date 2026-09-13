@@ -104,17 +104,14 @@ class ShopifyCollectionService
     {
         $this->ensureScope('custom_collections'); // either scope covers reading collections generally
 
-        $token = $this->getAccessToken();
-
         $nodes = $this->batchFetchNodes(
             'Collection',
             $shopifyCollectionIds,
-            'id metaTitle: metafield(namespace: "global", key: "title_tag") { value } metaDescription: metafield(namespace: "global", key: "description_tag") { value }',
+            '... on Collection { id metaTitle: metafield(namespace: "global", key: "title_tag") { value } metaDescription: metafield(namespace: "global", key: "description_tag") { value } }', // <- confirm this wrapper is present
             100
         );
 
         $results = [];
-
         foreach ($nodes as $node) {
             $numericId = (int) basename($node['id']);
             $results[$numericId] = [
@@ -122,54 +119,6 @@ class ShopifyCollectionService
                 'description' => $node['metaDescription']['value'] ?? null,
             ];
         }
-
-
-//        foreach (array_chunk($shopifyCollectionIds, 100) as $chunk) {
-//            $gids = array_map(fn ($id) => "gid://shopify/Collection/{$id}", $chunk);
-//            $gidList = implode(',', array_map(fn ($gid) => "\"{$gid}\"", $gids));
-//
-//            $query = <<<GRAPHQL
-//            query {
-//              nodes(ids: [{$gidList}]) {
-//                ... on Collection {
-//                  id
-//                  metaTitle: metafield(namespace: "global", key: "title_tag") {
-//                    value
-//                  }
-//                  metaDescription: metafield(namespace: "global", key: "description_tag") {
-//                    value
-//                  }
-//                }
-//              }
-//            }
-//            GRAPHQL;
-//
-//            $response = Http::withHeaders([
-//                'X-Shopify-Access-Token' => $token,
-//                'Content-Type'           => 'application/json',
-//            ])->post(
-//                "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/graphql.json",
-//                ['query' => $query]
-//            );
-//
-//            if ($response->failed()) {
-//                throw new RuntimeException('Shopify collection SEO GraphQL request failed: ' . $response->body());
-//            }
-//
-//            foreach ($response->json('data.nodes', []) as $node) {
-//                if (! $node) {
-//                    continue;
-//                }
-//
-//                $numericId = (int) basename($node['id']);
-//
-//                $results[$numericId] = [
-//                    'title'       => $node['metaTitle']['value'] ?? null,
-//                    'description' => $node['metaDescription']['value'] ?? null,
-//                ];
-//            }
-//        }
-
         return $results;
     }
 
@@ -177,52 +126,19 @@ class ShopifyCollectionService
     {
         $this->ensureScope('custom_collections');
 
-        $token = $this->getAccessToken();
+        $nodes = $this->batchFetchNodes(
+            'Collection',
+            $shopifyCollectionIds,
+            '... on Collection { id productsCount { count } }', // <- confirm this wrapper is present
+            100
+        );
+
         $results = [];
-
-        foreach (array_chunk($shopifyCollectionIds, 100) as $chunk) {
-            $gids = array_map(fn ($id) => "gid://shopify/Collection/{$id}", $chunk);
-            $gidList = implode(',', array_map(fn ($gid) => "\"{$gid}\"", $gids));
-
-            $query = <<<GRAPHQL
-        query {
-          nodes(ids: [{$gidList}]) {
-            ... on Collection {
-              id
-              productsCount {
-                count
-              }
-            }
-          }
+        foreach ($nodes as $node) {
+            $numericId = (int) basename($node['id']);
+            $raw = $node['productsCount'] ?? null;
+            $results[$numericId] = is_array($raw) ? (int) ($raw['count'] ?? 0) : (int) ($raw ?? 0);
         }
-        GRAPHQL;
-
-            $response = Http::withHeaders([
-                'X-Shopify-Access-Token' => $token,
-                'Content-Type'           => 'application/json',
-            ])->post(
-                "https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/graphql.json",
-                ['query' => $query]
-            );
-
-            if ($response->failed()) {
-                throw new RuntimeException('Shopify collection product-count GraphQL request failed: ' . $response->body());
-            }
-
-            foreach ($response->json('data.nodes', []) as $node) {
-                if (! $node) {
-                    continue;
-                }
-
-                $numericId = (int) basename($node['id']);
-
-                // Handles both {count: N} object shape AND a bare int,
-                // whichever this API version actually returns.
-                $raw = $node['productsCount'] ?? null;
-                $results[$numericId] = is_array($raw) ? (int) ($raw['count'] ?? 0) : (int) ($raw ?? 0);
-            }
-        }
-
         return $results;
     }
 

@@ -15,7 +15,7 @@
         <v-row dense>
             <v-col cols="12" md="12">
                 <v-card>
-                    <v-text-field density="compact" variant="outlined" class="pa-2" hide-details
+                    <v-text-field v-model="shopsearch" density="compact" variant="outlined" class="pa-2" hide-details
                                   placeholder="Search Shop..." persistentPlaceholder label="Search Shop"></v-text-field>
                     <v-data-table :items="allshops" :search="shopsearch" :headers="allshopsHeader" hover mobileBreakpoint="sm"
                                   itemsPerPage="50" :hideDefaultFooter="allshops?.length < 50">
@@ -99,6 +99,10 @@
                                     </v-chip>
                                     <v-chip v-else color="green" variant="tonal" density="compact" class="font-weight-medium">
                                         Not Subscribed yet
+                                    </v-chip>
+                                    <v-chip v-if="!item.plan_slug" color="warning" variant="outlined" density="compact"
+                                            class="font-weight-medium" @click="editShopPlan(item)">
+                                        Fix Plan
                                     </v-chip>
                                 </div>
                                 <div v-else>
@@ -245,6 +249,25 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-dialog v-model="planDialog" maxWidth="300">
+            <v-card>
+                <v-card-text>
+                    <v-select variant="underlined" density="comfortable"
+                                  v-model="planForm.plan_slug" :items="planPresets"
+                                  label="Plan Slug"
+                                  placeholder="elite"
+                                  :rules="[rules.required]"
+                                  hint="it should match with stripe name"
+                                  persistentHint
+                    />
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer/>
+                    <v-btn color="success" @click="updateShopPlan">update</v-btn>
+                    <v-btn color="red" @click="planDialog = false">cancel</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 <script>
@@ -254,6 +277,18 @@ export default {
     name: "SuperAdminShops",
     data(){
         return {
+            planPresets:[
+                {title:'basic'},
+                {title:'ecommerce'},
+                {title:'elite'},
+                {title:'advanced'},
+                {title:'business'},
+            ],
+            planDialog: false,
+            planForm: {
+                shop_name: '',
+                plan_slug: ''
+            },
             shopsearch:"",
             shopDialog: false,
             subdomainDialog: false,
@@ -449,6 +484,25 @@ export default {
                 console.log(resp.data);
                 this.fetchShops();
                 this.orderPrefixDialog = false;
+            }).catch((err)=>{
+                window.Toast.error('some error')
+            })
+        },
+        editShopPlan(shop){
+            this.selectedShop = shop
+            this.planForm = {
+                shop_name: shop.shop_name,
+                plan_slug: shop.plan_slug,
+            }
+            this.planDialog = true;
+        },
+        updateShopPlan(){
+            axios.put(`/superadmin/shop/update-plan-slug/${this.selectedShop.shop_id}`,{
+                plan_slug:this.planForm.plan_slug,
+            }).then((resp)=>{
+                window.Toast.success('Plan Slug updated');
+                this.fetchShops();
+                this.planDialog = false;
             }).catch((err)=>{
                 window.Toast.error('some error')
             })
