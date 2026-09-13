@@ -16,7 +16,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('backup:database')->dailyAt('02:00');
         $schedule->command('queue:work --stop-when-empty --tries=1 --timeout=280')
             ->everyMinute()
-            ->withoutOverlapping();
+            ->withoutOverlapping()
+            ->onOneServer();
     }
 
     /**
