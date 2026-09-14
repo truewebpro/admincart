@@ -44,7 +44,7 @@ class WorldpayGateway implements PaymentGatewayInterface
     public function refund(RefundRequest $request): GatewayResponse
     {
         return $this->isAccess()
-            ? $this->accessAction($request, $request->isFullAmount ? 'refund' : 'partialRefund')
+            ? $this->accessAction($request, 'partialRefund')
             : $this->onlineAction($request, 'refund');
     }
 
