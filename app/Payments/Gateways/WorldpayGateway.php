@@ -167,16 +167,21 @@ class WorldpayGateway implements PaymentGatewayInterface
             );
         }
 
-        $candidates = match ($action) {
-            'refund'        => ['payments:refund', 'payments:fullRefund', 'payments:partialRefund'],
-            'partialRefund' => ['payments:partialRefund', 'payments:refund'],
-            'cancel'        => ['payments:cancel', 'payments:reverse'],
+        // Worldpay namespaces these differently across products and versions —
+        // "cardPayments:refund" on some accounts, "payments:refund" on others.
+        // Match on the action after the colon so the prefix stops mattering.
+        $wanted = match ($action) {
+            'refund'        => ['refund', 'fullRefund', 'partialRefund'],
+            'partialRefund' => ['partialRefund', 'refund'],
+            'cancel'        => ['cancel', 'reverse'],
             default         => [],
         };
 
-        foreach ($candidates as $rel) {
-            if ($href = data_get($links, "$rel.href")) {
-                return $href;
+        foreach ($wanted as $name) {
+            foreach ((array) $links as $rel => $link) {
+                if (str_ends_with((string) $rel, ':' . $name) && ($href = data_get($link, 'href'))) {
+                    return $href;
+                }
             }
         }
 
@@ -185,7 +190,7 @@ class WorldpayGateway implements PaymentGatewayInterface
             . 'The payment may already be fully refunded, or too old for the Payment Queries API '
             . '(it only covers payments taken after ' . self::QUERY_API_CUTOVER . ').',
             'worldpay_missing_action_link',
-            ['available' => array_keys($links ?? [])],
+            ['available' => array_keys((array) $links)],
         );
     }
 
