@@ -170,6 +170,7 @@
                     <v-list-item link :to="{name:'PagesList'}" title="Pages" color="primary" prepend-icon="mdi-page-next-outline"></v-list-item>
                     <v-list-item link :to="{name:'BlogsList'}" title="Blogs" color="primary" prepend-icon="mdi-post-outline"></v-list-item>
                     <v-list-item link :to="{name:'PoliciesList'}" title="Policies" color="primary" prepend-icon="mdi-file-sign"></v-list-item>
+                    <v-list-item link :to="{name:'MediaLibraryList'}" title="Media Files" color="primary" prepend-icon="mdi-image"></v-list-item>
                 </v-list-group>
                 <v-list-group value="loyalty">
                     <template v-slot:activator="{props}">

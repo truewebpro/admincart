@@ -62,6 +62,14 @@
                     </div>
                 </div>
             </v-tab>
+            <v-tab value="sfiles" class="bg-white">
+                <div class="d-flex align-center ga-1">
+                    Files
+<!--                    <div v-if="counts?.orders">-->
+<!--                        <v-chip variant="tonal" density="compact" color="success">{{counts?.orders?.count}}</v-chip>-->
+<!--                    </div>-->
+                </div>
+            </v-tab>
         </v-tabs>
         <v-window v-model="stab">
             <v-window-item value="setup">
@@ -279,6 +287,9 @@
                 </v-card>
                 <ShopifyOrders/>
             </v-window-item>
+            <v-window-item value="sfiles">
+                <ShopifyFiles/>
+            </v-window-item>
         </v-window>
     </v-container>
 </template>
@@ -291,10 +302,13 @@ import ShopifyPages from "./shopify/ShopifyPages.vue";
 import ShopifyBlogs from "./shopify/ShopifyBlogs.vue";
 import ShopifyCollections from "./shopify/ShopifyCollections.vue";
 import axios from "axios";
+import ShopifyFiles from "@/admin/super/shopify/ShopifyFiles.vue";
 
 export default {
     name: "SuperShopifysetup",
-    components: {ShopifyCollections, ShopifyBlogs, ShopifyPages, ShopifyOrders, ShopifyCustomers, ShopifyProducts},
+    components: {
+        ShopifyFiles,
+        ShopifyCollections, ShopifyBlogs, ShopifyPages, ShopifyOrders, ShopifyCustomers, ShopifyProducts},
     computed: {
         dayjs() {
             return dayjs

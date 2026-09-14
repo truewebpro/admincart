@@ -10,6 +10,7 @@ use App\Models\ProductType;
 use App\Models\Rule;
 use App\Models\ShopifyShop;
 use App\Services\ImageService;
+use App\Services\MediaLibraryService;
 use App\Services\ShopifyCollectionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -107,9 +108,14 @@ class ShopifyCatController extends Controller
         }
 
         $catImage = null;
+        $catImageMeta = [];
+
         if (! empty($collection['image']['src'])) {
             try {
-                $catImage = ImageService::storeFromUrl($collection['image']['src'], 'category', 600, 600);
+                $shop = \App\Models\Shop::where('shop_id', $shopId)->firstOrFail();
+                $result = ImageService::storeShopifyFileFromUrl($collection['image']['src'], $shop->shop_slug, 600, 600);
+                $catImage = $result['path'];
+                $catImageMeta = $result;
             } catch (\Throwable $e) {
                 $catImage = null; // don't block collection creation if the image fails
             }
@@ -138,6 +144,29 @@ class ShopifyCatController extends Controller
         if ($type === 'smart' && ! empty($collection['rules'])) {
             $this->recreateRules($cat, $collection['rules'], $shopId);
         }
+        if ($catImage) {
+            MediaLibraryService::recordAndAttach(
+                $shopId,
+                $catImage,
+                $cat,
+                [
+                    // Unconfirmed whether Collection.image has its own 'id' —
+                    // left defensive (?? null) rather than assumed. Worth
+                    // verifying against a real collection API response, same
+                    // way the article's image.id absence was confirmed earlier.
+                    'thirdparty_id'  => $collection['image']['id'] ?? null,
+                    'thirdparty_url' => $collection['image']['src'] ?? null,
+                    'alt_text'       => $collection['image']['alt'] ?? $cat->cat_name,
+                    'mime_type'      => $catImageMeta['mime_type'] ?? null,
+                    'width'          => $collection['image']['width'] ?? $catImageMeta['width'] ?? null,
+                    'height'         => $collection['image']['height'] ?? $catImageMeta['height'] ?? null,
+                    'file_size'      => $catImageMeta['file_size'] ?? null,
+                    'filename'       => $catImageMeta['filename'] ?? null,
+                ],
+                'featured'
+            );
+        }
+
 
         return response()->json([
             'success' => true,

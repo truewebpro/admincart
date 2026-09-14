@@ -19,6 +19,7 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\JobRunController;
 use App\Http\Controllers\MailtrapController;
+use App\Http\Controllers\MediaFileController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
@@ -33,6 +34,7 @@ use App\Http\Controllers\SendcloudController;
 use App\Http\Controllers\ShopifyBlogController;
 use App\Http\Controllers\ShopifyCatController;
 use App\Http\Controllers\ShopifyController;
+use App\Http\Controllers\ShopifyFileController;
 use App\Http\Controllers\ShopifyPageController;
 use App\Http\Controllers\SorderController;
 use App\Http\Controllers\SproController;
@@ -136,11 +138,16 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::post('/shopify/{shopId}/blogs/{blogId}/articles/{articleId}/create', [ShopifyBlogController::class, 'create']);
         Route::post('/shopify/{shopId}/blogs/sync-seo', [ShopifyBlogController::class, 'syncSeo']);
         Route::post('/shopify/{shopId}/blogs/backfill-thirdparty-ids', [ShopifyBlogController::class, 'backfillThirdpartyIds']);
+        Route::post('/blogs/{blogId}/set-image', [ShopifyBlogController::class, 'setImageFromLibrary']);
         // Shopify Collections Routes
         Route::get('/shopify/{shopId}/collections/live', [ShopifyCatController::class, 'liveCollections']);
         Route::post('/shopify/{shopId}/collections/{type}/{collectionId}/create', [ShopifyCatController::class, 'create']);
         Route::post('/shopify/{shopId}/collections/backfill-thirdparty-ids', [ShopifyCatController::class, 'backfillThirdpartyIds']);
         Route::post('/shopify/{shopId}/collections/sync-seo', [ShopifyCatController::class, 'syncSeo']);
+
+        //Shopify Media Files live and create
+        Route::get('/shopify/{shopId}/files/live', [ShopifyFileController::class, 'live']);
+        Route::post('/shopify/{shopId}/files/create', [ShopifyFileController::class, 'create']);
 
         //Jon Runs API to see List
         Route::get('/shopify/{shopId}/job-runs', [JobRunController::class, 'index']);
@@ -161,6 +168,10 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         Route::get('/sync-mailtrap-customers', [MailtrapController::class, 'syncAllCustomers']);
     });
     Route::prefix('sadmin')->group(function(){
+        //Media files to save
+        Route::post('/media-files/upload', [MediaFileController::class, 'upload']);
+        Route::get('/media-files', [MediaFileController::class, 'index']);
+
         Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
         Route::get('/shop/business',[HomeController::class,'getShopBusiness']);
         Route::post('/shop/business/update',[HomeController::class,'updateShopBusiness']);

@@ -160,7 +160,6 @@ export default {
         getLiveArticles(blogId){
             if (!blogId) return;
             this.loading = true;
-            console.log('blogId',blogId)
             return axios.get(`/superadmin/shopify/${this.shop_id}/blogs/${blogId}/articles/live`)
                 .then((resp)=>{
                     const respData = resp.data;

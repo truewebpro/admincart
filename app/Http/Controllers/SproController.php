@@ -16,6 +16,8 @@ use App\Models\Spro;
 use App\Models\Stock;
 use App\Models\Tag;
 use App\Models\Variant;
+use App\Services\ImageService;
+use App\Services\MediaLibraryService;
 use App\Services\ShopifyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -128,19 +130,35 @@ class SproController extends Controller
                 );
             }
         }
-        if($spro['image_one']){
-            $imageUrl = $spro['image_one'];
-            $response = Http::timeout(30)->get($imageUrl);
-            if($response->successful()) {
-                $filename = "product_image-".time().uniqid().'.png';
-                $img = Image::make($response->body())->resize(1000, 1000, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-                $fpath = 'products/'.$filename;
-                Storage::disk('s3')->put($fpath, (string) $img->encode());
+        $imageS3Map = [];
+        $imageSrcMap = [];
+        $variantImageMap = [];
+        $featured_image = null;
+        $featuredImageMeta = null;
+        $featuredShopifyImageId = null;
+
+        if (!empty($spro['images'])) {
+            foreach ($spro['images'] as $index => $image) {
+                if (!isset($imageS3Map[$image['id']])) {
+                    try {
+                        $imageS3Map[$image['id']] = ImageService::storeShopifyFileFromUrl($image['src'], $shopSlug, 1000, 1000);
+                        $imageSrcMap[$image['id']] = $image['src']; // NEW
+                    } catch (\Throwable $e) {
+                        $imageS3Map[$image['id']] = null;
+                    }
+                }
+
+                if ($index === 0) {
+                    $featured_image = $imageS3Map[$image['id']]['path'] ?? null;
+                    $featuredImageMeta = $imageS3Map[$image['id']];
+                    $featuredShopifyImageId = $image['id'];
+                }
+
+                foreach ($image['variant_ids'] ?? [] as $variantId) {
+                    $variantImageMap[$variantId] = $imageS3Map[$image['id']]['path'] ?? null;
+                }
             }
         }
-        $featured_image = $fpath ?? null;
 
         $slug = $spro['handle'];
         $counter = 1;
@@ -167,6 +185,45 @@ class SproController extends Controller
             'thirdparty_id' => $spro['shopify_product_id'],
             'shop_id' => $spro['shop_id'],
         ]);
+        if ($featured_image) {
+            MediaLibraryService::recordAndAttach(
+                $shopId,
+                $featured_image,
+                $product,
+                [
+                    'thirdparty_id'  => $featuredShopifyImageId,
+                    'thirdparty_url' => $spro['image_one'] ?? null,
+                    'alt_text'       => $product->title,
+                    'mime_type'      => $featuredImageMeta['mime_type'] ?? null,
+                    'width'          => $featuredImageMeta['width'] ?? null,
+                    'height'         => $featuredImageMeta['height'] ?? null,
+                    'file_size'      => $featuredImageMeta['file_size'] ?? null,
+                    'filename'       => $featuredImageMeta['filename'] ?? null,
+                ],
+                'featured'
+            );
+        }
+        foreach ($imageS3Map as $shopifyImageId => $imgResult) {
+            if (!$imgResult || $imgResult['path'] === $featured_image) {
+                continue;
+            }
+
+            MediaLibraryService::recordAndAttach(
+                $shopId,
+                $imgResult['path'],
+                $product,
+                [
+                    'thirdparty_id'  => $shopifyImageId,
+                    'thirdparty_url' => $imageSrcMap[$shopifyImageId] ?? null, // <- the actual fix
+                    'mime_type'      => $imgResult['mime_type'] ?? null,
+                    'width'          => $imgResult['width'] ?? null,
+                    'height'         => $imgResult['height'] ?? null,
+                    'file_size'      => $imgResult['file_size'] ?? null,
+                    'filename'       => $imgResult['filename'] ?? null,
+                ],
+                'gallery'
+            );
+        }
 
         $location = Location::where('shop_id',$shopId)->firstOrCreate(
             ['shop_id' => $shopId],
@@ -179,30 +236,6 @@ class SproController extends Controller
             ]
         );
 
-        $imageS3Map = [];     // shopify_image_id => s3 path
-        $variantImageMap = []; // shopify_variant_id => s3 path
-
-        if(!empty($spro['images'])){
-            foreach ($spro['images'] as $image) {
-                if(! isset($imageS3Map[$image['id']])){
-                    $vpath = null;
-                    $vimageUrl = $image['src'];
-                    $response = Http::timeout(30)->get($vimageUrl);
-                    if($response->successful()) {
-                        $filename = "variant_image-".time().uniqid().'.png';
-                        $img = Image::make($response->body())->resize(1000, 1000, function ($constraint) {
-                            $constraint->aspectRatio();
-                        });
-                        $vpath = 'products/'.$filename;
-                        Storage::disk('s3')->put($vpath, (string) $img->encode());
-                    }
-                    $imageS3Map[$image['id']] = $vpath;
-                }
-                foreach ($image['variant_ids'] ?? [] as $variantId) {
-                    $variantImageMap[$variantId] = $imageS3Map[$image['id']];
-                }
-            }
-        }
         $pvariants = [];
         foreach (($spro['variants'] ?? []) as $vindex => $svariant) {
             $avariants = [];
@@ -223,8 +256,7 @@ class SproController extends Controller
             $avariants['compareprice'] = isset($svariant['compare_at_price']) ? (float) $svariant['compare_at_price'] : null;
             $avariants['barcode'] = $svariant['barcode'] ?? null;
             $avariants['variant_image'] = $variantImageMap[$svariant['id']]
-                ?? $imageS3Map[$svariant['image_id'] ?? null]
-                ?? null;
+                ?? ($imageS3Map[$svariant['image_id'] ?? null]['path'] ?? null);
             $avariants['isdefault'] = $isDefault;
             $avariants['options'] = $options;
             $avariants['option_values'] = $optionValue;
@@ -256,6 +288,16 @@ class SproController extends Controller
                 'product_id' => $product->product_id,
                 'shop_id' => $spro['shop_id'],
             ]);
+            if ($pvariant['variant_image']) {
+                MediaLibraryService::recordAndAttach(
+                    $shopId,
+                    $pvariant['variant_image'],
+                    $variant,
+                    [],
+                    'variant'
+                );
+            }
+
         }
 
         $spro->update([

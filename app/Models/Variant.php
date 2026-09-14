@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasMediaFiles;
 use App\Traits\HasVat;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Variant extends Model
 {
-    use HasFactory, HasVat;
+    use HasFactory, HasVat, HasMediaFiles;
     protected $primaryKey = 'variant_id';
     protected $fillable = [
         'sku',

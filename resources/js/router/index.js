@@ -81,6 +81,7 @@ import LoyaltySettings from "@/admin/loyalty/LoyaltySettings.vue";
 import LoyaltyProductPointsOverride from "@/admin/loyalty/LoyaltyProductPointsOverride.vue";
 import LoyaltyEarnActions from "@/admin/loyalty/LoyaltyEarnActions.vue";
 import LoyaltyActionReviewQueue from "@/admin/loyalty/LoyaltyActionReviewQueue.vue";
+import MediaLibraryList from "@/components/MediaLibraryList.vue";
 
 
 const routes = [
@@ -162,6 +163,7 @@ const routes = [
     {path: '/theme/policies',name:'PoliciesList',component: PoliciesList},
     {path: '/theme/policies/new',name:'PoliciesNew',component: PoliciesNew},
     {path: '/theme/policies/:policy_id',name:'PoliciesEdit',component:  PoliciesEdit,props:true},
+    {path: '/theme/shop-files',name: 'MediaLibraryList',component: MediaLibraryList},
     {path: '/settings',name: 'Settings',component: Settings},
     {path: '/settings/general',name: 'SettingsGeneral',component: SettingsGeneral},
     {path: '/settings/shipping',name: 'SettingsShipping',component: SettingsShipping},

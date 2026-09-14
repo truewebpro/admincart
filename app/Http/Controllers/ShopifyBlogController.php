@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Exceptions\MissingShopifyScopeException;
 use App\Jobs\SyncBlogSeoJob;
 use App\Models\Blog;
+use App\Models\MediaFile;
+use App\Models\MediaFileAttachment;
 use App\Models\ShopifyShop;
 use App\Models\ShopUser;
 use App\Services\ImageService;
@@ -113,7 +115,13 @@ class ShopifyBlogController extends Controller
 
         if (! empty($article['image']['src'])) {
             try {
-                $blogImage = ImageService::storeFromUrl($article['image']['src'], 'blogs', 1200, 800);
+                $shop = \App\Models\Shop::where('shop_id', $shopId)->firstOrFail();
+                $result = ImageService::storeShopifyFileFromUrl($article['image']['src'], $shop->shop_slug, 1200, 800);
+
+                $blogImage = $result['path'];
+                $imageMeta = $result;
+
+//                $blogImage = ImageService::storeFromUrl($article['image']['src'], 'blogs', 1200, 800);
             } catch (\Throwable $e) {
                 $blogImage = null;
             }
@@ -147,6 +155,26 @@ class ShopifyBlogController extends Controller
             'meta_desc'        => $article['title'] ?? null,
             'user_id'          => $userId,
         ]);
+
+        if ($blogImage) {
+            \App\Services\MediaLibraryService::recordAndAttach(
+                $shopId,
+                $blogImage,
+                $blog,
+                [
+                    'thirdparty_id'  => $article['image']['id'] ?? null,
+                    'thirdparty_url' => $article['image']['src'] ?? null,
+                    'alt_text'       => $article['image']['alt'] ?? $blog->blog_title,
+                    'mime_type'      => $imageMeta['mime_type'] ?? null,
+                    'width'          => $article['image']['width'] ?? $imageMeta['width'] ?? null,
+                    'height'         => $article['image']['height'] ?? $imageMeta['height'] ?? null,
+                    'file_size'      => $imageMeta['file_size'] ?? null,
+                    'filename'       => $imageMeta['filename'] ?? null,
+                ],
+                'featured'
+            );
+        }
+
 
         return response()->json([
             'success' => true,
@@ -283,4 +311,42 @@ class ShopifyBlogController extends Controller
         ]);
 
     }
+
+    public function setImageFromLibrary(Request $request, int $blogId)
+    {
+        $shopId = session('shop_id');
+
+        $validated = $request->validate([
+            'media_file_id' => ['required', 'integer', 'exists:media_files,id'],
+        ]);
+
+        $blog = Blog::where('shop_id', $shopId)->findOrFail($blogId);
+        $mediaFile = MediaFile::where('shop_id', $shopId)->findOrFail($validated['media_file_id']);
+
+        // The dual write: existing flat column, unchanged behavior...
+        $blog->update(['blog_image' => $mediaFile->path]);
+
+        // ...plus the new attachment record, for tracking/future-relation
+        // purposes. Remove any previous "featured" attachment for this
+        // blog first, so re-selecting a different image doesn't leave
+        // stale attachment rows pointing at the old one.
+        MediaFileAttachment::where('attachable_type', Blog::class)
+            ->where('attachable_id', $blog->blog_id)
+            ->where('media_for', 'featured')
+            ->delete();
+
+        MediaFileAttachment::create([
+            'media_file_id'   => $mediaFile->id,
+            'attachable_type' => Blog::class,
+            'attachable_id'   => $blog->blog_id,
+            'media_for'       => 'featured',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'blog_image' => $blog->blog_image,
+            'images' => $blog->fresh()->images, // proves the relation/accessor actually works
+        ]);
+    }
+
 }

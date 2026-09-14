@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasMediaFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cat extends Model
 {
-    use HasFactory;
+    use HasFactory, HasMediaFiles;
     protected $primaryKey = 'cat_id';
     protected $fillable = [
         'cat_name',
