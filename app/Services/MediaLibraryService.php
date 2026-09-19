@@ -7,12 +7,6 @@ use App\Models\MediaFileAttachment;
 
 class MediaLibraryService
 {
-    /**
-     * Shared find-or-create logic, used by both recordAndAttach()
-     * (creating a resource that has an image, e.g. a blog) and
-     * recordOnly() (importing into the general library with nothing
-     * to attach to yet, e.g. from the Shopify Files browser).
-     */
     protected static function findOrCreateMediaFile(int $shopId, string $path, array $meta): MediaFile
     {
         $mediaFile = null;
@@ -60,18 +54,8 @@ class MediaLibraryService
         ]);
     }
 
-    /**
-     * Used when creating a resource that HAS an image at creation time
-     * (blogs, products, collections) — creates/dedupes the MediaFile
-     * AND attaches it to that resource in one call.
-     */
-    public static function recordAndAttach(
-        int $shopId,
-        string $path,
-        $attachable,
-        array $meta = [],
-        ?string $mediaFor = null
-    ): MediaFile {
+    public static function recordAndAttach(int $shopId, string $path, $attachable, array $meta = [], ?string $mediaFor = null): MediaFile
+    {
         $mediaFile = self::findOrCreateMediaFile($shopId, $path, $meta);
 
         $existingAttachment = MediaFileAttachment::where('media_file_id', $mediaFile->id)
@@ -92,15 +76,45 @@ class MediaLibraryService
         return $mediaFile;
     }
 
-    /**
-     * Used when importing into the GENERAL library with nothing to
-     * attach to yet — e.g. pulling a file in from Shopify's Files
-     * browser. No attachment is created; the file just becomes
-     * available for later selection via the picker.
-     */
     public static function recordOnly(int $shopId, string $path, array $meta = []): MediaFile
     {
         return self::findOrCreateMediaFile($shopId, $path, $meta);
+    }
+
+    public static function recordAndAttachFromResult(int $shopId, array $imageResult, $attachable, ?string $mediaFor = null, array $extra = []): MediaFile
+    {
+        if (empty($imageResult['path'])) {
+            throw new \InvalidArgumentException('recordAndAttachFromResult(): $imageResult has no path.');
+        }
+
+        $meta = array_merge([
+            'mime_type' => $imageResult['mime_type'] ?? null,
+            'width'     => $imageResult['width'] ?? null,
+            'height'    => $imageResult['height'] ?? null,
+            'file_size' => $imageResult['file_size'] ?? null,
+            'filename'  => $imageResult['filename'] ?? null,
+            'file_type' => $imageResult['file_type'] ?? 'image',
+        ], $extra);
+
+        return self::recordAndAttach($shopId, $imageResult['path'], $attachable, $meta, $mediaFor);
+    }
+
+    public static function recordOnlyFromResult(int $shopId, array $imageResult, array $extra = []): MediaFile
+    {
+        if (empty($imageResult['path'])) {
+            throw new \InvalidArgumentException('recordOnlyFromResult(): $imageResult has no path.');
+        }
+
+        $meta = array_merge([
+            'mime_type' => $imageResult['mime_type'] ?? null,
+            'width'     => $imageResult['width'] ?? null,
+            'height'    => $imageResult['height'] ?? null,
+            'file_size' => $imageResult['file_size'] ?? null,
+            'filename'  => $imageResult['filename'] ?? null,
+            'file_type' => $imageResult['file_type'] ?? 'image',
+        ], $extra);
+
+        return self::recordOnly($shopId, $imageResult['path'], $meta);
     }
 
 }

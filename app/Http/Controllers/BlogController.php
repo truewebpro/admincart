@@ -8,9 +8,12 @@ use App\Models\Cat;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\Section;
+use App\Models\Shop;
 use App\Models\Stype;
 use App\Models\Tag;
 use App\Services\CacheKeys;
+use App\Services\ImageService;
+use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -193,15 +196,13 @@ class BlogController extends Controller
                 $counter++;
             }
             $blogSlug = $slug;
+            $blogImage = null;
+            $imageMeta = [];
+
             if($request->hasFile('blog_image')){
-                $file = $request->file('blog_image');
-                $filename = 'blog_image_'.uniqid().'.png';
-                $img = Image::make($file->getRealPath())->resize(1200, 800, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-                $bpath = 'blog/'.$filename;
-                Storage::disk('s3')->put($bpath,(string)$img->encode());
-                $blogImage = $bpath;
+                $shop = Shop::where('shop_id', $shopId)->firstOrFail();
+                $imageMeta = ImageService::storeUploadedFile($request->file('blog_image'), $shop->shop_slug, 1200, 800);
+                $blogImage = $imageMeta['path'];
             }
             $blog = Blog::create(
                 [
@@ -218,6 +219,11 @@ class BlogController extends Controller
                     'shop_id' => $shopId,
                 ]
             );
+
+            if ($blogImage) {
+                MediaLibraryService::recordAndAttachFromResult($shopId, $imageMeta, $blog, 'featured');
+            }
+
             DB::commit();
             return response()->json([
                 'success' => true,
@@ -260,19 +266,21 @@ class BlogController extends Controller
 
                 $blogSlug = $blog->blog_slug;
             }
+
+            $imageMeta = [];
+
             if ($request->hasFile('blog_image')) {
-                $file = $request->file('blog_image');
-                $filename = 'blog_image_' . uniqid() . '.png';
-                $img = Image::make($file->getRealPath())->resize(1200, 800, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-                $bpath = 'blog/' . $filename;
-                Storage::disk('s3')->put($bpath, (string) $img->encode());
-                $blogImage = $bpath;
+                $shop = Shop::where('shop_id', $shopId)->firstOrFail();
+                $imageMeta = ImageService::storeUploadedFile($request->file('blog_image'), $shop->shop_slug, 1200, 800);
+                $blogImage = $imageMeta['path'];
+
+            } elseif (!empty($request->blog_image) && is_string($request->blog_image)) {
+                // Library-picked path — a plain string, not a file upload.
+                $blogImage = $request->blog_image;
             } else {
                 $blogImage = $blog->blog_image;
             }
-            $blog = $blog->update(
+            $blog->update(
                 [
                     'blog_title' => $request->blog_title,
                     'blog_slug' => $blogSlug,
@@ -287,6 +295,11 @@ class BlogController extends Controller
                     'shop_id' => $shopId,
                 ]
             );
+
+            if ($request->hasFile('blog_image') && $blogImage) {
+                MediaLibraryService::recordAndAttachFromResult($shopId, $imageMeta, $blog, 'featured');
+            }
+
             DB::commit();
             return response()->json([
                 'success' => true,

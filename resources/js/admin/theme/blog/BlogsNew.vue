@@ -81,10 +81,28 @@
                     <v-card class="mt-3 border" elevation="0">
                         <v-card-title>Image</v-card-title>
                         <v-card-text>
+                            <v-img
+                                v-if="libraryImagePath"
+                                :src="cdn + libraryImagePath"
+                                max-width="150"
+                                class="mb-2 rounded"
+                            ></v-img>
                             <v-file-upload v-model="blog_image" density="compact" browse-text="Add Image"
                                            icon="mdi-upload"
                                            title="Add Image"
                             ></v-file-upload>
+                            <v-btn
+                                size="small" variant="tonal" class="mt-2" block
+                                prepend-icon="mdi-image-multiple-outline"
+                                @click="showMediaPicker = true"
+                            >
+                                Choose from Library
+                            </v-btn>
+                            <media-library-picker
+                                v-model="showMediaPicker"
+                                :cdn-base="cdn"
+                                @select="onLibraryImageSelected"
+                            />
                         </v-card-text>
                     </v-card>
                     <v-card elevation="0" class="border-sm mt-3">
@@ -111,10 +129,11 @@
 import {VFileUpload} from "vuetify/labs/components";
 import axios from "axios";
 import RichTextEditor from "@/components/RichTextEditor.vue";
+import MediaLibraryPicker from "@/components/MediaLibraryPicker.vue";
 
 export default {
     name:"BlogsNew",
-    components:{RichTextEditor, VFileUpload},
+    components:{MediaLibraryPicker, RichTextEditor, VFileUpload},
     data(){
         return{
             bavalid:false,
@@ -126,6 +145,9 @@ export default {
             quillContent:'',
             blog_excerpt:'',
             blog_image:null,
+            libraryImagePath:null,
+            showMediaPicker:false,
+            cdn:this.$store.state.cdn,
             btags:[],
             blog_status:'active',
             meta_title:'',
@@ -149,15 +171,20 @@ export default {
         }
     },
     methods:{
+        onLibraryImageSelected(mediaFile){
+            this.libraryImagePath = mediaFile.path;
+            this.blog_image = null; // a direct-upload selection, if any, is superseded by the library pick
+        },
         addNewBlog(){
             this.baLoading = true;
             const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
+            const imageToSend = this.blog_image instanceof File ? this.blog_image : this.libraryImagePath;
            const nblog = {
                blog_title:this.blog_title,
                blog_slug:this.blog_slug,
                blog_description:this.quillContent,
                blog_excerpt:this.blog_excerpt,
-               blog_image:this.blog_image,
+               blog_image:imageToSend,
                btags:this.btags,
                blog_status:this.blog_status,
                meta_title:this.meta_title,

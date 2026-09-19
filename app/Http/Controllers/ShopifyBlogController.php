@@ -10,6 +10,7 @@ use App\Models\MediaFileAttachment;
 use App\Models\ShopifyShop;
 use App\Models\ShopUser;
 use App\Services\ImageService;
+use App\Services\MediaLibraryService;
 use App\Services\ShopifyBlogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -157,24 +158,11 @@ class ShopifyBlogController extends Controller
         ]);
 
         if ($blogImage) {
-            \App\Services\MediaLibraryService::recordAndAttach(
-                $shopId,
-                $blogImage,
-                $blog,
-                [
-                    'thirdparty_id'  => $article['image']['id'] ?? null,
-                    'thirdparty_url' => $article['image']['src'] ?? null,
-                    'alt_text'       => $article['image']['alt'] ?? $blog->blog_title,
-                    'mime_type'      => $imageMeta['mime_type'] ?? null,
-                    'width'          => $article['image']['width'] ?? $imageMeta['width'] ?? null,
-                    'height'         => $article['image']['height'] ?? $imageMeta['height'] ?? null,
-                    'file_size'      => $imageMeta['file_size'] ?? null,
-                    'filename'       => $imageMeta['filename'] ?? null,
-                ],
-                'featured'
-            );
+            MediaLibraryService::recordAndAttachFromResult($shopId, $imageMeta, $blog, 'featured', [
+                'thirdparty_url' => $article['image']['src'] ?? null,
+                'alt_text'       => $article['image']['alt'] ?? $blog->blog_title,
+            ]);
         }
-
 
         return response()->json([
             'success' => true,

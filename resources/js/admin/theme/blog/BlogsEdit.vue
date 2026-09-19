@@ -93,12 +93,26 @@
                             <v-card class="mt-3 border" elevation="0">
                                 <v-card-title>Image</v-card-title>
                                 <v-card-text>
-                                    <v-img v-if="sblog.blog_image != null && !blog_image"
+                                    <v-img v-if="sblog.blog_image != null && !blog_image && !libraryImagePath"
                                            :src="cdn+sblog.blog_image" max-width="150" class="mb-2"></v-img>
+                                    <v-img v-if="libraryImagePath"
+                                           :src="cdn+libraryImagePath" max-width="150" class="mb-2 rounded"></v-img>
                                     <v-file-upload v-model="blog_image" density="compact" browse-text="Add Image"
                                                    icon="mdi-upload"
                                                    title="Add Image"
                                     ></v-file-upload>
+                                    <v-btn
+                                        variant="tonal" class="mt-2" block
+                                        prepend-icon="mdi-image-multiple-outline"
+                                        @click="showMediaPicker = true"
+                                    >
+                                        Choose from Library
+                                    </v-btn>
+                                    <media-library-picker
+                                        v-model="showMediaPicker"
+                                        :cdn-base="cdn"
+                                        @select="onLibraryImageSelected"
+                                    />
                                 </v-card-text>
                             </v-card>
                             <v-card elevation="0" class="border-sm mt-3">
@@ -150,6 +164,7 @@ import axios from "axios";
 import RichTextEditor from "@/components/RichTextEditor.vue";
 import BlogFaqs from "@/admin/theme/blog/BlogFaqs.vue";
 import BlogSections from "@/admin/theme/blog/BlogSections.vue";
+import MediaLibraryPicker from "@/components/MediaLibraryPicker.vue";
 
 export default {
     name:"BlogsEdit",
@@ -161,6 +176,7 @@ export default {
         BlogFaqs,
         RichTextEditor,
         VFileUpload,
+        MediaLibraryPicker,
     },
     data(){
         return{
@@ -189,6 +205,8 @@ export default {
             domain:this.$store.state.shop.maindomain || this.$store.state.shop.subdomain,
             shopName:this.$store.state.shop.shop_name || 'ShopName?',
             blog_image:null,
+            libraryImagePath:null,
+            showMediaPicker:false,
             user_id:this.$store.state.user,
             user:this.$store.state.user,
             authors:this.$store.state.shop,
@@ -217,6 +235,10 @@ export default {
         this.$store.dispatch('fetchAlinks');
     },
     methods:{
+        onLibraryImageSelected(mediaFile){
+            this.libraryImagePath = mediaFile.path;
+            this.blog_image = null; // a direct-upload selection, if any, is superseded by the library pick
+        },
         getBlogByID(){
             axios.get('/sadmin/blogs/edit/'+this.blog_id)
                 .then((resp)=>{
@@ -236,31 +258,38 @@ export default {
         editBlog(){
             this.baLoading = true;
             const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
+            // Priority: a freshly chosen File (direct upload) wins,
+            // then a library pick, then whatever was already saved —
+            // each represents a more recent, more deliberate choice
+            // than the one before it.
             let blogImage;
             if (this.blog_image instanceof File) {
                 blogImage = this.blog_image;
+            } else if (this.libraryImagePath) {
+                blogImage = this.libraryImagePath;
             } else if (this.sblog.blog_image) {
                 blogImage =  this.sblog.blog_image;
             }
-           const nblog = {
-               blog_id: this.blog_id,
-               blog_title:this.sblog.blog_title,
-               blog_slug:this.sblog.blog_slug,
-               blog_description:this.sblog.quillContent,
-               blog_excerpt:this.sblog.blog_excerpt,
-               blog_image:blogImage,
-               btags:this.sblog.btags,
-               blog_status:this.sblog.blog_status,
-               meta_title:this.sblog.meta_title,
-               meta_desc:this.sblog.meta_desc,
-               user_id:this.user_id.id,
-               shop_id:this.$store.state.shop.shop_id,
+            const nblog = {
+                blog_id: this.blog_id,
+                blog_title:this.sblog.blog_title,
+                blog_slug:this.sblog.blog_slug,
+                blog_description:this.sblog.quillContent,
+                blog_excerpt:this.sblog.blog_excerpt,
+                blog_image:blogImage,
+                btags:this.sblog.btags,
+                blog_status:this.sblog.blog_status,
+                meta_title:this.sblog.meta_title,
+                meta_desc:this.sblog.meta_desc,
+                user_id:this.user_id.id,
+                shop_id:this.$store.state.shop.shop_id,
             }
             axios.post('/sadmin/blogs/update',nblog,uheaders)
                 .then((resp)=>{
                     this.getBlogByID();
                     window.Toast.success('Blog Updated Successfully')
                     this.blog_image = null;
+                    this.libraryImagePath = null;
                 })
                 .catch((err)=>{
                     console.log(err.message);

@@ -21,7 +21,7 @@
         <v-progress-linear v-if="loading" indeterminate class="mb-2" />
 
         <v-row v-if="!loading && items.length" dense>
-          <v-col v-for="item in items" :key="item.id" cols="4" sm="3">
+          <v-col v-for="item in items" :key="item.id" cols="4" sm="3" md="2">
             <v-card
               variant="outlined"
               class="pa-1 cursor-pointer"
@@ -35,6 +35,7 @@
                 class="rounded"
               />
               <div class="text-caption text-truncate mt-1">{{ item.filename }}</div>
+              <div class="text-caption text-truncate">W:{{item?.width}} x H:{{item?.height}}</div>
             </v-card>
           </v-col>
         </v-row>
