@@ -6,6 +6,7 @@ use App\Models\MediaFile;
 use App\Models\Shop;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class MediaFileController extends Controller
 {
@@ -66,4 +67,80 @@ class MediaFileController extends Controller
 
         return response()->json(['success' => true, 'items' => $page]);
     }
+
+    public function uploadFromUrl(Request $request)
+    {
+        $shopId = session('shop_id');
+        $shop = Shop::where('shop_id', $shopId)->firstOrFail();
+
+        $validated = $request->validate([
+            'url'      => ['required', 'url', 'max:2048'],
+            'alt_text' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        // Dedup check up front — same as the Shopify Files import flow.
+        $existing = MediaFile::where('shop_id', $shopId)
+            ->where('thirdparty_url', $validated['url'])
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This URL has already been added to your library.',
+                'media_file' => $existing,
+            ], 422);
+        }
+
+        // Lightweight HEAD request first, just to check Content-Type —
+        // avoids downloading the full file twice (once to check, once to
+        // store) by deciding up front which storage method to use.
+        try {
+            $headResponse = Http::withOptions(['allow_redirects' => true])->head($validated['url']);
+            $contentType = $headResponse->header('Content-Type') ?: '';
+        } catch (\Throwable $e) {
+            $contentType = ''; // some servers reject HEAD requests — fall through and let the actual GET attempt decide
+        }
+
+        $isImage = str_starts_with($contentType, 'image/');
+
+        try {
+            // Deliberately NOT passing width/height — this is a general
+            // library addition, not tied to any specific resource that
+            // dictates a target size, so the original dimensions are preserved.
+            $result = $isImage
+                ? ImageService::storeShopifyFileFromUrl($validated['url'], $shop->shop_slug)
+                : ImageService::storeRawFileFromUrl($validated['url'], $shop->shop_slug);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Download failed: ' . $e->getMessage()], 502);
+        }
+
+        $mediaFile = \App\Services\MediaLibraryService::recordOnly($shopId, $result['path'], [
+            'thirdparty_url' => $validated['url'],
+            'alt_text'       => $validated['alt_text'] ?? null,
+            'mime_type'      => $result['mime_type'] ?? null,
+            'width'          => $result['width'] ?? null,
+            'height'         => $result['height'] ?? null,
+            'file_size'      => $result['file_size'] ?? null,
+            'filename'       => $result['filename'] ?? null,
+            'file_type'      => $result['file_type'] ?? ($isImage ? 'image' : 'generic'),
+        ]);
+
+        return response()->json(['success' => true, 'media_file' => $mediaFile]);
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $shopId = session('shop_id');
+
+        $mediaFile = MediaFile::where('shop_id', $shopId)->findOrFail($id);
+
+        $validated = $request->validate([
+            'alt_text' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $mediaFile->update($validated);
+
+        return response()->json(['success' => true, 'media_file' => $mediaFile]);
+    }
+
 }

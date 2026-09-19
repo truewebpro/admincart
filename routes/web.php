@@ -171,6 +171,8 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
         //Media files to save
         Route::post('/media-files/upload', [MediaFileController::class, 'upload']);
         Route::get('/media-files', [MediaFileController::class, 'index']);
+        Route::post('/media-files/upload-from-url', [MediaFileController::class, 'uploadFromUrl']);
+        Route::put('/media-files/{id}', [MediaFileController::class, 'update']);
 
         Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
         Route::get('/shop/business',[HomeController::class,'getShopBusiness']);
