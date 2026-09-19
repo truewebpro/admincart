@@ -33,6 +33,17 @@ class Blog extends Model
         'btags' => 'array',
     ];
 
+    protected $hidden = ['mediaFiles'];
+
+    protected $appends = ['featured_image_alt'];
+
+    public function getFeaturedImageAltAttribute(): ?string
+    {
+        $featured = $this->mediaFiles->first(fn ($file) => $file->pivot->media_for === 'featured');
+        return $featured?->alt_text;
+    }
+
+
     public function user()
     {
         return $this->hasOne(User::class, 'id', 'user_id');

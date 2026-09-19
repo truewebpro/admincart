@@ -83,16 +83,26 @@
                         <v-card-text>
                             <v-img
                                 v-if="libraryImagePath"
-                                :src="cdn + libraryImagePath"
+                                :src="cdn+libraryImagePath"
                                 max-width="150"
                                 class="mb-2 rounded"
                             ></v-img>
                             <v-file-upload v-model="blog_image" density="compact" browse-text="Add Image"
                                            icon="mdi-upload"
-                                           title="Add Image"
+                                           title="Add Image" clearable
                             ></v-file-upload>
+                            <v-text-field
+                                v-if="blog_image"
+                                v-model="blog_image_alt"
+                                label="Image alt text"
+                                density="compact"
+                                variant="outlined"
+                                hint="Describes the image for accessibility and SEO"
+                                persistent-hint
+                                class="mt-2"
+                            ></v-text-field>
                             <v-btn
-                                size="small" variant="tonal" class="mt-2" block
+                                variant="tonal" class="mt-2" block
                                 prepend-icon="mdi-image-multiple-outline"
                                 @click="showMediaPicker = true"
                             >
@@ -133,7 +143,7 @@ import MediaLibraryPicker from "@/components/MediaLibraryPicker.vue";
 
 export default {
     name:"BlogsNew",
-    components:{MediaLibraryPicker, RichTextEditor, VFileUpload},
+    components:{RichTextEditor, VFileUpload, MediaLibraryPicker},
     data(){
         return{
             bavalid:false,
@@ -145,6 +155,7 @@ export default {
             quillContent:'',
             blog_excerpt:'',
             blog_image:null,
+            blog_image_alt:'',
             libraryImagePath:null,
             showMediaPicker:false,
             cdn:this.$store.state.cdn,
@@ -173,24 +184,26 @@ export default {
     methods:{
         onLibraryImageSelected(mediaFile){
             this.libraryImagePath = mediaFile.path;
-            this.blog_image = null; // a direct-upload selection, if any, is superseded by the library pick
+            this.blog_image = null;
+            this.blog_image_alt = '';
         },
         addNewBlog(){
             this.baLoading = true;
             const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
             const imageToSend = this.blog_image instanceof File ? this.blog_image : this.libraryImagePath;
-           const nblog = {
-               blog_title:this.blog_title,
-               blog_slug:this.blog_slug,
-               blog_description:this.quillContent,
-               blog_excerpt:this.blog_excerpt,
-               blog_image:imageToSend,
-               btags:this.btags,
-               blog_status:this.blog_status,
-               meta_title:this.meta_title,
-               meta_desc:this.meta_desc,
-               user_id:this.user_id.id,
-               shop_id:this.$store.state.shop.shop_id,
+            const nblog = {
+                blog_title:this.blog_title,
+                blog_slug:this.blog_slug,
+                blog_description:this.quillContent,
+                blog_excerpt:this.blog_excerpt,
+                blog_image:imageToSend,
+                blog_image_alt: this.blog_image instanceof File ? this.blog_image_alt : undefined,
+                btags:this.btags,
+                blog_status:this.blog_status,
+                meta_title:this.meta_title,
+                meta_desc:this.meta_desc,
+                user_id:this.user_id.id,
+                shop_id:this.$store.state.shop.shop_id,
             }
             axios.post('/sadmin/blogs/add/new',nblog,uheaders)
                 .then((resp)=>{

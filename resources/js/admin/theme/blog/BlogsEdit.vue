@@ -99,8 +99,18 @@
                                            :src="cdn+libraryImagePath" max-width="150" class="mb-2 rounded"></v-img>
                                     <v-file-upload v-model="blog_image" density="compact" browse-text="Add Image"
                                                    icon="mdi-upload"
-                                                   title="Add Image"
+                                                   title="Add Image" clearable
                                     ></v-file-upload>
+                                    <v-text-field
+                                        v-if="blog_image"
+                                        v-model="blog_image_alt"
+                                        label="Image alt text"
+                                        density="compact"
+                                        variant="outlined"
+                                        hint="Describes the image for accessibility and SEO"
+                                        persistent-hint
+                                        class="mt-2"
+                                    ></v-text-field>
                                     <v-btn
                                         variant="tonal" class="mt-2" block
                                         prepend-icon="mdi-image-multiple-outline"
@@ -205,6 +215,7 @@ export default {
             domain:this.$store.state.shop.maindomain || this.$store.state.shop.subdomain,
             shopName:this.$store.state.shop.shop_name || 'ShopName?',
             blog_image:null,
+            blog_image_alt:'',
             libraryImagePath:null,
             showMediaPicker:false,
             user_id:this.$store.state.user,
@@ -238,6 +249,7 @@ export default {
         onLibraryImageSelected(mediaFile){
             this.libraryImagePath = mediaFile.path;
             this.blog_image = null; // a direct-upload selection, if any, is superseded by the library pick
+            this.blog_image_alt = ''; // alt text field only applies to fresh uploads — clear it, the picked file's own alt text is used instead
         },
         getBlogByID(){
             axios.get('/sadmin/blogs/edit/'+this.blog_id)
@@ -263,8 +275,10 @@ export default {
             // each represents a more recent, more deliberate choice
             // than the one before it.
             let blogImage;
+            let blogImageAlt;
             if (this.blog_image instanceof File) {
                 blogImage = this.blog_image;
+                blogImageAlt = this.blog_image_alt; // only meaningful for a fresh upload
             } else if (this.libraryImagePath) {
                 blogImage = this.libraryImagePath;
             } else if (this.sblog.blog_image) {
@@ -277,6 +291,7 @@ export default {
                 blog_description:this.sblog.quillContent,
                 blog_excerpt:this.sblog.blog_excerpt,
                 blog_image:blogImage,
+                blog_image_alt:blogImageAlt,
                 btags:this.sblog.btags,
                 blog_status:this.sblog.blog_status,
                 meta_title:this.sblog.meta_title,
@@ -289,6 +304,7 @@ export default {
                     this.getBlogByID();
                     window.Toast.success('Blog Updated Successfully')
                     this.blog_image = null;
+                    this.blog_image_alt = '';
                     this.libraryImagePath = null;
                 })
                 .catch((err)=>{

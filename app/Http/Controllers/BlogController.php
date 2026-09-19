@@ -221,7 +221,9 @@ class BlogController extends Controller
             );
 
             if ($blogImage) {
-                MediaLibraryService::recordAndAttachFromResult($shopId, $imageMeta, $blog, 'featured');
+                MediaLibraryService::recordAndAttachFromResult($shopId, $imageMeta, $blog, 'featured', [
+                    'alt_text' => $request->blog_image_alt ?: null,
+                ]);
             }
 
             DB::commit();
@@ -272,21 +274,20 @@ class BlogController extends Controller
             if ($request->hasFile('blog_image')) {
                 $shop = Shop::where('shop_id', $shopId)->firstOrFail();
                 $imageMeta = ImageService::storeUploadedFile($request->file('blog_image'), $shop->shop_slug, 1200, 800);
-                $blogImage = $imageMeta['path'];
-
+                MediaLibraryService::replaceFeaturedImageFromResult($shopId, $blog, 'blog_image', $imageMeta, [
+                    'alt_text' => $request->blog_image_alt ?: null,
+                ]);
             } elseif (!empty($request->blog_image) && is_string($request->blog_image)) {
-                // Library-picked path — a plain string, not a file upload.
-                $blogImage = $request->blog_image;
-            } else {
-                $blogImage = $blog->blog_image;
+                MediaLibraryService::replaceFeaturedImage($shopId, $blog, 'blog_image', $request->blog_image);
             }
+
             $blog->update(
                 [
                     'blog_title' => $request->blog_title,
                     'blog_slug' => $blogSlug,
                     'blog_description' => $request->blog_description,
                     'blog_excerpt' => $request->blog_excerpt,
-                    'blog_image' => $blogImage,
+
                     'btags' => $request->btags ?? null,
                     'blog_status' => $request->blog_status ?? 'active',
                     'meta_title' => $request->meta_title,
@@ -296,14 +297,10 @@ class BlogController extends Controller
                 ]
             );
 
-            if ($request->hasFile('blog_image') && $blogImage) {
-                MediaLibraryService::recordAndAttachFromResult($shopId, $imageMeta, $blog, 'featured');
-            }
-
             DB::commit();
             return response()->json([
                 'success' => true,
-                'blog' => $blog,
+                'blog' => $blog->fresh(),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

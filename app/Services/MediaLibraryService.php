@@ -117,4 +117,43 @@ class MediaLibraryService
         return self::recordOnly($shopId, $imageResult['path'], $meta);
     }
 
+    public static function replaceFeaturedImage(int $shopId, $attachable, string $flatColumn, string $path, array $meta = []): MediaFile
+    {
+        $mediaFile = self::findOrCreateMediaFile($shopId, $path, $meta);
+
+        MediaFileAttachment::where('attachable_type', get_class($attachable))
+            ->where('attachable_id', $attachable->getKey())
+            ->where('media_for', 'featured')
+            ->delete();
+
+        MediaFileAttachment::create([
+            'media_file_id'   => $mediaFile->id,
+            'attachable_type' => get_class($attachable),
+            'attachable_id'   => $attachable->getKey(),
+            'media_for'       => 'featured',
+        ]);
+
+        $attachable->update([$flatColumn => $mediaFile->path]);
+
+        return $mediaFile;
+    }
+
+    public static function replaceFeaturedImageFromResult(int $shopId, $attachable, string $flatColumn, array $imageResult, array $extra = []): MediaFile
+    {
+        if (empty($imageResult['path'])) {
+            throw new \InvalidArgumentException('replaceFeaturedImageFromResult(): $imageResult has no path.');
+        }
+
+        $meta = array_merge([
+            'mime_type' => $imageResult['mime_type'] ?? null,
+            'width'     => $imageResult['width'] ?? null,
+            'height'    => $imageResult['height'] ?? null,
+            'file_size' => $imageResult['file_size'] ?? null,
+            'filename'  => $imageResult['filename'] ?? null,
+            'file_type' => $imageResult['file_type'] ?? 'image',
+        ], $extra);
+
+        return self::replaceFeaturedImage($shopId, $attachable, $flatColumn, $imageResult['path'], $meta);
+    }
+
 }
