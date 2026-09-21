@@ -55,7 +55,7 @@
                         </template>
                         <template #item.alt_text="{item}">
                             <div class="d-flex align-center ga-1">
-                            <span class="text-body-2 text-truncate" style="max-width: 180px;">
+                            <span class="text-body-2 text-truncate" style="max-width: 400px;">
                                 {{ item.alt_text || '—' }}
                             </span>
                                 <v-btn
@@ -191,7 +191,7 @@ export default {
                 { title: 'Filename', key: 'filename', sortable: false },
                 { title: 'Alt Text', key: 'alt_text', sortable: false },
                 { title: 'Source', key: 'source', sortable: false },
-                { title: 'Added', key: 'created_at', sortable: false },
+                { title: 'Date Added', key: 'created_at', sortable: false },
                 { title: '', key: 'actions', sortable: false, align: 'end' },
             ],
         };
