@@ -172,6 +172,10 @@ class CatController extends Controller
                 $sectionsWithExtras = [];
                 foreach ($cat->csections as $section){
                     $sectionArray = $section->toArray();
+                    $sectionArray['section_json'] = MediaLibraryService::resolveImageAlts(
+                        $sectionArray['section_json'],
+                        $shopId
+                    );
                     if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
                         $catId = $sectionArray['section_json']['stype_json']['cat_id'];
                         $catSlug = Cat::where('cat_id', $catId)->value('cat_slug');
@@ -230,6 +234,10 @@ class CatController extends Controller
             $sectionsWithExtras = [];
             foreach ($cat->csections as $section){
                 $sectionArray = $section->toArray();
+                $sectionArray['section_json'] = MediaLibraryService::resolveImageAlts(
+                    $sectionArray['section_json'],
+                    $shopId
+                );
                 if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
                     $catId = $sectionArray['section_json']['stype_json']['cat_id'];
                     $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;

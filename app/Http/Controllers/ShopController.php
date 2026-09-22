@@ -31,6 +31,7 @@ use App\Models\ShipMethod;
 use App\Models\Shop;
 use App\Models\ShopPaymentMethod;
 use App\Services\CacheKeys;
+use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -157,6 +158,10 @@ class ShopController extends Controller
                 $sectionsWithExtras = [];
                 foreach ($cartsections as $section){
                     $sectionArray = $section->toArray();
+                    $sectionArray['section_json'] = MediaLibraryService::resolveImageAlts(
+                        $sectionArray['section_json'],
+                        $shopId
+                    );
                     if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
                         $catId = $sectionArray['section_json']['stype_json']['cat_id'];
                         $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;

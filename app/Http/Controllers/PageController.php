@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Section;
 use App\Models\Stype;
 use App\Services\CacheKeys;
+use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +41,10 @@ class PageController extends Controller
                 $sectionsWithExtras = [];
                 foreach ($pagesections as $section){
                     $sectionArray = $section->toArray();
+                    $sectionArray['section_json'] = MediaLibraryService::resolveImageAlts(
+                        $sectionArray['section_json'],
+                        $shopId
+                    );
                     if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
                         $catId = $sectionArray['section_json']['stype_json']['cat_id'];
                         $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;

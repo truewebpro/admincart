@@ -1,8 +1,8 @@
 <template>
     <div>
         <v-text-field variant="underlined" density="compact"
-            v-model="localModel.stype_json.heading"
-            label="Heading"
+                      v-model="localModel.stype_json.heading"
+                      label="Heading"
         />
         <v-select v-model="localModel.stype_json.style" label="Style" density="compact" variant="underlined"
                   :items="['style1','style1b','style2','style3','style4','style5','style5b','style6','style7a','style7b']"
@@ -32,42 +32,10 @@
                         />
                     </template>
                 </v-autocomplete>
-                <v-text-field variant="underlined" class="d-none"
-                              density="compact"
-                              v-model="alink.image_url"
-                              label="Link Image" />
-                <!-- Show CDN or uploaded preview -->
-                <div v-if="alink.image_url && !alink.preview" class="mt-2">
-                    <v-img :src="cdn + alink.image_url" max-width="150" />
-                    <v-btn size="x-small" color="red" variant="outlined" class="mt-1"
-                           @click="removeImage(alink)">
-                        Remove
-                    </v-btn>
-                    <v-file-input
-                        label="Replace Image" variant="underlined"
-                        accept="image/*"
-                        density="compact"
-                        @change="handleFileSelect($event, alink)"
-                        class="mt-2"
-                    />
-                </div>
-                <!-- Local preview before upload -->
-                <div v-else-if="alink.preview" class="mt-2">
-                    <v-img :src="alink.preview" max-width="150" />
-                    <v-btn size="small" color="red" variant="outlined" class="mt-1"
-                           @click="cancelPreview(alink)">
-                        Cancel / Loading
-                    </v-btn>
-                </div>
-
-                <!-- Upload when empty -->
-                <v-file-input
-                    v-else
-                    label="Upload Image"
-                    accept="image/*"
-                    density="compact"
-                    variant="underlined"
-                    @change="handleFileSelect($event, alink)"
+                <section-image-picker
+                    v-model="alink.image_url"
+                    :stype-slug="localModel.stype_slug"
+                    max-width="150"
                 />
 
                 <v-text-field variant="underlined" class="d-none"
@@ -85,11 +53,11 @@
 
 <script>
 import SubtextEditor from "@/components/sections/editors/SubtextEditor.vue";
-import axios from "axios";
+import SectionImagePicker from "@/components/sections/editors/SectionImagePicker.vue";
 
 export default {
     name: "FeaturedLinkEditor",
-    components: {SubtextEditor},
+    components: {SubtextEditor, SectionImagePicker},
     props: {
         modelValue: { type: Object, default: () => ({ alinks: [] }) },
         alinks: { type: Array, default: () => [] } // [{id:1, name:"Product A"}]
@@ -97,38 +65,9 @@ export default {
     data() {
         return {
             localModel: JSON.parse(JSON.stringify(this.modelValue)),
-            cdn:this.$store.state.cdn,
         }
     },
     methods: {
-        async handleFileSelect(e,alink){
-            const file = e.target?.files?.[0];
-            if (!file) return;
-            alink.preview = URL.createObjectURL(file);
-            const formData = new FormData();
-            formData.append("image", file);
-            formData.append("stype", this.localModel.stype_slug);
-            try {
-                const { data } = await axios.post(
-                    "/sadmin/homepage/section/himage/upload-url",
-                    formData,
-                    {headers: { "Content-Type": "multipart/form-data" }}
-                );
-                alink.image_url = data.url;
-                alink.preview = "";
-            } catch (err) {
-                console.error("Image upload failed", err);
-                window.Toast.error("Image upload failed");
-            }
-        },
-        removeImage(alink) {
-            alink.image_url = "";
-            alink.preview = "";
-        },
-
-        cancelPreview(alink) {
-            alink.preview = "";
-        },
         addItem() {
             this.localModel.stype_json.alinks.push({
                 selected: null,
@@ -164,5 +103,3 @@ export default {
     }
 }
 </script>
-
-

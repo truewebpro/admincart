@@ -10,7 +10,10 @@ use App\Models\Homepage;
 use App\Models\Page;
 use App\Models\Product;
 use App\Models\Section;
+use App\Models\Shop;
 use App\Observers\SectionObserver;
+use App\Services\ImageService;
+use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
@@ -325,55 +328,37 @@ class SectionController extends Controller
 
     public function getHimageUploadUrl(Request $request)
     {
-        $file = $request->file('image');
-        $mfile = $request->file('mimage');
-        $filename = ($request->stype ?? 'section')."_".uniqid().'.png';
-        if($request->stype === 'browse_collection'){
-            $img = Image::make($file->getRealPath())->resize(750, 300, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-        } elseif ($request->stype === 'slideshow'){
-            if($file){
-                $img = Image::make($file->getRealPath())->resize(1800, 600, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-            }
-            if($mfile){
-                $img = Image::make($mfile)->resize(600, 600, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-            }
+        $shopId = session('shop_id');
+        $shop = Shop::where('shop_id', $shopId)->firstOrFail();
 
-        } elseif ($request->stype === 'featured_links'){
-            $img = Image::make($file->getRealPath())->resize(800, 1000, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-        } elseif ($request->stype === 'featured_collections'){
-            $img = Image::make($file->getRealPath())->resize(800, 1000, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-        } elseif ($request->stype === 'popular_range'){
-            $img = Image::make($file->getRealPath())->resize(100, 100, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-        } elseif ($request->stype === 'image_with_text'){
-            $img = Image::make($file->getRealPath())->resize(700, 500, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-        } else {
-            $img = Image::make($file->getRealPath())->resize(1800, 1800, function ($constraint) {
-                $constraint->aspectRatio();
-            });
+        $dimensions = [
+            'browse_collection'    => [750, 300],
+            'slideshow'            => [1800, 600],
+            'slideshow_mobile'     => [600, 600], // NEW distinct key — see fix below
+            'featured_links'       => [800, 1000],
+            'featured_collections' => [800, 1000],
+            'popular_range'        => [100, 100],
+            'image_with_text'      => [700, 500],
+        ];
+
+        $isMobile = $request->hasFile('mimage');
+        $file = $isMobile ? $request->file('mimage') : $request->file('image');
+
+        if (!$file) {
+            return response()->json(['success' => false, 'message' => 'No file provided.'], 422);
         }
 
-        $path = 'sections/'.$filename;
-        Storage::disk('s3')->put($path,(string)$img->encode());
+        $stype = $request->stype ?? 'section';
+        $dimensionKey = ($stype === 'slideshow' && $isMobile) ? 'slideshow_mobile' : $stype;
+        [$width, $height] = $dimensions[$dimensionKey] ?? [1800, 1800];
 
-//            $mpath = 'sections/'.$filename;
-//            Storage::disk('s3')->put($mpath,(string)$mimg->encode());
+        $imageMeta = ImageService::storeUploadedFile($file, $shop->shop_slug, $width, $height);
+
+        MediaLibraryService::recordOnlyFromResult($shopId, $imageMeta);
+
         return response()->json([
             'success' => true,
-            'url' => $path,
+            'url' => $imageMeta['path'],
         ]);
     }
 }

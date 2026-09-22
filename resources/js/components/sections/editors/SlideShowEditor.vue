@@ -7,70 +7,22 @@
                         <v-col cols="12" md="6">
                             <div>
                                 <h4>Desktop Image 1200 x 400</h4>
-                                <v-text-field variant="underlined" class="d-none" density="compact"
-                                              v-model="scat.image_url"
-                                              label="Slide Image" />
-                                <!-- Show CDN or uploaded preview -->
-                                <div v-if="scat.image_url && !scat.preview" class="mt-2">
-                                    <v-img :src="cdn + scat.image_url" max-width="150" />
-                                    <v-btn size="x-small" color="red" variant="outlined" class="mt-1"
-                                           @click="removeImage(scat)">
-                                        Remove
-                                    </v-btn>
-                                    <v-file-input
-                                        label="Replace Image" variant="underlined"
-                                        accept="image/*"
-                                        density="compact"
-                                        @change="handleFileSelect($event, scat)"
-                                        class="mt-2"
-                                    />
-                                </div>
-                                <!-- Local preview before upload -->
-                                <div v-else-if="scat.preview" class="mt-2">
-                                    <v-img :src="scat.preview" max-width="150" />
-                                    <v-btn size="small" color="red" variant="outlined" class="mt-1"
-                                           @click="cancelPreview(scat)">
-                                        Cancel / Loading
-                                    </v-btn>
-                                </div>
-
-                                <!-- Upload when empty -->
-                                <v-file-input v-else label="Upload Desktop Image" accept="image/*"
-                                              density="compact" variant="underlined" @change="handleFileSelect($event, scat)"
+                                <section-image-picker
+                                    v-model="scat.image_url"
+                                    :stype-slug="localModel.stype_slug"
+                                    field-name="image"
+                                    label="Upload Desktop Image"
+                                    max-width="150"
                                 />
                             </div>
-                            <div>
+                            <div class="mt-3">
                                 <h4>Mobile Image 600 x 600</h4>
-                                <v-text-field variant="underlined" class="d-none" density="compact"
-                                              v-model="scat.mimage_url"
-                                              label="Slide Image" />
-                                <!-- Show CDN or uploaded preview -->
-                                <div v-if="scat.mimage_url && !scat.mpreview" class="mt-2">
-                                    <v-img :src="cdn + scat.mimage_url" max-width="150" />
-                                    <v-btn size="x-small" color="red" variant="outlined" class="mt-1"
-                                           @click="mremoveImage(scat)">
-                                        Remove
-                                    </v-btn>
-                                    <v-file-input
-                                        label="Replace Image" variant="underlined"
-                                        accept="image/*"
-                                        density="compact"
-                                        @change="mhandleFileSelect($event, scat)"
-                                        class="mt-2"
-                                    />
-                                </div>
-                                <!-- Local preview before upload -->
-                                <div v-else-if="scat.mpreview" class="mt-2">
-                                    <v-img :src="scat.mpreview" max-width="150" />
-                                    <v-btn size="small" color="red" variant="outlined" class="mt-1"
-                                           @click="mcancelPreview(scat)">
-                                        Cancel / Loading
-                                    </v-btn>
-                                </div>
-
-                                <!-- Upload when empty -->
-                                <v-file-input v-else label="Upload Mobile Image" accept="image/*"
-                                              density="compact" variant="underlined" @change="mhandleFileSelect($event, scat)"
+                                <section-image-picker
+                                    v-model="scat.mimage_url"
+                                    :stype-slug="localModel.stype_slug"
+                                    field-name="mimage"
+                                    label="Upload Mobile Image"
+                                    max-width="150"
                                 />
                             </div>
 
@@ -97,10 +49,11 @@
 </template>
 
 <script>
-import axios from "axios";
+import SectionImagePicker from "@/components/sections/editors/SectionImagePicker.vue";
 
 export default {
     name: "SlideShowEditor",
+    components: {SectionImagePicker},
     props: {
         modelValue: { type: Object, default: () => ({ scats: [] }) },
         categories: { type: Array, default: () => [] } // [{id:1, name:"Product A"}]
@@ -108,66 +61,9 @@ export default {
     data() {
         return {
             localModel: JSON.parse(JSON.stringify(this.modelValue)),
-            cdn:this.$store.state.cdn,
         }
     },
     methods: {
-        async handleFileSelect(e,scat){
-            const file = e.target?.files?.[0];
-            if (!file) return;
-            scat.preview = URL.createObjectURL(file);
-            const formData = new FormData();
-            formData.append("image", file);
-            formData.append("stype", this.localModel.stype_slug);
-            try {
-                const { data } = await axios.post(
-                    "/sadmin/homepage/section/himage/upload-url",
-                    formData,
-                    {headers: { "Content-Type": "multipart/form-data" }}
-                );
-                scat.image_url = data.url;
-                scat.preview = "";
-            } catch (err) {
-                console.error("Image upload failed", err);
-                window.Toast.error("Image upload failed");
-            }
-        },
-        removeImage(scat) {
-            scat.image_url = "";
-            scat.preview = "";
-        },
-
-        cancelPreview(scat) {
-            scat.preview = "";
-        },
-        async mhandleFileSelect(e,scat){
-            const file = e.target?.files?.[0];
-            if (!file) return;
-            scat.mpreview = URL.createObjectURL(file);
-            const formData = new FormData();
-            formData.append("mimage", file);
-            formData.append("stype", this.localModel.stype_slug);
-            try {
-                const { data } = await axios.post(
-                    "/sadmin/homepage/section/himage/upload-url",
-                    formData,
-                    {headers: { "Content-Type": "multipart/form-data" }}
-                );
-                scat.mimage_url = data.url;
-                scat.mpreview = "";
-            } catch (err) {
-                console.error("Image upload failed", err);
-                window.Toast.error("Image upload failed");
-            }
-        },
-        mremoveImage(scat) {
-            scat.mimage_url = "";
-            scat.mpreview = "";
-        },
-
-        mcancelPreview(scat) {
-            scat.mpreview = "";
-        },
         addItem() {
             this.localModel.stype_json.push({
                 image_url: "",
@@ -198,5 +94,3 @@ export default {
     }
 }
 </script>
-
-

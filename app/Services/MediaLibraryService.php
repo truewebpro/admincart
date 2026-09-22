@@ -162,4 +162,54 @@ class MediaLibraryService
         return self::replaceFeaturedImage($shopId, $attachable, $flatColumn, $imageResult['path'], $meta, $mediaFor);
     }
 
+    public static function resolveImageAlts(array $sectionJson, int $shopId): array
+    {
+        // First pass: collect every *_url value anywhere in the structure.
+        $paths = [];
+        self::collectUrlValues($sectionJson, $paths);
+
+        if (empty($paths)) {
+            return $sectionJson;
+        }
+
+        // One batch query, regardless of how many images this section has.
+        $altsByPath = MediaFile::where('shop_id', $shopId)
+            ->whereIn('path', array_unique($paths))
+            ->pluck('alt_text', 'path');
+
+        // Second pass: inject the matching *_alt sibling key wherever a
+        // *_url key's value had a real alt text found.
+        self::injectAltValues($sectionJson, $altsByPath);
+
+        return $sectionJson;
+    }
+
+    protected static function collectUrlValues($data, array &$paths): void
+    {
+        if (! is_array($data)) {
+            return;
+        }
+
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                self::collectUrlValues($value, $paths);
+            } elseif (is_string($key) && str_ends_with($key, '_url') && ! empty($value)) {
+                $paths[] = $value;
+            }
+        }
+    }
+
+    protected static function injectAltValues(array &$data, $altsByPath): void
+    {
+        foreach ($data as $key => &$value) {
+            if (is_array($value)) {
+                self::injectAltValues($value, $altsByPath);
+            } elseif (is_string($key) && str_ends_with($key, '_url') && isset($altsByPath[$value])) {
+                $altKey = str_replace('_url', '_alt', $key); // image_url -> image_alt, mimage_url -> mimage_alt
+                $data[$altKey] = $altsByPath[$value];
+            }
+        }
+    }
+
+
 }

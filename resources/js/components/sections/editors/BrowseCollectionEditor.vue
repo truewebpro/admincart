@@ -1,8 +1,8 @@
 <template>
     <div>
         <v-text-field variant="underlined" density="compact"
-            v-model="localModel.stype_json.heading"
-            label="Heading"
+                      v-model="localModel.stype_json.heading"
+                      label="Heading"
         />
         <v-select v-model="localModel.stype_json.style" label="Style" density="compact" variant="underlined"
                   :items="['style1','style1b','style2','style3','style4','style5','style5b','style6']" class="mb-2"
@@ -16,42 +16,10 @@
                                 v-model="scat.cat_name"
                                 @update:modelValue="onCategorySelect(scat, $event)"
                                 label="Cat Name" />
-                <v-text-field variant="underlined" class="d-none"
-                              density="compact"
-                              v-model="scat.image_url"
-                              label="Cat Image" />
-                <!-- Show CDN or uploaded preview -->
-                <div v-if="scat.image_url && !scat.preview" class="mt-2">
-                    <v-img :src="cdn + scat.image_url" max-width="150" />
-                    <v-btn size="x-small" color="red" variant="outlined" class="mt-1"
-                           @click="removeImage(scat)">
-                        Remove
-                    </v-btn>
-                    <v-file-input
-                        label="Replace Image" variant="underlined"
-                        accept="image/*"
-                        density="compact"
-                        @change="handleFileSelect($event, scat)"
-                        class="mt-2"
-                    />
-                </div>
-                <!-- Local preview before upload -->
-                <div v-else-if="scat.preview" class="mt-2">
-                    <v-img :src="scat.preview" max-width="150" />
-                    <v-btn size="small" color="red" variant="outlined" class="mt-1"
-                           @click="cancelPreview(scat)">
-                        Cancel / Loading
-                    </v-btn>
-                </div>
-
-                <!-- Upload when empty -->
-                <v-file-input
-                    v-else
-                    label="Upload Image"
-                    accept="image/*"
-                    density="compact"
-                    variant="underlined"
-                    @change="handleFileSelect($event, scat)"
+                <section-image-picker
+                    v-model="scat.image_url"
+                    :stype-slug="localModel.stype_slug"
+                    max-width="150"
                 />
 
                 <v-text-field variant="underlined" class="d-none"
@@ -69,11 +37,11 @@
 
 <script>
 import SubtextEditor from "@/components/sections/editors/SubtextEditor.vue";
-import axios from "axios";
+import SectionImagePicker from "@/components/sections/editors/SectionImagePicker.vue";
 
 export default {
     name: "BrowsCollectionEditor",
-    components: {SubtextEditor},
+    components: {SubtextEditor, SectionImagePicker},
     props: {
         modelValue: { type: Object, default: () => ({ scats: [] }) },
         categories: { type: Array, default: () => [] } // [{id:1, name:"Product A"}]
@@ -81,38 +49,9 @@ export default {
     data() {
         return {
             localModel: JSON.parse(JSON.stringify(this.modelValue)),
-            cdn:this.$store.state.cdn,
         }
     },
     methods: {
-        async handleFileSelect(e,scat){
-            const file = e.target?.files?.[0];
-            if (!file) return;
-            scat.preview = URL.createObjectURL(file);
-            const formData = new FormData();
-            formData.append("image", file);
-            formData.append("stype", this.localModel.stype_slug);
-            try {
-                const { data } = await axios.post(
-                    "/sadmin/homepage/section/himage/upload-url",
-                    formData,
-                    {headers: { "Content-Type": "multipart/form-data" }}
-                );
-                scat.image_url = data.url;
-                scat.preview = "";
-            } catch (err) {
-                console.error("Image upload failed", err);
-                window.Toast.error("Image upload failed");
-            }
-        },
-        removeImage(scat) {
-            scat.image_url = "";
-            scat.preview = "";
-        },
-
-        cancelPreview(scat) {
-            scat.preview = "";
-        },
         addItem() {
             this.localModel.stype_json.scats.push({
                 cat_id:null,
@@ -145,5 +84,3 @@ export default {
     }
 }
 </script>
-
-

@@ -11,6 +11,7 @@ use App\Models\HomePromoItem;
 use App\Models\Product;
 use App\Models\Proreview;
 use App\Services\CacheKeys;
+use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -27,7 +28,14 @@ class HomepageController extends Controller
                 $homepage = Homepage::with('herosections','faqs')
                     ->where('shop_id','=',$shopId)
                     ->first();
-//                return $homepage?->herosections;
+                if ($homepage) {
+                    foreach ($homepage->herosections as $section) {
+                        $section->section_json = MediaLibraryService::resolveImageAlts(
+                            $section->section_json,
+                            $shopId
+                        );
+                    }
+                }
                 return $homepage;
             }
         );
@@ -55,50 +63,6 @@ class HomepageController extends Controller
     public function homeLazySections(Request $request)
     {
         $shopId = $request->shop_id;
-        $data = Cache::remember(
-            CacheKeys::lazySections($shopId),
-            now()->addHours(12),
-            function () use ($shopId) {
-//                $homepage = Homepage::with('lsections')
-//                    ->where('shop_id','=',$shopId)
-//                    ->first();
-//                if (!$homepage) {
-//                    return [];
-//                }
-//                $asections = $homepage->lsections ?? collect();
-//                foreach ($asections as &$section) {
-//                    if ($section->stype_slug !== 'featured_products') {
-//                        continue;
-//                    }
-//                    $sectionJson = $section->section_json;
-//                    $stypeJson = $sectionJson['stype_json'];
-//                    $catId = $stypeJson['cat_id'];
-//                    $cat = Cat::where('cat_id', $catId)->first();
-//                    $products = Product::with(['variants.astock', 'brand', 'ptype','productLabels'])
-//                        ->where('shop_id','=',$shopId)
-//                        ->withCount('reviews')->withAvg('reviews','rating')
-//                        ->whereIn('product_id', function ($query) use ($catId) {
-//                            $query->select('product_id')
-//                                ->from('catpros')
-//                                ->where('cat_id', $catId);
-//                        })
-//                        ->limit($stypeJson['plimit'] ?? 12)
-//                        ->get();
-//                    $products->each(function ($product) {
-//                        $product->labels = $product->productLabels->map->toLabelArray()->filter()->values();
-//                        $product->unsetRelation('productLabels');
-//                    });
-//                    $allVariants = $products->flatMap(fn ($product) => $product->variants);
-//                    $this->attachLoyaltyPointsToMany($shopId, $allVariants);
-//                    $stypeJson['cat_slug'] = $cat->cat_slug ?? null;
-//                    $stypeJson['cat_image'] = $cat->cat_image ?? null;
-//                    $stypeJson['catpros'] = $products ?? [];
-//                    $sectionJson['stype_json'] = $stypeJson;
-//                    $section->section_json = $sectionJson;
-//                }
-//                return $asections;
-            }
-        );
         $homepage = Homepage::with('lsections')
             ->where('shop_id','=',$shopId)
             ->first();
@@ -107,6 +71,11 @@ class HomepageController extends Controller
         }
         $asections = $homepage->lsections ?? collect();
         foreach ($asections as &$section) {
+            $section->section_json = MediaLibraryService::resolveImageAlts(
+                $section->section_json,
+                $shopId
+            );
+
             if ($section->stype_slug !== 'featured_products') {
                 continue;
             }
@@ -141,7 +110,6 @@ class HomepageController extends Controller
             'success' => true,
             'hsections' => $asections,
         ]);
-
     }
 
     public function homeSections(Request $request)
@@ -152,6 +120,10 @@ class HomepageController extends Controller
         $sectionsWithExtras = [];
         foreach ($homepage->hsections as $section){
             $sectionArray = $section->toArray();
+            $sectionArray['section_json'] = MediaLibraryService::resolveImageAlts(
+                $sectionArray['section_json'],
+                $shopId
+            );
             if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
                 $catId = $sectionArray['section_json']['stype_json']['cat_id'];
                 $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
