@@ -136,6 +136,7 @@ const routes = [
     {path: '/shop',component: ShopSettings,
         children:[
             {path: 'homepage',name: 'MainHomePage',component: MainHomePage},
+            {path: 'preferences',name:'Preferences',component: Preferences},
             {path: 'cartpage',name: 'MainCartPage',component: MainCartPage},
             {path: 'settings',name: 'ShopHome',component: ShopHome},
             {path: 'footer',name: 'ShopFooter',component: ShopFooter},
@@ -150,7 +151,6 @@ const routes = [
             {path: 'policies-page',name: 'ShopPolicies',component: ShopPolicies},
         ]},
     {path: '/theme/store',name:'ThemeView',component: ThemeView},
-    {path: '/theme/preferences',name:'Preferences',component: Preferences},
     {path: '/theme/menuslist',name:'MenusList',component: MenusList},
     {path: '/theme/menu/add',name:'MenuAdd',component: MenuAdd},
     {path: '/theme/menu/edit/:menu_id',name:'MenuEdit',component: MenuEdit,props:true},

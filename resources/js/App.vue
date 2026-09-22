@@ -165,7 +165,6 @@
                     <v-list-item link :to="{name:'ShopHome'}" color="primary" prepend-icon="mdi-store-cog" title="Theme Settings">
                     </v-list-item>
 <!--                    <v-list-item link :to="{name:'ThemeView'}" color="primary" title="Theme" prepend-icon="mdi-tablet-cellphone"></v-list-item>-->
-                    <v-list-item link :to="{name:'Preferences'}" color="primary" title="Preferences" prepend-icon="mdi-web-plus"></v-list-item>
                     <v-list-item link :to="{name:'MenusList'}" color="primary" title="Menus" prepend-icon="mdi-menu"></v-list-item>
                     <v-list-item link :to="{name:'PagesList'}" title="Pages" color="primary" prepend-icon="mdi-page-next-outline"></v-list-item>
                     <v-list-item link :to="{name:'BlogsList'}" title="Blogs" color="primary" prepend-icon="mdi-post-outline"></v-list-item>

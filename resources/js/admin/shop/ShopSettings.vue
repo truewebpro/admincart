@@ -4,6 +4,7 @@
                 bgColor="grey-lighten-3" sliderColor="primary"
                 class="my-2" slider-transition="fade" spaced="both">
             <v-tab link :to="{name:'MainHomePage'}" class="bg-white">Home Page</v-tab>
+            <v-tab link :to="{name:'Preferences'}" class="bg-white">Preferences</v-tab>
             <v-tab link :to="{name:'ShopHome'}" class="bg-white">Theme Settings</v-tab>
             <v-tab link :to="{name:'ShopFooter'}" class="bg-white">Footer</v-tab>
             <v-tab link :to="{name:'ShopSearch'}" class="bg-white">Search</v-tab>

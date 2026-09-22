@@ -62,7 +62,9 @@ use App\Models\User;
 use App\Models\Variant;
 use App\Models\VivaPayment;
 use App\Services\CacheKeys;
+use App\Services\ImageService;
 use App\Services\MailtrapService;
+use App\Services\MediaLibraryService;
 use App\Services\Sendcloud\SendcloudShippingOptionSyncer;
 use App\Services\SmartCategoryService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -993,46 +995,63 @@ class HomeController extends Controller
     public function shopPreferenceUpdate(Request $request)
     {
         $shopId = session('shop_id');
-        $shop = Shop::where('shop_id', $shopId)->first();
-        $shopslug = $shop->shop_slug;
-        $preference = Preference::Find($request['preference_id']);
+        $shop = Shop::where('shop_id', $shopId)->firstOrFail();
+        $preference = Preference::findOrFail($request['preference_id']);
+
         $preference->home_title = $request['home_title'];
-        if($request->hasFile('home_image')){
-            $Image = $request->file('home_image');
-            $filename = $shopslug.'_'.time().'.png';
-            $img = Image::make($Image->getRealPath())->resize(1200, 630, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-            $fpath = $shopslug.'/ogimage/'.$filename;
-            Storage::disk('s3')->put($fpath, (string) $img->encode());
-            $preference->home_image = $fpath;
-        }
-        if($request->hasFile('shop_logo')){
-            $Image = $request->file('shop_logo');
-            $filename = $shopslug.'_'.time().'.png';
-            $img = Image::make($Image->getRealPath())->resize(400, null, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-            $flogo = $shopslug.'/logo/'.$filename;
-            Storage::disk('s3')->put($flogo, (string) $img->encode());
-            $preference->shop_logo = $flogo;
-        }
         $preference->home_description = $request['home_description'];
-        $preference->save();
-        if($preference){
-            return response()->json([
-                'success' => true,
-                'message' => 'Preference updated successfully',
-                'preference' => $preference,
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Preference Not updated',
-                'preference' => null,
-            ]);
+
+        // --- Home / OG image ---
+        if ($request->hasFile('home_image')) {
+            $imageMeta = ImageService::storeUploadedFile($request->file('home_image'), $shop->shop_slug, 1200, 630);
+            MediaLibraryService::replaceFeaturedImageFromResult(
+                $shopId,
+                $preference,
+                'home_image',
+                $imageMeta,
+                ['alt_text' => $request->home_image_alt ?: null],
+                'home_image'  // distinct tag — separate from the logo's
+            );
+        } elseif (!empty($request->home_image) && is_string($request->home_image)) {
+            MediaLibraryService::replaceFeaturedImage(
+                $shopId,
+                $preference,
+                'home_image',
+                $request->home_image,
+                [],
+                'home_image'
+            );
         }
 
+        // --- Shop logo ---
+        if ($request->hasFile('shop_logo')) {
+            $imageMeta = ImageService::storeUploadedFile($request->file('shop_logo'), $shop->shop_slug, 400, null);
+            MediaLibraryService::replaceFeaturedImageFromResult(
+                $shopId,
+                $preference,
+                'shop_logo',
+                $imageMeta,
+                ['alt_text' => $request->shop_logo_alt ?: null],
+                'logo'  // distinct tag — separate from the home image's
+            );
+        } elseif (!empty($request->shop_logo) && is_string($request->shop_logo)) {
+            MediaLibraryService::replaceFeaturedImage(
+                $shopId,
+                $preference,
+                'shop_logo',
+                $request->shop_logo,
+                [],
+                'logo'
+            );
+        }
+
+        $preference->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Preference updated successfully',
+            'preference' => $preference->fresh(),
+        ]);
     }
 
     public function shopSocialUpdate(Request $request)

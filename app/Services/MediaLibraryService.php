@@ -117,20 +117,23 @@ class MediaLibraryService
         return self::recordOnly($shopId, $imageResult['path'], $meta);
     }
 
-    public static function replaceFeaturedImage(int $shopId, $attachable, string $flatColumn, string $path, array $meta = []): MediaFile
+    public static function replaceFeaturedImage(int $shopId, $attachable, string $flatColumn, string $path,
+        array $meta = [],
+        string $mediaFor = 'featured'
+    ): MediaFile
     {
         $mediaFile = self::findOrCreateMediaFile($shopId, $path, $meta);
 
         MediaFileAttachment::where('attachable_type', get_class($attachable))
             ->where('attachable_id', $attachable->getKey())
-            ->where('media_for', 'featured')
+            ->where('media_for', $mediaFor)
             ->delete();
 
         MediaFileAttachment::create([
             'media_file_id'   => $mediaFile->id,
             'attachable_type' => get_class($attachable),
             'attachable_id'   => $attachable->getKey(),
-            'media_for'       => 'featured',
+            'media_for'       => $mediaFor,
         ]);
 
         $attachable->update([$flatColumn => $mediaFile->path]);
@@ -138,7 +141,10 @@ class MediaLibraryService
         return $mediaFile;
     }
 
-    public static function replaceFeaturedImageFromResult(int $shopId, $attachable, string $flatColumn, array $imageResult, array $extra = []): MediaFile
+    public static function replaceFeaturedImageFromResult(int $shopId, $attachable, string $flatColumn, array $imageResult,
+        array $extra = [],
+        string $mediaFor = 'featured'
+    ): MediaFile
     {
         if (empty($imageResult['path'])) {
             throw new \InvalidArgumentException('replaceFeaturedImageFromResult(): $imageResult has no path.');
@@ -153,7 +159,7 @@ class MediaLibraryService
             'file_type' => $imageResult['file_type'] ?? 'image',
         ], $extra);
 
-        return self::replaceFeaturedImage($shopId, $attachable, $flatColumn, $imageResult['path'], $meta);
+        return self::replaceFeaturedImage($shopId, $attachable, $flatColumn, $imageResult['path'], $meta, $mediaFor);
     }
 
 }

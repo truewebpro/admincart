@@ -1,19 +1,5 @@
 <template>
-    <v-container class="theme-page">
-        <v-row class="position-sticky top-0 bg-grey-lighten-3" style="z-index: 99">
-            <v-col cols="12" md="6">
-                <h2 class="text-h6">
-                    <v-btn icon variant="tonal" density="compact" color="primary">
-                        <v-icon>mdi-arrow-left</v-icon>
-                    </v-btn>
-                    Themes
-                </h2>
-            </v-col>
-            <v-col cols="12" md="6" class="text-end">
-                <v-btn variant="tonal" color="primary" density="compact" class="text-none"
-                       prepend-icon="mdi-eye" :href="'https://'+this.$store.state.shop.subdomain" target="_blank">View Your Store</v-btn>
-            </v-col>
-        </v-row>
+    <v-container class="theme-page pa-1">
         <v-row class="mt-0">
             <v-col cols="12" md="12">
                 <v-tabs v-model="ttab" align-tabs="center" height="32" density="compact" color="primary" selectedClass="bg-lblue"
@@ -31,7 +17,8 @@
                                     <v-row align="start">
                                         <v-col cols="12" md="4">
                                             <v-card class="border-sm" elevation="0">
-                                                <v-img v-if="!ogimage" :src="cdn+existOg" :aspect-ratio="120/63" cover></v-img>
+                                                <v-img v-if="!ogimage  && !ogLibraryPath" :src="cdn+existOg" :aspect-ratio="120/63" cover></v-img>
+                                                <v-img v-else-if="ogLibraryPath" :src="cdn+ogLibraryPath" :aspect-ratio="120/63" cover></v-img>
                                                 <v-img v-else :src="previewImage" :aspect-ratio="120/63" cover></v-img>
                                                 <v-file-input
                                                     v-model="ogimage" clearable
@@ -40,16 +27,39 @@
                                                     accept="image/png, image/jpeg, image/jpg, image/webp"
                                                     hint="Best Size 1200 x 630" persistent-hint>
                                                 </v-file-input>
+                                                <v-text-field
+                                                    v-if="ogimage"
+                                                    v-model="home_image_alt"
+                                                    label="Image alt text"
+                                                    density="compact"
+                                                    variant="outlined"
+                                                    class="mx-3 mb-2"
+                                                ></v-text-field>
+                                                <v-btn
+                                                    class="mx-3 mb-3"
+                                                    prepend-icon="mdi-image-multiple-outline"
+                                                    @click="showOgPicker = true"
+                                                >
+                                                    Choose from Library
+                                                </v-btn>
+                                                <media-library-picker
+                                                    v-model="showOgPicker"
+                                                    :cdn-base="cdn"
+                                                    @select="onOgImageSelected"
+                                                />
                                                 <v-card-text>
                                                     <div>{{this.$store.state.shop.subdomain}}</div>
                                                     <h2 class="font-weight-bold text-truncate">{{mtitle}}</h2>
                                                     <div class="text-truncate">{{mdesc}}</div>
+                                                    <v-btn variant="tonal" color="primary" class="text-none mt-3"
+                                                           prepend-icon="mdi-eye" :href="'https://'+this.$store.state.shop.subdomain" target="_blank">View Your Store</v-btn>
                                                 </v-card-text>
                                             </v-card>
                                         </v-col>
                                         <v-col cols="12" md="8">
                                             <div class="mb-3">
-                                                <v-img v-if="!logo" :src="cdn+existLogo" max-width="200" max-height="100" contain/>
+                                                <v-img v-if="!logo && !logoLibraryPath" :src="cdn+existLogo" max-width="200" max-height="100" contain/>
+                                                <v-img v-else-if="logoLibraryPath" :src="cdn+logoLibraryPath" max-width="200" max-height="100" contain/>
                                                 <v-img v-else :src="logoPreview" max-width="400" max-height="100" contain/>
                                                 <v-file-input v-model="logo"
                                                               label="Update or New Logo" clearable persistent-hint
@@ -59,6 +69,26 @@
                                                               variant="underlined"
                                                               prepend-icon="mdi-camera"
                                                               hint="Best Size 400 x 100"/>
+                                                <v-text-field
+                                                    v-if="logo"
+                                                    v-model="shop_logo_alt"
+                                                    label="Logo alt text"
+                                                    density="compact"
+                                                    variant="outlined"
+                                                    class="mt-2"
+                                                ></v-text-field>
+                                                <v-btn
+                                                    class="mt-2"
+                                                    prepend-icon="mdi-image-multiple-outline"
+                                                    @click="showLogoPicker = true"
+                                                >
+                                                    Choose from Library
+                                                </v-btn>
+                                                <media-library-picker
+                                                    v-model="showLogoPicker"
+                                                    :cdn-base="cdn"
+                                                    @select="onLogoSelected"
+                                                />
                                             </div>
                                             <div>
                                                 <v-text-field v-model="mtitle" :rules="mtitleRule" label="Home Page Title" density="compact" variant="outlined"
@@ -121,9 +151,11 @@
 </template>
 <script>
 import axios from "axios";
+import MediaLibraryPicker from "@/components/MediaLibraryPicker.vue";
 
 export default {
     name:"Preferences",
+    components: {MediaLibraryPicker},
     data(){
         return{
             ttab:null,
@@ -157,6 +189,12 @@ export default {
                 v => !v || (v && ["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(v.type)) || "Only PNG, JPG, JPEG, or WebP allowed",
                 v => !v || (v && v.size < 2 * 1024 * 512) || "File size must be under 1MB"
             ],
+            home_image_alt:'',
+            shop_logo_alt:'',
+            ogLibraryPath:null,
+            logoLibraryPath:null,
+            showOgPicker:false,
+            showLogoPicker:false,
             smlinks: {},
             mtitleRule:[
                 (v) => !!v || "Title is required",
@@ -188,6 +226,16 @@ export default {
         }
     },
     methods:{
+        onOgImageSelected(mediaFile){
+            this.ogLibraryPath = mediaFile.path;
+            this.ogimage = null; // a direct-upload selection, if any, is superseded by the library pick
+            this.home_image_alt = ''; // alt text only applies to fresh uploads — the picked file's own alt text is used instead
+        },
+        onLogoSelected(mediaFile){
+            this.logoLibraryPath = mediaFile.path;
+            this.logo = null;
+            this.shop_logo_alt = '';
+        },
         updateLogoPreview(file) {
             if (file instanceof File) {
                 this.logoPreview = URL.createObjectURL(file);
@@ -227,13 +275,19 @@ export default {
         updatePrefs(){
             this.isLoading = true;
             const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
+            const homeImage = this.ogimage instanceof File ? this.ogimage : (this.ogLibraryPath || undefined);
+            const shopLogo = this.logo instanceof File ? this.logo : (this.logoLibraryPath || undefined);
+
             const uprefs = {
                 preference_id:this.pref_id,
                 home_title:this.mtitle,
                 home_description:this.mdesc,
-                home_image:this.ogimage,
-                shop_logo:this.logo,
+                home_image:homeImage,
+                home_image_alt: this.ogimage instanceof File ? this.home_image_alt : undefined,
+                shop_logo:shopLogo,
+                shop_logo_alt: this.logo instanceof File ? this.shop_logo_alt : undefined,
             }
+
             axios.post('/sadmin/shop/preference/update',uprefs,uheaders)
                 .then((resp)=>{
                     this.getPreferences();
@@ -246,6 +300,10 @@ export default {
                     this.isLoading = false;
                     this.logo = null;
                     this.ogimage = null;
+                    this.ogLibraryPath = null;
+                    this.logoLibraryPath = null;
+                    this.home_image_alt = '';
+                    this.shop_logo_alt = '';
                 });
         },
         updateSocials(){
