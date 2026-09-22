@@ -28,6 +28,16 @@ class Cat extends Model
         'meta_desc',
     ];
 
+    protected $hidden = ['mediaFiles'];
+
+    protected $appends = ['image_alt'];
+
+    public function getImageAltAttribute(): ?string
+    {
+        $featured = $this->mediaFiles->first(fn ($file) => $file->pivot->media_for === 'featured');
+        return $featured?->alt_text;
+    }
+
     public function rules()
     {
         return $this->hasMany(Rule::class,'cat_id','cat_id');

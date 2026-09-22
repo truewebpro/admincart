@@ -193,10 +193,38 @@
                     <v-card class="mt-4 border">
                         <v-card-title>Image</v-card-title>
                         <v-card-text>
-                            <v-file-upload v-model="cat.cat_image" density="compact" browse-text="Add Image"
+                            <v-img
+                                v-if="libraryImagePath"
+                                :src="cdn+libraryImagePath"
+                                max-width="150"
+                                class="mb-2 rounded"
+                            ></v-img>
+                            <v-file-upload v-model="cat_image" density="compact" browse-text="Add Image"
                                            icon="mdi-upload" clearable
                                            title="Add Image"
                             ></v-file-upload>
+                            <v-text-field
+                                v-if="cat_image"
+                                v-model="image_alt"
+                                label="Image alt text"
+                                density="compact"
+                                variant="outlined"
+                                hint="Describes the image for accessibility and SEO"
+                                persistent-hint
+                                class="mt-2"
+                            ></v-text-field>
+                            <v-btn
+                                variant="tonal" class="mt-2" block
+                                prepend-icon="mdi-image-multiple-outline"
+                                @click="showMediaPicker = true"
+                            >
+                                Choose from Library
+                            </v-btn>
+                            <media-library-picker
+                                v-model="showMediaPicker"
+                                :cdn-base="cdn"
+                                @select="onLibraryImageSelected"
+                            />
                         </v-card-text>
                     </v-card>
                 </v-col>
@@ -227,10 +255,11 @@
 import axios from "axios";
 import {VFileUpload} from "vuetify/labs/components";
 import RichTextEditor from "@/components/RichTextEditor.vue";
+import MediaLibraryPicker from "@/components/MediaLibraryPicker.vue";
 
 export default {
     name:"CatView",
-    components:{RichTextEditor, VFileUpload},
+    components:{MediaLibraryPicker, RichTextEditor, VFileUpload},
     computed:{
         plainTextDesc() {
             return this.cat.cat_desc
@@ -328,6 +357,10 @@ export default {
                 rules:[{ column: 'tag', relation: 'equals', condition: null,componentKey: Date.now() }],
                 productIds:[],
             },
+            cat_image:null,
+            image_alt:'',
+            libraryImagePath:null,
+            showMediaPicker:false,
             rcolumns: [
                 {
                     name: 'Tag',
@@ -405,6 +438,11 @@ export default {
         this.getCategory();
     },
     methods:{
+        onLibraryImageSelected(mediaFile){
+            this.libraryImagePath = mediaFile.path;
+            this.cat_image = null;
+            this.image_alt = '';
+        },
         getCategory(){
             axios.get('/sadmin/cats/new')
                 .then((resp)=>{
@@ -488,6 +526,7 @@ export default {
         async addNewCat(){
             this.cisLoading = true;
             const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
+            const imageToSend = this.cat_image instanceof File ? this.cat_image : this.libraryImagePath;
             if (this.cat.cat_type === 'smart') {
                 await this.fetchFilteredProductIds(); // sets this.cat.productIds internally
             }
@@ -500,7 +539,7 @@ export default {
                 cat_slug:this.cat.cat_slug,
                 cat_desc:this.cat.cat_desc,
                 cat_status:'Active',
-                cat_image:this.cat.cat_image,
+                cat_image:imageToSend,
                 cat_type:this.cat.cat_type,
                 cat_rule:this.cat.cat_rule,
                 sort_order:this.cat.sort_order,

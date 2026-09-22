@@ -225,12 +225,35 @@
                         <v-card class="mt-4 border">
                             <v-card-title>Image</v-card-title>
                             <v-card-text>
-                                <v-img v-if="cat.cat_image != null" :src="cdn+cat.cat_image" max-height="200"></v-img>
-                                <v-img v-else :src="cdn+'noimage.png'" max-height="200"></v-img>
+                                <v-img v-if="cat.cat_image != null && !newImage && !libraryImagePath" :src="cdn+cat.cat_image" max-height="200"></v-img>
+                                <v-img v-if="libraryImagePath"
+                                       :src="cdn+libraryImagePath" max-width="200" class="mb-2 rounded"></v-img>
                                 <v-file-upload v-model="newImage" density="compact" browse-text="Add Image"
                                                icon="mdi-upload" class="mt-3"
                                                title="Upload Image" clearable show-size
                                 ></v-file-upload>
+                                <v-text-field
+                                    v-if="newImage"
+                                    v-model="image_alt"
+                                    label="Image alt text"
+                                    density="compact"
+                                    variant="outlined"
+                                    hint="Describes the image for accessibility and SEO"
+                                    persistent-hint
+                                    class="mt-2"
+                                ></v-text-field>
+                                <v-btn
+                                    variant="tonal" class="mt-2" block
+                                    prepend-icon="mdi-image-multiple-outline"
+                                    @click="showMediaPicker = true"
+                                >
+                                    Choose from Library
+                                </v-btn>
+                                <media-library-picker
+                                    v-model="showMediaPicker"
+                                    :cdn-base="cdn"
+                                    @select="onLibraryImageSelected"
+                                />
                             </v-card-text>
                         </v-card>
                     </v-col>
@@ -374,9 +397,11 @@ import {VFileUpload} from "vuetify/labs/components";
 import RichTextEditor from "@/components/RichTextEditor.vue";
 import CatSections from "@/admin/cat/CatSections.vue";
 import CatFaqs from "@/admin/cat/CatFaqs.vue";
+import MediaLibraryPicker from "@/components/MediaLibraryPicker.vue";
 export default {
     name:"CatView",
     components:{
+        MediaLibraryPicker,
         CatFaqs,
         CatSections,
         RichTextEditor, VFileUpload,
@@ -489,6 +514,9 @@ export default {
                 catpros:[]
             },
             newImage:null,
+            image_alt:'',
+            libraryImagePath:null,
+            showMediaPicker:false,
             pros:[],
             prosHeaders:[
                 {title:"#",value:'sno',width:50},
@@ -608,6 +636,11 @@ export default {
         this.getCategory();
     },
     methods:{
+        onLibraryImageSelected(mediaFile){
+            this.libraryImagePath = mediaFile.path;
+            this.newImage = null; // a direct-upload selection, if any, is superseded by the library pick
+            this.image_alt = ''; // alt text field only applies to fresh uploads — clear it, the picked file's own alt text is used instead
+        },
         getCategory(){
             this.dataLoading = true;
             axios.get('/sadmin/categories/'+this.cat_id)
@@ -803,13 +836,24 @@ export default {
                 await this.fetchFilteredProductIds();
             }
             const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
+            let catImage;
+            let ImageAlt;
+            if (this.newImage instanceof File) {
+                catImage = this.newImage;
+                ImageAlt = this.image_alt; // only meaningful for a fresh upload
+            } else if (this.libraryImagePath) {
+                catImage = this.libraryImagePath;
+            } else if (this.cat.cat_image) {
+                catImage =  this.cat.cat_image;
+            }
             const uscat = {
                 cat_name:this.cat.cat_name,
                 cat_slug:this.cat.cat_slug,
                 cat_desc:this.quillContent,
                 short_desc:this.cat.short_desc,
                 cat_status:'Active',
-                cat_image:this.newImage,
+                cat_image:catImage,
+                image_alt:ImageAlt,
                 cat_type:this.cat.cat_type,
                 cat_rule:this.cat.cat_rule,
                 sort_order:this.cat.sort_order,
@@ -853,13 +897,24 @@ export default {
         },
         updatemCat(){
             const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
+            let catImage;
+            let ImageAlt;
+            if (this.newImage instanceof File) {
+                catImage = this.newImage;
+                ImageAlt = this.image_alt; // only meaningful for a fresh upload
+            } else if (this.libraryImagePath) {
+                catImage = this.libraryImagePath;
+            } else if (this.cat.cat_image) {
+                catImage =  this.cat.cat_image;
+            }
             const umcat = {
                 cat_name:this.cat.cat_name,
                 cat_slug:this.cat.cat_slug,
                 cat_desc:this.quillContent,
                 short_desc:this.cat.short_desc,
                 cat_status:'Active',
-                cat_image:this.newImage,
+                cat_image:catImage,
+                image_alt:ImageAlt,
                 cat_type:this.cat.cat_type,
                 cat_rule:this.cat.cat_rule,
                 sort_order:this.cat.sort_order,

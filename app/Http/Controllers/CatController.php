@@ -10,9 +10,12 @@ use App\Models\Location;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\RelatedCat;
+use App\Models\Shop;
 use App\Models\Stype;
 use App\Models\Tag;
 use App\Services\CacheKeys;
+use App\Services\ImageService;
+use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -347,21 +350,10 @@ class CatController extends Controller
             'rules' => 'nullable|array',
             'product_ids' => 'nullable|array',
             'product_ids.*' => 'integer|exists:products,product_id',
-            'cat_image' => 'nullable|file|image|max:2048',
         ]);
 
         DB::beginTransaction();
         try {
-            if($request->hasFile('cat_image')){
-                $file = $request->file('cat_image');
-                $filename = 'category_image_'.uniqid().'.png';
-                $img = Image::make($file->getRealPath())->resize(600, 600, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-                $cpath = 'category/'.$filename;
-                Storage::disk('s3')->put($cpath,(string)$img->encode());
-                $validated['cat_image'] = $cpath;
-            }
             $baseSlug = Str::slug($validated['cat_slug'] ?? $validated['cat_name']);
             $slug = $baseSlug;
             $counter = 1;
@@ -370,13 +362,21 @@ class CatController extends Controller
                 $counter++;
             }
             $validated['cat_slug'] = $slug;
+            $catImage = null;
+            $imageMeta = [];
+
+            if($request->hasFile('cat_image')){
+                $shop = Shop::where('shop_id', $shopId)->firstOrFail();
+                $imageMeta = ImageService::storeUploadedFile($request->file('cat_image'), $shop->shop_slug, 600, 600);
+                $catImage = $imageMeta['path'];
+            }
 
             $cat = Cat::create([
                 'cat_name' => $validated['cat_name'],
                 'cat_slug' => $validated['cat_slug'],
                 'cat_desc' => $validated['cat_desc'] ?? null,
                 'cat_status' => $validated['cat_status'],
-                'cat_image' => $validated['cat_image'] ?? null,
+                'cat_image' => $catImage ?? $request['cat_image'],
                 'cat_type' => $validated['cat_type'],
                 'cat_rule' => $validated['cat_rule'],
                 'sort_order' => $validated['sort_order'] ?? 'title_asc',
@@ -384,6 +384,11 @@ class CatController extends Controller
                 'meta_title' => $validated['meta_title'] ?? null,
                 'meta_desc' => $validated['meta_desc'] ?? null,
             ]);
+            if ($catImage) {
+                MediaLibraryService::recordAndAttachFromResult($shopId, $imageMeta, $cat, 'featured', [
+                    'alt_text' => $request->image_alt ?: null,
+                ]);
+            }
 
             if ($validated['cat_type'] === 'smart' && isset($validated['rules'])) {
                 foreach ($validated['rules'] as $rule) {
@@ -416,7 +421,7 @@ class CatController extends Controller
                 'success' => true,
                 'message' => 'Category added successfully',
                 'cat_id' => $cat->cat_id,
-                'cat' => $cat,
+                'cat' => $cat->refresh(),
                 'catpro' => $catpro,
             ]);
         } catch (\Exception $e) {
@@ -624,18 +629,17 @@ class CatController extends Controller
             'meta_desc' => 'nullable|string|max:500',
             'product_ids' => 'nullable|array',
             'product_ids.*' => 'integer|exists:products,product_id',
-            'cat_image' => 'nullable|file|image|max:2048',
         ]);
         $cat = Cat::where('cat_id', $cat_id)->where('shop_id', $shopId)->firstOrFail();
+
         if($request->hasFile('cat_image')){
-            $file = $request->file('cat_image');
-            $filename = 'category_image_'.uniqid().'.png';
-            $img = Image::make($file->getRealPath())->resize(600, 600, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-            $cpath = 'category/'.$filename;
-            Storage::disk('s3')->put($cpath,(string)$img->encode());
-            $validated['cat_image'] = $cpath;
+            $shop = Shop::where('shop_id', $shopId)->firstOrFail();
+            $imageMeta = ImageService::storeUploadedFile($request->file('cat_image'), $shop->shop_slug, 600, 600);
+            MediaLibraryService::replaceFeaturedImageFromResult($shopId, $cat, 'cat_image', $imageMeta, [
+                'alt_text' => $request->image_alt ?: null,
+            ]);
+        } elseif (!empty($request->cat_image) && is_string($request->cat_image)) {
+            MediaLibraryService::replaceFeaturedImage($shopId, $cat, 'cat_image', $request->cat_image);
         }
         $baseSlug = Str::slug($validated['cat_slug'] ?? $validated['cat_name']);
         $slug = $baseSlug;
@@ -659,7 +663,6 @@ class CatController extends Controller
                 'sort_order' => $validated['sort_order'] ?? 'title_asc',
                 'meta_title' => $validated['meta_title'] ?? null,
                 'meta_desc' => $validated['meta_desc'] ?? null,
-                'cat_image' => $validated['cat_image'] ?? $cat->cat_image,
             ]);
             $existingPositions = Catpro::where('cat_id', $cat->cat_id)
                 ->pluck('position', 'product_id')
@@ -685,7 +688,7 @@ class CatController extends Controller
             'success' => true,
             'message' => 'Category updated successfully',
             'cat_id' => $cat->cat_id,
-            'cat' => $cat,
+            'cat' => $cat->refresh(),
         ]);
     }
 
@@ -709,18 +712,16 @@ class CatController extends Controller
             'rules.*.condition' => 'required',
             'product_ids' => 'nullable|array',
             'product_ids.*' => 'integer|exists:products,product_id',
-            'cat_image' => 'nullable|file|image|max:2048',
         ]);
         $cat = Cat::where('cat_id', $cat_id)->where('shop_id', $shopId)->firstOrFail();
         if($request->hasFile('cat_image')){
-            $file = $request->file('cat_image');
-            $filename = 'category_image_'.uniqid().'.png';
-            $img = Image::make($file->getRealPath())->resize(600, 600, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-            $cpath = 'category/'.$filename;
-            Storage::disk('s3')->put($cpath,(string)$img->encode());
-            $validated['cat_image'] = $cpath;
+            $shop = Shop::where('shop_id', $shopId)->firstOrFail();
+            $imageMeta = ImageService::storeUploadedFile($request->file('cat_image'), $shop->shop_slug, 600, 600);
+            MediaLibraryService::replaceFeaturedImageFromResult($shopId, $cat, 'cat_image', $imageMeta, [
+                'alt_text' => $request->image_alt ?: null,
+            ]);
+        } elseif (!empty($request->cat_image) && is_string($request->cat_image)) {
+            MediaLibraryService::replaceFeaturedImage($shopId, $cat, 'cat_image', $request->cat_image);
         }
         $baseSlug = Str::slug($validated['cat_slug'] ?? $validated['cat_name']);
         $slug = $baseSlug;
@@ -746,7 +747,6 @@ class CatController extends Controller
                 'cat_rule' => $validated['cat_rule'] ?? 'and',
                 'meta_title' => $validated['meta_title'] ?? null,
                 'meta_desc' => $validated['meta_desc'] ?? null,
-                'cat_image' => $validated['cat_image'] ?? $cat->cat_image,
             ]);
             $existingPositions = Catpro::where('cat_id', $cat->cat_id)
                 ->pluck('position', 'product_id')
@@ -785,7 +785,7 @@ class CatController extends Controller
             'success' => true,
             'message' => 'Category updated successfully',
             'cat_id' => $cat->cat_id,
-            'cat' => $cat,
+            'cat' => $cat->refresh(),
         ]);
 
     }
