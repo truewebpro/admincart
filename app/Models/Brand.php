@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasMediaFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Brand extends Model
 {
-    use HasFactory;
+    use HasFactory, HasMediaFiles;
     protected $primaryKey = 'brand_id';
     protected $fillable = [
         'brand_name',
@@ -21,6 +22,16 @@ class Brand extends Model
         'meta_title',
         'meta_desc',
     ];
+
+    protected $hidden = ['mediaFiles'];
+
+    protected $appends = ['image_alt'];
+
+    public function getImageAltAttribute(): ?string
+    {
+        $featured = $this->mediaFiles->first(fn ($file) => $file->pivot->media_for === 'featured');
+        return $featured?->alt_text;
+    }
 
     public function product(){
         return $this->hasMany(Product::class, 'brand_id', 'brand_id');

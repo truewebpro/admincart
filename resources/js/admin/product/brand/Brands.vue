@@ -36,15 +36,15 @@
                     </div>
                     <div>
                         <v-data-table-server density="comfortable" mobileBreakpoint="sm"
-                            v-model:page="page"
-                            v-model:items-per-page="itemsPerPage"
-                            v-model:sort-by="sortBy"
-                            :items="brands"
-                            :headers="brandsHeaders"
-                            :items-length="totalItems"
-                            :loading="isLoading"
-                            hover
-                            @update:options="loadItems"
+                                             v-model:page="page"
+                                             v-model:items-per-page="itemsPerPage"
+                                             v-model:sort-by="sortBy"
+                                             :items="brands"
+                                             :headers="brandsHeaders"
+                                             :items-length="totalItems"
+                                             :loading="isLoading"
+                                             hover
+                                             @update:options="loadItems"
                         >
                             <template v-slot:item.brand_name="{item}">
                                 <div class="title d-flex align-center justify-space-between">
@@ -85,15 +85,9 @@
                                     <v-textarea v-model="defaultItem.brand_desc" variant="outlined" density="compact"
                                                 label="Brand Desc" rows="3"></v-textarea>
                                 </div>
-                                <div class="mb-2 d-flex">
-                                    <div class="w-50">
-                                        <v-file-upload v-model="defaultItem.brand_image" density="compact" title="Brand Image"
-                                                       clearable icon="mdi-plus" show-size></v-file-upload>
-                                    </div>
-                                    <div class="w-50 ms-2">
-                                        <v-select v-model="defaultItem.brand_status" :items="brandstatus" variant="outlined" density="compact"
-                                                  label="Status"></v-select>
-                                    </div>
+                                <div class="mb-2">
+                                    <v-select v-model="defaultItem.brand_status" :items="brandstatus" variant="outlined" density="compact"
+                                              label="Status"></v-select>
                                 </div>
                                 <div class="my-2">
                                     <v-text-field v-model="defaultItem.meta_title" variant="outlined" density="compact"
@@ -136,11 +130,9 @@
 import debounce from 'lodash/debounce';
 import axios from "axios";
 import {mergeProps} from "vue";
-import {VFileUpload} from "vuetify/labs/components";
 
 export default {
     name:"Brands",
-    components:{VFileUpload},
     data(){
         return{
             bsearch:'',
@@ -175,7 +167,6 @@ export default {
                 brand_name: '',
                 brand_desc: '',
                 brand_status: 'Active',
-                brand_image: null,
                 meta_title: '',
                 meta_desc: '',
             },
@@ -184,8 +175,6 @@ export default {
                 brand_name: '',
                 brand_desc: '',
                 brand_status: '',
-                brand_image: null,
-                previewImage:'',
                 meta_title: '',
                 meta_desc: '',
             },
@@ -207,9 +196,6 @@ export default {
         }, 400);
     },
     watch:{
-        'editedItem.brand_image'(newVal){
-            this.updatePreviewImage(newVal)
-        },
         bsearch() {
             this.debouncedSearch();
         },
@@ -255,19 +241,6 @@ export default {
                 this.isLoading = false;
             }
         },
-        updatePreviewImage(fileList) {
-            const file = Array.isArray(fileList) ? fileList[0] : fileList;
-            if (file instanceof File) {
-                this.editedItem.brand_image = file;
-                this.editedItem.previewImage = URL.createObjectURL(file);
-            } else if (typeof file === 'string' && file !== '') {
-                this.editedItem.previewImage = this.cdn + file;
-                this.editedItem.brand_image = file;
-            } else {
-                this.editedItem.brand_image = null;
-                this.editedItem.previewImage = `https://dummyimage.com/1200x630/000/fff&text=${this.shopname}`;
-            }
-        },
         deleteItem(item){
             this.editedIndex = this.brands.indexOf(item);
             this.editedItem = Object.assign({},item)
@@ -282,7 +255,7 @@ export default {
             axios.post('/sadmin/brand/delete',dbrand,uheaders)
                 .then((resp)=>{
                     this.deleteDialog = false;
-                   this.getAllBrands();
+                    this.getAllBrands();
                 })
                 .catch((error)=>{
                     window.Toast.error(error.message);
@@ -299,7 +272,6 @@ export default {
                 brand_name:this.defaultItem.brand_name,
                 brand_desc:this.defaultItem.brand_desc,
                 brand_status:this.defaultItem.brand_status,
-                brand_image:this.defaultItem.brand_image,
                 meta_title:this.defaultItem.meta_title,
                 meta_desc:this.defaultItem.meta_desc,
             }

@@ -7,8 +7,11 @@ use App\Models\Brand;
 use App\Models\Cat;
 use App\Models\Product;
 use App\Models\Section;
+use App\Models\Shop;
 use App\Models\Stype;
 use App\Services\CacheKeys;
+use App\Services\ImageService;
+use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -307,19 +310,6 @@ class BrandController extends Controller
         $existingBrand  = Brand::where('shop_id','=',$shopId)
             ->where('brand_id',$request['brand_id'])
             ->first();
-        $bpath = $existingBrand?->brand_image ?? null;
-        if($request->hasFile('brand_image')){
-            if ($existingBrand && $existingBrand->brand_image) {
-                Storage::disk('s3')->delete($existingBrand->brand_image);
-            }
-            $Image = $request->file('brand_image');
-            $filename = 'brand_'.uniqid().'.png';
-            $img = Image::make($Image->getRealPath())->resize(300, null, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-            $bpath = 'images/brand/'.$filename;
-            Storage::disk('s3')->put($bpath, (string) $img->encode());
-        }
         $baseSlug = Str::slug($request['brand_slug'] ?? $request['brand_name']);
         $slug = $baseSlug;
         $counter = 1;
@@ -332,6 +322,16 @@ class BrandController extends Controller
             $counter++;
         }
         $request['brand_slug'] = $slug;
+
+        if($request->hasFile('brand_image')){
+            $shop = Shop::where('shop_id', $shopId)->firstOrFail();
+            $imageMeta = ImageService::storeUploadedFile($request->file('brand_image'), $shop->shop_slug, 300, 300);
+            MediaLibraryService::replaceFeaturedImageFromResult($shopId, $existingBrand, 'brand_image', $imageMeta, [
+                'alt_text' => $request->image_alt ?: null,
+            ]);
+        } elseif (!empty($request->brand_image) && is_string($request->brand_image)) {
+            MediaLibraryService::replaceFeaturedImage($shopId, $existingBrand, 'brand_image', $request->brand_image);
+        }
         $brand = Brand::updateOrCreate(
             [
                 'shop_id' => $shopId,
@@ -342,7 +342,6 @@ class BrandController extends Controller
                 'brand_slug' => $request['brand_slug'],
                 'brand_desc' => $request['brand_desc'],
                 'brand_status' => $request['brand_status'] ?? "Active",
-                'brand_image' => $bpath,
                 'shop_id' => $shopId,
                 'meta_title' => $request['meta_title'],
                 'meta_desc' => $request['meta_desc'],
@@ -352,7 +351,7 @@ class BrandController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Brand updated successfully',
-                'brand' => $brand,
+                'brand' => $brand->fresh(),
             ],200);
         } else {
             return response()->json([
