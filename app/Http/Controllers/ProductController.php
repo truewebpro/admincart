@@ -14,11 +14,14 @@ use App\Models\ProductPriceTier;
 use App\Models\ProductType;
 use App\Models\Proreview;
 use App\Models\Reviewer;
+use App\Models\Shop;
 use App\Models\Stock;
 use App\Models\Stype;
 use App\Models\Tag;
 use App\Models\Variant;
 use App\Services\CacheKeys;
+use App\Services\ImageService;
+use App\Services\MediaLibraryService;
 use App\Services\SmartCategoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -573,6 +576,8 @@ class ProductController extends Controller
     public function productUpdate(Request $request,$product_id)
     {
         $shopId = session('shop_id');
+        $shop = Shop::where('shop_id', $shopId)->firstOrFail();
+
         DB::beginTransaction();
         try {
             $product = Product::find($product_id);
@@ -600,19 +605,18 @@ class ProductController extends Controller
             $product->meta_title = $request->get("meta_title") ?? $request->get("title");
             $product->meta_desc = $request->get("meta_desc") ?? $request->get("title");
             if ($request->hasFile('featured_image')) {
-                $image = $request->file('featured_image');
-                $filename = "product_image-" . time() . uniqid() . '.png';
-                $img = Image::make($image->getRealPath())->resize(1000, 1000, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-                $fpath = 'products/' . $filename;
-                Storage::disk('s3')->put($fpath, (string)$img->encode());
-                $product->featured_image = $fpath;
+                $imageMeta = ImageService::storeUploadedFile($request->file('featured_image'), $shop->shop_slug, 1000, 1000);
+                MediaLibraryService::replaceFeaturedImageFromResult($shopId, $product, 'featured_image', $imageMeta, [
+                    'alt_text' => $request->featured_image_alt ?: null,
+                ]);
+            } elseif (!empty($request->featured_image) && is_string($request->featured_image)) {
+                MediaLibraryService::replaceFeaturedImage($shopId, $product, 'featured_image', $request->featured_image);
             }
+
             $product->save();
             app(SmartCategoryService::class)->syncProduct($product);
+
             $submittedVariantIds = collect($request->vitems)->pluck('variant_id')->filter()->toArray();
-            // Delete missing variants ONCE
             $deletedVariants = Variant::where('product_id', $product->product_id)
                 ->where('shop_id', $shopId)
                 ->whereNotIn('variant_id', $submittedVariantIds)
@@ -621,17 +625,15 @@ class ProductController extends Controller
             Variant::whereIn('variant_id', $deletedVariants)->delete();
 
             foreach ($request->vitems as $index => $nvar) {
-                $variantImagePath = null;
+                $variantImageMeta = null;
+                $variantLibraryPath = null;
+
                 if ($request->hasFile("vitems.$index.variantImage")) {
-                    $image = $request->file("vitems.$index.variantImage");
-                    $filename = "variant_image-" . time() . uniqid() . '.png';
-                    $img = Image::make($image)->resize(1000, 1000, function ($constraint) {
-                        $constraint->aspectRatio();
-                    });
-                    $vpath = 'products/' . $filename;
-                    Storage::disk('s3')->put($vpath, (string)$img->encode());
-                    $variantImagePath = $vpath;
+                    $variantImageMeta = ImageService::storeUploadedFile($request->file("vitems.$index.variantImage"), $shop->shop_slug, 1000, 1000);
+                } elseif (!empty($nvar['variantImage']) && is_string($nvar['variantImage'])) {
+                    $variantLibraryPath = $nvar['variantImage'];
                 }
+
                 if (!empty($nvar['variant_id'])) {
                     $isdefault = (isset($nvar['optname']) && is_array($nvar['optname']) && count($nvar['optname']) > 0);
 
@@ -649,19 +651,32 @@ class ProductController extends Controller
                         'product_id' => $product->product_id,
                         'shop_id' => $shopId,
                     ];
-                    if ($variantImagePath) {
-                        $variantData['variant_image'] = $variantImagePath;
+                    if ($variantImageMeta) {
+                        $variantData['variant_image'] = $variantImageMeta['path'];
+                    } elseif ($variantLibraryPath) {
+                        $variantData['variant_image'] = $variantLibraryPath;
                     }
+
                     $variant = Variant::updateOrCreate(
                         ['variant_id' => $nvar['variant_id']],
                         $variantData
                     );
+
+                    // Already exists — replace whatever was previously attached.
+                    if ($variantImageMeta) {
+                        MediaLibraryService::replaceFeaturedImageFromResult($shopId, $variant, 'variant_image', $variantImageMeta);
+                    } elseif ($variantLibraryPath) {
+                        MediaLibraryService::replaceFeaturedImage($shopId, $variant, 'variant_image', $variantLibraryPath);
+                    }
+
                     if (isset($nvar['stock'])) {
                         Stock::where('variant_id', $nvar['variant_id'])->update([
                             'quantity' => $nvar['stock'],
                         ]);
                     }
                 } else {
+                    // --- Brand-new variant added mid-edit — no prior
+                    // image exists yet, so record instead of replace. ---
                     $variantData = [
                         'sku' => $nvar['sku'],
                         'price' => $nvar['price'] ?? 0.00,
@@ -676,10 +691,19 @@ class ProductController extends Controller
                         'product_id' => $product->product_id,
                         'shop_id' => $shopId
                     ];
-                    if ($variantImagePath) {
-                        $variantData['variant_image'] = $variantImagePath;
+                    if ($variantImageMeta) {
+                        $variantData['variant_image'] = $variantImageMeta['path'];
+                    } elseif ($variantLibraryPath) {
+                        $variantData['variant_image'] = $variantLibraryPath;
                     }
+
                     $varnew = Variant::create($variantData);
+
+                    if ($variantImageMeta) {
+                        MediaLibraryService::recordAndAttachFromResult($shopId, $variantImageMeta, $varnew, 'featured');
+                    } elseif ($variantLibraryPath) {
+                        MediaLibraryService::recordAndAttach($shopId, $variantLibraryPath, $varnew, [], 'featured');
+                    }
 
                     if (isset($nvar['stock'])) {
                         $location_id = Location::where('shop_id', '=', $shopId)->first()->location_id;
@@ -698,7 +722,7 @@ class ProductController extends Controller
                 'success' => true,
                 'message' => 'Product updated successfully',
                 'product_id' => $product_id,
-                'product' => $product,
+                'product' => $product->refresh(),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -888,6 +912,8 @@ class ProductController extends Controller
     public function addProductNew(Request $request)
     {
         $shopId = session('shop_id');
+        $shop = Shop::where('shop_id', $shopId)->firstOrFail();
+
         DB::beginTransaction();
         try {
             $product = new Product();
@@ -907,22 +933,30 @@ class ProductController extends Controller
             $product->product_type_id = $request->product_type_id;
             $product->brand_id = $request->brand_id;
             $product->tags = $request->tags;
+            $featuredImageMeta = null;
             if($request->hasFile('featured_image')){
-                $image = $request->file('featured_image');
-                $filename = "product_image-".time().uniqid().'.png';
-                $img = Image::make($image->getRealPath())->resize(1000,1000,function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-                $fpath = 'products/'.$filename;
-                Storage::disk('s3')->put($fpath, (string) $img->encode());
-                $product->featured_image = $fpath;
+                $featuredImageMeta = ImageService::storeUploadedFile($request->file('featured_image'), $shop->shop_slug, 1000, 1000);
+                $product->featured_image = $featuredImageMeta['path'];
+            } elseif (!empty($request->featured_image) && is_string($request->featured_image)) {
+                $product->featured_image = $request->featured_image;
             }
+
             $product->thirdparty_id = time().uniqid();
             $product->shop_id = $shopId;
             $product->meta_title = $request->meta_title ?? $request->title;
             $product->meta_desc = $request->meta_desc ?? $request->title;
             $product->save();
+
+            if ($request->hasFile('featured_image') && $featuredImageMeta) {
+                MediaLibraryService::recordAndAttachFromResult($shopId, $featuredImageMeta, $product, 'featured', [
+                    'alt_text' => $request->featured_image_alt ?: null,
+                ]);
+            } elseif (!empty($request->featured_image) && is_string($request->featured_image)) {
+                MediaLibraryService::recordAndAttach($shopId, $request->featured_image, $product, [], 'featured');
+            }
+
             app(SmartCategoryService::class)->syncProduct($product);
+
             foreach ($request->variants as $index => $nvar) {
                 $variant = new Variant();
                 $variant->sku = $nvar['sku'];
@@ -930,24 +964,32 @@ class ProductController extends Controller
                 $variant->compareprice = $nvar['compareprice'] ?? null;
                 $variant->costprice = $nvar['costprice'] ?? null;
                 $variant->barcode = $nvar['barcode'];
+
+                $variantImageMeta = null;
+                $variantLibraryPath = null;
+
                 if($request->hasFile("variants.$index.variantImage")){
-                    $image = $request->file("variants.$index.variantImage");
-                    $filename = "variant_image-".time().uniqid().'.png';
-                    $img = Image::make($image->getRealPath())->resize(1000,1000,function ($constraint) {
-                        $constraint->aspectRatio();
-                    });
-                    $vpath = 'products/'.$filename;
-                    Storage::disk('s3')->put($vpath, (string) $img->encode());
-                    $variant->variant_image = $vpath ?? null;
+                    $variantImageMeta = ImageService::storeUploadedFile($request->file("variants.$index.variantImage"), $shop->shop_slug, 1000, 1000);
+                    $variant->variant_image = $variantImageMeta['path'];
+                } elseif (!empty($nvar['variantImage']) && is_string($nvar['variantImage'])) {
+                    $variantLibraryPath = $nvar['variantImage'];
+                    $variant->variant_image = $variantLibraryPath;
                 }
+
                 $variant->istax = $nvar['istax'] ?? 1;
                 $variant->isdefault = $nvar['isdefault'] ?? 1;
-                $variant->weight = $nvar['weight'] ?? 0.5;
+                $variant->weight = $nvar['weight'] ?? 0.01;
                 $variant->options = $nvar['optname'] ?? null;
                 $variant->option_values = $nvar['optvalue'] ?? null;
                 $variant->shop_id = $shopId;
                 $variant->product_id = $product->product_id;
                 $variant->save();
+
+                if ($variantImageMeta) {
+                    MediaLibraryService::recordAndAttachFromResult($shopId, $variantImageMeta, $variant, 'featured');
+                } elseif ($variantLibraryPath) {
+                    MediaLibraryService::recordAndAttach($shopId, $variantLibraryPath, $variant, [], 'featured');
+                }
 
                 $location = Location::where('shop_id','=',$shopId)->first();
                 $stock = new Stock();

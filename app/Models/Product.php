@@ -35,6 +35,16 @@ class Product extends Model
         'tags' => 'array',
     ];
 
+    protected $hidden = ['mediaFiles'];
+
+    protected $appends = ['featured_image_alt'];
+
+    public function getFeaturedImageAltAttribute(): ?string
+    {
+        $featured = $this->mediaFiles->first(fn ($file) => $file->pivot->media_for === 'featured');
+        return $featured?->alt_text;
+    }
+
     public function variants():HasMany
     {
         return $this->hasMany(Variant::class, 'product_id', 'product_id')

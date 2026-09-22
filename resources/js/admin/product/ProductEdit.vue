@@ -8,7 +8,7 @@
                     </v-btn>
                     Edit {{productname}} <v-chip v-if="pro.archived" color="red" variant="tonal" density="compact" >Archived</v-chip>
                 </h2>
-<!--                <v-btn @click="generateAiContent" color="success" density="compact">Generate Content</v-btn>-->
+                <!--                <v-btn @click="generateAiContent" color="success" density="compact">Generate Content</v-btn>-->
             </v-col>
             <v-col cols="12" md="6" class="text-end d-flex ga-2 flex-wrap justify-end">
                 <v-btn :href="domain+'products/'+pro.handle" target="_blank" class="text-none"
@@ -41,7 +41,7 @@
                 <div>
                     Product
                 </div>
-                 <div class="text-body-2 opacity-70">Title & Summary</div>
+                <div class="text-body-2 opacity-70">Title & Summary</div>
             </v-tab>
             <v-tab value="features" prepend-icon="mdi-star" class="bg-white">
                 <div>
@@ -110,10 +110,31 @@
                                 </v-dialog>
                                 <div class="mt-3">
                                     <v-card class="d-flex align-center justify-center" height="90" outlined @click="triggerFileInput">
-                                        <v-icon v-if="!featuredImage" size="40" color="grey darken-1">mdi-image-area</v-icon>
+                                        <v-icon v-if="!featuredImage && !libraryImagePath" size="40" color="grey darken-1">mdi-image-area</v-icon>
+                                        <v-img v-else-if="libraryImagePath" :src="cdn+libraryImagePath" contain height="100%" />
                                         <v-img v-else :src="getFeaturedImageSrc" contain height="100%" />
                                         <v-file-input ref="fileInput" v-model="productImage" accept="image/*" hide-input @change="handleFileUpload" style="display: none" />
                                     </v-card>
+                                    <v-text-field
+                                        v-if="isNewFeaturedImage"
+                                        v-model="featuredImageAlt"
+                                        label="Image alt text"
+                                        density="compact"
+                                        variant="outlined"
+                                        class="mt-2"
+                                    ></v-text-field>
+                                    <v-btn
+                                        density="comfortable" variant="tonal" class="mt-2"
+                                        prepend-icon="mdi-image-multiple-outline"
+                                        @click.stop="showLibraryPicker = true"
+                                    >
+                                        Choose from Library
+                                    </v-btn>
+                                    <media-library-picker
+                                        v-model="showLibraryPicker"
+                                        :cdn-base="cdn"
+                                        @select="onFeaturedImageSelected"
+                                    />
                                 </div>
                             </v-card-text>
                         </v-card>
@@ -343,12 +364,19 @@
                                           :hide-default-footer="vitems.length < 49" items-per-page="50"
                                           v-model="selectedVariants" return-object mobileBreakpoint="lg">
                                 <template v-slot:item.variantImage="{ item, index }">
-                                    <v-card class="d-flex align-center justify-center ma-1" width="50" height="50" max-width="50"
-                                            @click="triggerVariantFileInput(index)" variant="outlined">
-                                        <v-icon v-if="!item.variantImage" size="50" color="grey darken-1" > mdi-image-area </v-icon>
-                                        <v-img v-else :src="getVariantImageSrc(item)" contain height="100%" max-width="50px" ></v-img>
-                                        <input type="file" :ref="`variantImage${index}`" accept="image/*" @change="handleVariantFileUpload($event, index)" style="display: none" />
-                                    </v-card>
+                                    <div class="d-flex flex-column align-center ma-1">
+                                        <v-card class="d-flex align-center justify-center mb-1" width="50" height="50" max-width="50"
+                                                @click="triggerVariantFileInput(index)" variant="outlined">
+                                            <v-icon v-if="!item.variantImage && !item.libraryImagePath" size="50" color="grey darken-1" > mdi-image-area </v-icon>
+                                            <v-img v-else-if="item.libraryImagePath" :src="cdn+item.libraryImagePath" contain height="100%" max-width="50px" ></v-img>
+                                            <v-img v-else :src="getVariantImageSrc(item)" contain height="100%" max-width="50px" ></v-img>
+                                            <input type="file" :ref="`variantImage${index}`" accept="image/*" @change="handleVariantFileUpload($event, index)" style="display: none" />
+                                        </v-card>
+                                        <v-btn
+                                            density="compact" size="small" variant="tonal" prependIcon="mdi-image-multiple-outline"
+                                            @click="openVariantPicker(index)"
+                                        >Add</v-btn>
+                                    </div>
                                 </template>
                                 <template v-slot:item.optname="{ item }">
                              <span class="optvals d-flex flex-wrap">
@@ -367,6 +395,11 @@
                                     <v-text-field v-model="item.sku" width="150px" density="compact" variant="outlined" hide-details />
                                 </template>
                             </v-data-table>
+                            <media-library-picker
+                                v-model="showVariantPicker"
+                                :cdn-base="cdn"
+                                @select="onVariantImageSelected"
+                            />
                         </v-card>
                         <v-card class="mt-4 border-sm">
                             <v-card-title>Search engine listing</v-card-title>
@@ -624,10 +657,12 @@ import ProductTiers from "@/admin/product/ProductTiers.vue";
 import ProductHighlights from "@/admin/product/ProductHighlights.vue";
 import ProductFaqs from "@/admin/product/ProductFaqs.vue";
 import RichTextEditor from "@/components/RichTextEditor.vue";
+import MediaLibraryPicker from "@/components/MediaLibraryPicker.vue";
 
 export default {
     name:"ProductEdit",
     components: {
+        MediaLibraryPicker,
         RichTextEditor,
         ProductFaqs,
         ProductHighlights,
@@ -680,6 +715,11 @@ export default {
             productdesc: "",
             productImage: null,
             featuredImage: null,
+            featuredImageAlt: '',
+            libraryImagePath: null,
+            showLibraryPicker: false,
+            showVariantPicker: false,
+            pickingVariantIndex: null,
             price: "",
             compareprice: "",
             costprice: "",
@@ -802,6 +842,9 @@ export default {
                     !this.variants.hasOwnProperty(option.option_name)
                 );
             });
+        },
+        isNewFeaturedImage() {
+            return this.productImage instanceof File;
         },
         getFeaturedImageSrc() {
             if (typeof this.featuredImage === "string" && this.featuredImage.startsWith("data:image")) {
@@ -1318,8 +1361,28 @@ export default {
             const input = this.$refs.fileInput?.$el?.querySelector('input[type="file"]');
             if (input) input.click();
         },
+        onFeaturedImageSelected(mediaFile){
+            this.libraryImagePath = mediaFile.path;
+            this.productImage = null; // a direct-upload selection, if any, is superseded by the library pick
+            this.featuredImageAlt = '';
+        },
+        openVariantPicker(index){
+            this.pickingVariantIndex = index;
+            this.showVariantPicker = true;
+        },
+        onVariantImageSelected(mediaFile){
+            const index = this.pickingVariantIndex;
+            if (index === null || !this.vitems[index]) return;
+
+            this.vitems.splice(index, 1, {
+                ...this.vitems[index],
+                variantImage: null, // a direct-upload selection, if any, is superseded by the library pick
+                libraryImagePath: mediaFile.path,
+            });
+        },
         handleFileUpload() {
             if (this.productImage instanceof File) {
+                this.libraryImagePath = null; // a fresh upload supersedes any library pick
                 const reader = new FileReader();
                 reader.onload = e => {
                     this.featuredImage = e.target.result;
@@ -1354,12 +1417,16 @@ export default {
             this.vitems.splice(index, 1, {
                 ...this.vitems[index],
                 variantImage: file, // ✅ keep file
-                preview: previewURL // for displaying image
+                preview: previewURL, // for displaying image
+                libraryImagePath: null, // a fresh upload supersedes any library pick
             });
         },
         editProductById(){
             this.isLoading = true;
             const uheaders = {headers: {'Content-Type': 'multipart/form-data'}}
+            const resolvedFeaturedImage = this.productImage instanceof File
+                ? this.productImage
+                : (this.libraryImagePath || null);
             let svar;
             if(Object.keys(this.variants).length < 1){
                 svar = [{
@@ -1371,21 +1438,31 @@ export default {
                     sku: this.sku,
                     stock: this.stockQuantity,
                     barcode: this.barcode,
-                    featured_image:this.productImage,
                     weight: this.weight,
                     isdefault: 0,
                     weightUnit: this.weightUnit,
+                    variantImage: this.vitems[0].variantImage instanceof File
+                        ? this.vitems[0].variantImage
+                        : (this.vitems[0].libraryImagePath || null),
                     optvalue: {},
                     optname: [],
                 }];
             } else {
-                svar = this.vitems
+                // Each row's image resolved independently: fresh
+                // upload wins, then a library pick.
+                svar = this.vitems.map((item) => ({
+                    ...item,
+                    variantImage: item.variantImage instanceof File
+                        ? item.variantImage
+                        : (item.libraryImagePath || null),
+                }));
             }
             const epro = {
                 title:this.productname,
                 body_html:this.quillContent,
                 short_description:this.pro.short_description,
-                featured_image:this.productImage,
+                featured_image:resolvedFeaturedImage,
+                featured_image_alt: this.productImage instanceof File ? this.featuredImageAlt : undefined,
                 publish_status:this.pro.selectedSalesChannel,
                 product_status:this.pro.pstatus,
                 product_type_id:this.pro.ptype,

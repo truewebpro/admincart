@@ -38,12 +38,21 @@ class Variant extends Model
         'isdefault' => 'boolean',
     ];
 
+    protected $hidden = ['mediaFiles'];
+
     protected $appends = [
         'display_price',
         'price_excl_vat',
         'price_incl_vat',
         'vat_amount',
+        'variant_image_alt',
     ];
+
+    public function getVariantImageAltAttribute(): ?string
+    {
+        $featured = $this->mediaFiles->first(fn ($file) => $file->pivot->media_for === 'featured');
+        return $featured?->alt_text;
+    }
 
     protected function price(): Attribute
     {

@@ -28,10 +28,31 @@
                             <SemiRichTextEditor v-model="npro.quillContent"/>
                             <div class="mt-3">
                                 <v-card flat class="d-flex align-center border justify-center" height="90" outlined @click="triggerFileInput">
-                                    <v-icon v-if="!featuredImage" size="40" color="grey darken-1">mdi-image-area</v-icon>
+                                    <v-icon v-if="!featuredImage && !libraryImagePath" size="40" color="grey darken-1">mdi-image-area</v-icon>
+                                    <v-img v-else-if="libraryImagePath" :src="cdn+libraryImagePath" contain height="100%"></v-img>
                                     <v-img v-else :src="featuredImage" contain height="100%"></v-img>
                                     <v-file-input ref="fileInput" v-model="productImage" accept="image/*" hide-input @change="handleFileUpload" style="display: none"></v-file-input>
                                 </v-card>
+                                <v-text-field
+                                    v-if="productImage"
+                                    v-model="featuredImageAlt"
+                                    label="Image alt text"
+                                    density="compact"
+                                    variant="outlined"
+                                    class="mt-2"
+                                ></v-text-field>
+                                <v-btn
+                                    size="small" variant="tonal" class="mt-2"
+                                    prepend-icon="mdi-image-multiple-outline"
+                                    @click.stop="showLibraryPicker = true"
+                                >
+                                    Choose from Library
+                                </v-btn>
+                                <media-library-picker
+                                    v-model="showLibraryPicker"
+                                    :cdn-base="cdn"
+                                    @select="onFeaturedImageSelected"
+                                />
                             </div>
                         </v-card-text>
                     </v-card>
@@ -169,11 +190,18 @@
                             <v-data-table :items="vitems" :headers="variantHeaders" :key="tableKey" class="elevation-1"
                                           density="compact" items-per-page="50" :hide-default-footer="vitems.length < 49">
                                 <template v-slot:item.variantImage="{ item, index }">
-                                    <v-card class="d-flex align-center justify-center my-1" height="50" width="50" outlined @click="triggerVariantFileInput(index)">
-                                        <v-icon v-if="!item.variantImage" size="50" color="grey darken-1">mdi-image-area</v-icon>
-                                        <v-img v-else :src="item.preview" contain height="100%" max-width="50px"></v-img>
-                                        <input type="file" :ref="'variantImage' + index" accept="image/*" @change="handleVariantFileUpload($event, index)" style="display: none" />
-                                    </v-card>
+                                    <div class="d-flex flex-column align-center my-1">
+                                        <v-card class="d-flex align-center justify-center" height="50" width="50" outlined @click="triggerVariantFileInput(index)">
+                                            <v-icon v-if="!item.variantImage && !item.libraryImagePath" size="50" color="grey darken-1">mdi-image-area</v-icon>
+                                            <v-img v-else-if="item.libraryImagePath" :src="cdn+item.libraryImagePath" contain height="100%" max-width="50px"></v-img>
+                                            <v-img v-else :src="item.preview" contain height="100%" max-width="50px"></v-img>
+                                            <input type="file" :ref="'variantImage' + index" accept="image/*" @change="handleVariantFileUpload($event, index)" style="display: none" />
+                                        </v-card>
+                                        <v-btn
+                                            size="x-small" variant="text" icon="mdi-image-multiple-outline"
+                                            @click="openVariantPicker(index)"
+                                        ></v-btn>
+                                    </div>
                                 </template>
                                 <template v-slot:item.optname="{ item }">
                                     <span class="optvals d-flex flex-wrap">
@@ -192,6 +220,11 @@
                                     <v-text-field width="150px" v-model="item.sku" hide-details density="compact" variant="outlined"></v-text-field>
                                 </template>
                             </v-data-table>
+                            <media-library-picker
+                                v-model="showVariantPicker"
+                                :cdn-base="cdn"
+                                @select="onVariantImageSelected"
+                            />
                         </div>
                     </v-card>
                     <v-card class="mt-4 border-sm">
@@ -282,9 +315,10 @@
 import axios from "axios";
 import {toRaw} from "vue";
 import SemiRichTextEditor from "@/components/SemiRichTextEditor.vue";
+import MediaLibraryPicker from "@/components/MediaLibraryPicker.vue";
 export default{
     name:"ProductsNew",
-    components: {SemiRichTextEditor},
+    components: {SemiRichTextEditor, MediaLibraryPicker},
     data(){
         return{
             selectedOption: "",
@@ -302,6 +336,12 @@ export default{
             tableKey: 0,
             featuredImage:null,
             productImage:null,
+            featuredImageAlt:'',
+            libraryImagePath:null,
+            showLibraryPicker:false,
+            cdn:this.$store.state.cdn,
+            showVariantPicker:false,
+            pickingVariantIndex:null,
             price:0,
             istax:1,
             compareprice:0,
@@ -309,7 +349,7 @@ export default{
             sku:'',
             stockQuantity:0,
             barcode:'',
-            weight:0.500,
+            weight:0.010,
             weightUnit:"kg",
             optionValues: "",
             weight_units:['kg','g'],
@@ -551,8 +591,29 @@ export default{
         triggerFileInput() {
             this.$refs.fileInput.click();
         },
+        onFeaturedImageSelected(mediaFile){
+            this.libraryImagePath = mediaFile.path;
+            this.productImage = null; // a direct-upload selection, if any, is superseded by the library pick
+            this.featuredImageAlt = '';
+        },
+        openVariantPicker(index){
+            this.pickingVariantIndex = index;
+            this.showVariantPicker = true;
+        },
+        onVariantImageSelected(mediaFile){
+            const index = this.pickingVariantIndex;
+            if (index === null || !this.vitems[index]) return;
+
+            this.vitems.splice(index, 1, {
+                ...this.vitems[index],
+                variantImage: null, // a direct-upload selection, if any, is superseded by the library pick
+                libraryImagePath: mediaFile.path,
+            });
+            this.tableKey++;
+        },
         handleFileUpload() {
             if (this.productImage) {
+                this.libraryImagePath = null; // a fresh upload supersedes any library pick
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     this.featuredImage = e.target.result;
@@ -577,7 +638,8 @@ export default{
                 this.vitems.splice(index, 1, {
                     ...this.vitems[index],
                     variantImage: file,
-                    preview: previewURL
+                    preview: previewURL,
+                    libraryImagePath: null, // a fresh upload supersedes any library pick
                 });
                 this.tableKey++;
             }
@@ -622,14 +684,23 @@ export default{
                     optname: [],
                 }];
             } else {
-                svar = this.vitems;
+                // Each row's image resolved independently: fresh
+                // upload wins, then a library pick — matching the
+                // priority pattern used everywhere else this session.
+                svar = this.vitems.map((item) => ({
+                    ...item,
+                    variantImage: item.variantImage instanceof File
+                        ? item.variantImage
+                        : (item.libraryImagePath || null),
+                }));
             }
             const nprod = {
                 'title':this.npro.prodname,
                 'publish_status':this.npro.publish_status,
                 'short_description':this.npro.short_description,
                 'body_html':this.npro.quillContent,
-                'featured_image':this.productImage,
+                'featured_image': this.productImage instanceof File ? this.productImage : (this.libraryImagePath || null),
+                'featured_image_alt': this.productImage instanceof File ? this.featuredImageAlt : undefined,
                 'product_status':this.npro.product_status,
                 'product_type_id':this.npro.product_type_id,
                 'brand_id':this.npro.brand_id,
