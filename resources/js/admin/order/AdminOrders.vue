@@ -62,9 +62,7 @@
                             @update:options="loadItems"
                             loading-text="Loading Orders">
                             <template v-slot:item="{item}">
-                                <tr class="text-no-wrap" :title="item.deleted_at !== null ? 'archived' :item.order_status"
-                                    :class="item.deleted_at !== null ? 'bg-red-lighten-5 archived' : item.order_status"
-                                >
+                                <tr class="text-no-wrap" :title="rowTitle(item)" :class="rowClass(item)">
                                     <td>
                                         <v-checkbox density="compact" hide-details/>
                                     </td>
@@ -223,6 +221,20 @@ export default {
     methods:{
         dayjs,
         mergeProps,
+        rowTitle(item) {
+            if (item.deleted_at !== null) return 'archived';
+            if (item.payment_status === 'refunded') return 'refunded';
+            if (item.payment_status === 'partially_paid') return 'partially_paid';
+            if (item.payment_status === 'partially_refunded') return 'partially_refunded';
+            return item.order_status;
+        },
+        rowClass(item) {
+            if (item.deleted_at !== null) return 'bg-red-lighten-5 archived';
+            if (item.payment_status === 'refunded') return 'bg-red-lighten-5 refunded-cancelled';
+            if (item.payment_status === 'partially_paid') return 'bg-red-lighten-5 partially-paid';
+            if (item.payment_status === 'partially_refunded') return 'bg-red-lighten-5 partially-refunded';
+            return item.order_status;
+        },
         loadItems(options) {
             this.page = options.page;
             this.itemsPerPage = options.itemsPerPage;
@@ -295,9 +307,10 @@ tr.processing{
 tr.pending{
     background-color: rgba(255,255,0,0.05);
 }
-tr.archived{
+tr.archived,tr.refunded-cancelled{
     text-decoration: line-through;
 }
+
 .v-data-table__td.v-data-table-column--align-start.v-data-table__th {
     background: #f1f1f1;
     color: #000;
