@@ -555,10 +555,7 @@ export default {
                 actions.push({
                     label: 'View Tracking',
                     type: 'direct',
-                    handler: () => window.open(
-                        `https://www.royalmail.com/track-your-item#/tracking-results/${this.orderDetail.tracking_number}`,
-                        '_blank'
-                    ),
+                    handler: () => window.open(this.trackingUrl(), '_blank'),
                     variant: 'outlined'
                 });
                 actions.push({
@@ -885,7 +882,19 @@ export default {
                     window.Toast.error(err.message);
                 });
 
-        }
+        },
+        trackingUrl() {
+            const number = this.orderDetail.tracking_number;
+            const courier = (this.orderDetail.shipment_name || '').toLowerCase();
+
+            if (courier.includes('dpd')) {
+                const postcode = encodeURIComponent(this.orderDetail.shipping_postcode || '');
+                return `https://track.dpd.co.uk/?reference=${number}&postcode=${postcode}`;
+            }
+            // Royal Mail — confirmed working, unchanged from the existing code.
+            return `https://www.royalmail.com/track-your-item#/tracking-results/${number}`;
+        },
+
     },
 }
 
