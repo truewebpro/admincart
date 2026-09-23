@@ -356,6 +356,7 @@
                                 v-bind="props"
                                 :title="item.raw.name"
                                 :subtitle="item.raw.suffix"
+                                :prepend-avatar="item.raw.logo"
                             />
                         </template>
                     </v-autocomplete>
@@ -581,11 +582,21 @@ export default {
                 items.push({ type: 'subheader', title: carrier });
                 groups[carrier].forEach((opt) => {
                     const suffix = this.extractServiceSuffix(opt.shipping_option_code);
+                    const courier = (opt.name || '').toLowerCase();
+                    let logo;
+                    if(courier.includes('dpd')){
+                        logo = this.cdn+'shipping/dpd.png'
+                    } else if (courier.includes('royal')){
+                        logo =  this.cdn+'shipping/royalmail.png'
+                    } else {
+                        logo = this.cdn+'shipping/royalmail.png'
+                    }
                     items.push({
                         title: opt.name,
                         value: opt.shipping_option_code,
                         name: opt.name,       // flat, no extra nesting
                         carrier: opt.carrier,
+                        logo:logo,
                         suffix,
                     });
                 });
