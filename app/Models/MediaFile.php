@@ -19,4 +19,10 @@ class MediaFile extends Model
         'height',
         'file_size',
     ];
+
+    public function attachments()
+    {
+        return $this->hasMany(MediaFileAttachment::class);
+    }
+
 }

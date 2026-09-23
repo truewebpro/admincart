@@ -14,7 +14,7 @@
                 <v-card>
                     <div class="pa-2">
                         <v-row dense>
-                            <v-col cols="12" md="9">
+                            <v-col cols="12" md="6">
                                 <v-text-field
                                     v-model="search" label="Search filename" density="compact" variant="outlined"
                                     hide-details clearable
@@ -25,6 +25,14 @@
                                 <v-select
                                     v-model="fileType"
                                     :items="[{title: 'All types', value: null}, {title: 'Images', value: 'image'}, {title: 'Files', value: 'generic'}]"
+                                    density="compact" variant="outlined" hide-details
+                                    @update:model-value="fetchItems"
+                                />
+                            </v-col>
+                            <v-col cols="12" md="3">
+                                <v-select
+                                    v-model="referenceFilter"
+                                    :items="[{title: 'All files', value: null}, {title: 'Used', value: 'used'}, {title: 'Not used', value: 'unused'}]"
                                     density="compact" variant="outlined" hide-details
                                     @update:model-value="fetchItems"
                                 />
@@ -68,6 +76,25 @@
                             <v-chip size="small" variant="tonal" :color="item.thirdparty_id || item.thirdparty_url ? 'blue' : 'grey'">
                                 {{ item.thirdparty_id || item.thirdparty_url ? 'Shopify' : 'Manual' }}
                             </v-chip>
+                        </template>
+                        <template #item.references="{item}">
+                            <v-menu v-if="item.attachments_count > 0" open-on-hover location="bottom">
+                                <template #activator="{ props }">
+                                    <v-chip v-bind="props" size="small" variant="tonal" color="blue">
+                                        {{ item.attachments_count }} {{ item.attachments_count === 1 ? 'reference' : 'references' }}
+                                    </v-chip>
+                                </template>
+                                <v-card min-width="160">
+                                    <v-list density="compact">
+                                        <v-list-item v-for="(ref, i) in item.reference_breakdown" :key="i">
+                                            <v-list-item-title class="text-body-2">
+                                                {{ ref.count }} {{ ref.count === 1 ? ref.type : ref.type + 's' }}
+                                            </v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-card>
+                            </v-menu>
+                            <span v-else class="text-body-2 text-medium-emphasis">Not used</span>
                         </template>
                         <template #item.created_at="{item}">
                             {{ dayjs(item.created_at).format('D MMM YYYY') }}
@@ -164,6 +191,7 @@ export default {
             loading: false,
             search: '',
             fileType: null,
+            referenceFilter: null,
             perPage: 30,
             currentPage: 1,
             debounceTimer: null,
@@ -191,6 +219,7 @@ export default {
                 { title: 'Filename', key: 'filename', sortable: false },
                 { title: 'Alt Text', key: 'alt_text', sortable: false },
                 { title: 'Source', key: 'source', sortable: false },
+                { title: 'References', key: 'references', sortable: false },
                 { title: 'Date Added', key: 'created_at', sortable: false },
                 { title: '', key: 'actions', sortable: false, align: 'end' },
             ],
@@ -214,6 +243,7 @@ export default {
                 params: {
                     search: this.search || undefined,
                     file_type: this.fileType || undefined,
+                    reference_filter: this.referenceFilter || undefined,
                     per_page: this.perPage,
                     page: this.currentPage,
                 },

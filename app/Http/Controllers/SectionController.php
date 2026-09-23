@@ -37,6 +37,8 @@ class SectionController extends Controller
             'section_status' => 'show',
         ]);
 
+        MediaLibraryService::syncSectionImageAttachments(session('shop_id'), $section);
+
         return response()->json([
             'success' => true,
             'message' => 'Section added successfully',
@@ -62,6 +64,8 @@ class SectionController extends Controller
             'section_status' => 'show',
         ]);
 
+        MediaLibraryService::syncSectionImageAttachments(session('shop_id'), $section);
+
         return response()->json([
             'success' => true,
             'message' => 'Section added successfully',
@@ -85,6 +89,8 @@ class SectionController extends Controller
                     ->max('sort_order') + 1,
             'section_status' => 'show',
         ]);
+
+        MediaLibraryService::syncSectionImageAttachments(session('shop_id'), $section);
 
         return response()->json([
             'success' => true,
@@ -111,6 +117,8 @@ class SectionController extends Controller
             'section_status' => 'show',
         ]);
 
+        MediaLibraryService::syncSectionImageAttachments(session('shop_id'), $section);
+
         return response()->json([
             'success' => true,
             'message' => 'Section added successfully',
@@ -135,6 +143,8 @@ class SectionController extends Controller
                     ->max('sort_order') + 1,
             'section_status' => 'show',
         ]);
+
+        MediaLibraryService::syncSectionImageAttachments(session('shop_id'), $section);
 
         return response()->json([
             'success' => true,
@@ -161,6 +171,8 @@ class SectionController extends Controller
             'section_status' => 'show',
         ]);
 
+        MediaLibraryService::syncSectionImageAttachments(session('shop_id'), $section);
+
         return response()->json([
             'success' => true,
             'message' => 'Section added successfully',
@@ -185,6 +197,7 @@ class SectionController extends Controller
                     ->max('sort_order') + 1,
             'section_status' => 'show',
         ]);
+        MediaLibraryService::syncSectionImageAttachments(session('shop_id'), $section);
 
         return response()->json([
             'success' => true,
@@ -206,6 +219,9 @@ class SectionController extends Controller
         $section->sort_order     = $validated['sort_order'] ?? $section->sort_order;
         $section->section_status = $validated['section_status'] ?? $section->section_status;
         $section->save();
+
+        // images are actually in this section now.
+        MediaLibraryService::syncSectionImageAttachments(session('shop_id'), $section);
 
         // Clear related cache
         app(SectionObserver::class)

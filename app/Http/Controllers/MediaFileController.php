@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\MediaFile;
+use App\Models\MediaFileAttachment;
 use App\Models\Shop;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class MediaFileController extends Controller
@@ -52,7 +54,8 @@ class MediaFileController extends Controller
     {
         $shopId = session('shop_id');
 
-        $query = MediaFile::where('shop_id', $shopId);
+        $query = MediaFile::where('shop_id', $shopId)
+            ->withCount('attachments');
 
         if ($search = $request->input('search')) {
             $query->where('filename', 'like', "%{$search}%");
@@ -62,8 +65,51 @@ class MediaFileController extends Controller
             $query->where('file_type', $type);
         }
 
+        // NEW — reference filter, applied at the QUERY level (has() /
+        // doesntHave() translate to a real SQL EXISTS/NOT EXISTS clause),
+        // so pagination is correct rather than filtering an already-paginated page.
+        $refFilter = $request->input('reference_filter');
+        if ($refFilter === 'used') {
+            $query->has('attachments');
+        } elseif ($refFilter === 'unused') {
+            $query->doesntHave('attachments');
+        }
+
         $perPage = min((int) $request->input('per_page', 30), 100);
         $page = $query->orderByDesc('created_at')->paginate($perPage);
+
+        // Breakdown-by-type query, only for files that actually have
+        // attachments — skips the (likely many) zero-count files.
+        $mediaFileIds = $page->getCollection()->where('attachments_count', '>', 0)->pluck('id');
+
+        $breakdowns = $mediaFileIds->isEmpty()
+            ? collect()
+            : MediaFileAttachment::whereIn('media_file_id', $mediaFileIds)
+                ->select('media_file_id', 'attachable_type', DB::raw('count(*) as cnt'))
+                ->groupBy('media_file_id', 'attachable_type')
+                ->get()
+                ->groupBy('media_file_id');
+
+        $typeLabels = [
+            \App\Models\Product::class => 'product',
+            \App\Models\Variant::class => 'variant',
+            \App\Models\Blog::class    => 'blog',
+            \App\Models\Brand::class   => 'brand',
+            \App\Models\Cat::class     => 'collection',
+            \App\Models\Page::class    => 'page',
+            \App\Models\Section::class => 'section',
+        ];
+
+        $page->getCollection()->transform(function ($item) use ($breakdowns, $typeLabels) {
+            $rows = $breakdowns->get($item->id, collect());
+            $item->reference_breakdown = $rows->map(fn ($row) => [
+                'type'  => $typeLabels[$row->attachable_type] ?? class_basename($row->attachable_type),
+                'count' => $row->cnt,
+            ])->values();
+            // attachments_count already provided by withCount() above —
+            // no need to sum it manually anymore.
+            return $item;
+        });
 
         return response()->json(['success' => true, 'items' => $page]);
     }

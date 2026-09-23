@@ -211,5 +211,46 @@ class MediaLibraryService
         }
     }
 
+    public static function syncSectionImageAttachments(int $shopId, $section): void
+    {
+        $paths = [];
+        self::collectUrlValues($section->section_json, $paths);
+        $paths = array_values(array_unique(array_filter($paths)));
 
+        $sectionType = get_class($section);
+        $sectionId = $section->getKey();
+
+        if (empty($paths)) {
+            // No images left in this section at all — remove any
+            // attachments that previously existed.
+            MediaFileAttachment::where('attachable_type', $sectionType)
+                ->where('attachable_id', $sectionId)
+                ->delete();
+            return;
+        }
+
+        $currentMediaFileIds = MediaFile::where('shop_id', $shopId)
+            ->whereIn('path', $paths)
+            ->pluck('id');
+
+        // Remove attachments for media files no longer referenced by this
+        // section (e.g. an image was replaced or removed on last save).
+        MediaFileAttachment::where('attachable_type', $sectionType)
+            ->where('attachable_id', $sectionId)
+            ->whereNotIn('media_file_id', $currentMediaFileIds)
+            ->delete();
+
+        // Create attachments for any currently-referenced file that
+        // doesn't already have one — firstOrCreate avoids duplicates on
+        // repeated saves of an unchanged image.
+        foreach ($currentMediaFileIds as $mediaFileId) {
+            MediaFileAttachment::firstOrCreate([
+                'media_file_id'   => $mediaFileId,
+                'attachable_type' => $sectionType,
+                'attachable_id'   => $sectionId,
+            ], [
+                'media_for' => 'section',
+            ]);
+        }
+    }
 }
