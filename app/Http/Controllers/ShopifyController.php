@@ -14,6 +14,7 @@ use App\Models\Sorder;
 use App\Services\ShopifyPageService;
 use App\Services\ShopifyService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -25,29 +26,32 @@ class ShopifyController extends Controller
     public function getShopifyShop(Request $request)
     {
         $shopId = session('shop_id');
-        $shopifyDetail = ShopifyShop::where('shop_id', $shopId)
-            ->first();
+        $shopifyDetail = ShopifyShop::where('shop_id', $shopId)->first();
 
         $counts = null;
         $pagesCount = null;
 
         if ($shopifyDetail) {
-            $service = new ShopifyService($shopifyDetail);
-            $counts = $service->getImportCounts();
-            // pages now lives in its own service — call it separately and
-            // merge into the response, same reasoning as why it was pulled
-            // out of ShopifyService in the first place: keeps that class
-            // from needing to know about pages at all.
-            try {
-                $pageService = new ShopifyPageService($shopifyDetail);
-                $pagesCount = $pageService->pagesCount();
-            } catch (MissingShopifyScopeException $e) {
-                $pagesCount = null; // matches how getImportCounts() itself
-                // reports unavailable resources — null,
-                // not a thrown error, so this endpoint
-                // never fails just because one scope's missing
-            }
-
+            $counts = Cache::remember(
+                "shopify_import_counts_{$shopId}",
+                now()->addMinutes(15),
+                function () use ($shopifyDetail) {
+                    $service = new ShopifyService($shopifyDetail);
+                    return $service->getImportCounts();
+                }
+            );
+            $pagesCount = Cache::remember(
+                "shopify_pages_count_{$shopId}",
+                now()->addMinutes(15),
+                function () use ($shopifyDetail) {
+                    try {
+                        $pageService = new ShopifyPageService($shopifyDetail);
+                        return $pageService->pagesCount();
+                    } catch (MissingShopifyScopeException $e) {
+                        return null;
+                    }
+                }
+            );
         }
         $blogs_count = Blog::where('shop_id', $shopId)->count();
         $ccats_count = Cat::where('shop_id', $shopId)->where('cat_type','=','manual')->count();

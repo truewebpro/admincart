@@ -361,13 +361,25 @@ class ShopifyService
     public function blogsCount(): int
     {
         $this->ensureScope('blogs');
-        return count($this->getBlogs());
+        return $this->fetchCount('blogs/count.json'); // was: count($this->getBlogs())
     }
 
     public function articlesCount(): int
     {
         $this->ensureScope('articles');
-        return count($this->getArticles());
+        $blogs = $this->getBlogs();
+        $total = 0;
+
+        foreach ($blogs as $index => $blog) {
+            $total += $this->fetchCount("blogs/{$blog['id']}/articles/count.json");
+
+            if ($index < count($blogs) - 1) {
+                usleep(550000);
+            }
+        }
+
+        return $total;
+        
     }
 
     /**
