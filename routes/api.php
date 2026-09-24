@@ -49,27 +49,31 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () {
     Route::get('/shop',[ShopController::class,'shopSetting']);
+    // SendCloud Webhooks
     Route::post('/sendcloud/webhook',[SendcloudWebhookController::class,'handleSendCloudWebHookEvents']);
+    // Payment Providers Webhooks
     Route::post('/worldpay/webhook',[WorldpayWebhookController::class,'handleWorldPayWebhook']);
     Route::get('/viva/gettoken',[VivaWebhookController::class,'getConfigToken']);
     Route::get('/viva/webhook/verify', [VivaWebhookController::class, 'verifyWebhook']);
     Route::post('/viva/webhook/verify',[VivaWebhookController::class,'handleWebhook']);
+
     Route::get('/homemetas', [ShopController::class, 'homeMetas']);
     Route::get('/shop/review/summary', [ShopController::class, 'shopReviewSummary']);
     Route::get('/shop/setting', [ShopController::class, 'getShopSetting']);
+    // HomePage Routes
     Route::get('/herosections', [HomepageController::class, 'homeHeroSections']);
     Route::get('/home-promos', [HomepageController::class, 'homePromos']);
     Route::get('/lazysections', [HomepageController::class, 'homeLazySections']);
     Route::get('/homesections', [HomepageController::class, 'homeSections']);
+    // Brands Routes
     Route::get('/brands', [BrandController::class, 'allBrands']);
-    Route::get('/brand/{brand_slug}', [BrandController::class, 'prosByBrand']);
     Route::get('/brandbyslug/{brand_slug}', [BrandController::class, 'getBrandBySlug']);
     Route::get('/brandsections/{brand_slug}', [BrandController::class, 'getBrandSections']);
-    Route::get('/cats', [CatController::class, 'allCats']);
+    // Collections Routes
     Route::get('/all-cats', [CatController::class, 'getAllCats']);
-    Route::get('/cat/{slug}', [CatController::class, 'getCategory']);
     Route::get('/catbyslug/{slug}', [CatController::class, 'getCatBySlug']);
     Route::get('/catsections/{slug}', [CatController::class, 'getCatSections']);
+
     Route::get('/pro/{slug}', [ProductController::class, 'getProduct']);
     Route::get('/product/{slug}', [ProductController::class, 'getProductData']);
     Route::get('/product-reviews/{slug}', [ReviewController::class, 'getProductReviews']);
@@ -83,12 +87,16 @@ Route::middleware('resolve.shop')->prefix('shop/{shopname}')->group(function () 
     Route::get('/html/sitemap',[ShopController::class,'htmlSitemap']);
     Route::get('/smethods',[ShopController::class,'shippingOptions']);
     Route::get('/pmethods',[ShopController::class,'paymentOptions']);
-    Route::get('/blogs/all',[BlogController::class,'allBlogs']);
+    // Blogs Routes
     Route::get('/all-blogs',[BlogController::class,'getAllBlogs']);
     Route::get('/blogs/{blog_slug}',[BlogController::class,'getBlogBySlug']);
+    // Blog Comments Routes
     Route::get('/blogs/comments/{blogId}', [CommentController::class, 'getBlogComments']);
+    // Policies Routes
     Route::get('/policies/{policy_slug}',[PolicyController::class,'getPolicyBySlug']);
+
     Route::get('/homemenu',[MenuController::class,'getHomeMenu']);
+    // Pages Routes
     Route::get('/page/{page_slug}',[PageController::class,'getPageBySlug']);
     Route::get('/cartsections', [ShopController::class, 'cartSections']);
     Route::get('/announcements', [ShopController::class, 'getAnnouncements']);

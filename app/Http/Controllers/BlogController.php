@@ -23,22 +23,6 @@ use Intervention\Image\Facades\Image;
 
 class BlogController extends Controller
 {
-    public function allBlogs(Request $request,$shopname)
-    {
-        $shopId = $request->shop_id;
-        $blogs = Cache::remember(
-            CacheKeys::blogs($shopId),
-            now()->addHours(12),
-            function () use ($shopId) {
-                return Blog::where('shop_id','=',$shopId)->orderBy('created_at','DESC')->get();
-            }
-        );
-        return response()->json([
-            'status' => true,
-            'blogs' => $blogs,
-        ]);
-    }
-
     public function getAllBlogs(Request $request,$shopname)
     {
         $shopId = $request->shop_id;

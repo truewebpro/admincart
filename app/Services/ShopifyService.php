@@ -333,6 +333,8 @@ class ShopifyService
                 'available' => true,
                 'reason'    => null,
             ];
+
+            usleep(550000);
         }
 
         return $counts;

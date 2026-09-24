@@ -26,34 +26,6 @@ use Intervention\Image\Facades\Image;
 class CatController extends Controller
 {
     use EnrichesWithLoyaltyPoints;
-    public function allCats(Request $request)
-    {
-        $shopId = $request->shop_id;
-        $shopcats = Cache::remember(
-            CacheKeys::cats($shopId),
-            now()->addHours(12),
-            function () use ($shopId) {
-                $acats = Cat::where('shop_id','=',$shopId)
-                    ->where('cat_status','=','Active')
-                    ->get();
-                foreach ($acats as $shopcat){
-                    $productId = Catpro::where('cat_id', $shopcat->cat_id)->value('product_id');
-                    $shopcat['proimage'] = $productId
-                        ? Product::where(
-                            'product_id',
-                            $productId
-                        )->value('featured_image')
-                        : null;
-                }
-                return $acats;
-            }
-        );
-            return response()->json([
-                'status' => true,
-                'cats' => $shopcats,
-            ],200);
-
-    }
 
     public function getAllCats(Request $request,$shopname)
     {
@@ -211,67 +183,6 @@ class CatController extends Controller
             'sections' => $sectionsWithExtras,
             'slug' => $slug,
         ]);
-    }
-
-    public function getCategory(Request $request,$shopname,$slug)
-    {
-        $shopId = $request->shop_id;
-        $cat = Cat::with('rcats','csections','faqs')
-            ->where('shop_id','=',$shopId)
-            ->where('cat_slug','=',$slug)
-            ->first();
-        if($cat != null){
-            $catId = $cat->cat_id;
-            $alpros = Product::with(['variants.astock', 'brand', 'ptype'])
-                ->withCount('reviews')->withAvg('reviews','rating')
-                ->whereIn('product_id', function ($query) use ($catId) {
-                    $query->select('product_id')
-                        ->from('catpros')
-                        ->where('cat_id', $catId);
-                })->inRandomOrder()
-                ->get();
-            $cat['catpros'] = $alpros;
-            $sectionsWithExtras = [];
-            foreach ($cat->csections as $section){
-                $sectionArray = $section->toArray();
-                $sectionArray['section_json'] = MediaLibraryService::resolveImageAlts(
-                    $sectionArray['section_json'],
-                    $shopId
-                );
-                if ($sectionArray['section_json']['stype_slug'] === 'featured_products') {
-                    $catId = $sectionArray['section_json']['stype_json']['cat_id'];
-                    $catSlug = Cat::where('cat_id','=',$catId)->first()->cat_slug;
-                    $products = Product::with(['variants.astock', 'brand', 'ptype'])
-                        ->where('shop_id','=',$shopId)
-                        ->withCount('reviews')->withAvg('reviews','rating')
-                        ->whereIn('product_id', function ($query) use ($catId) {
-                            $query->select('product_id')
-                                ->from('catpros')
-                                ->where('cat_id', $catId);
-                        })
-                        ->limit($sectionArray['section_json']['stype_json']['plimit'] ?? 12)
-                        ->get();
-
-                    $sectionArray['section_json']['stype_json']['cat_slug'] = $catSlug;
-                    $sectionArray['section_json']['stype_json']['catpros'] = $products;
-                }
-                $sectionsWithExtras[] = $sectionArray;
-            }
-            $cat->asections = $sectionsWithExtras;
-            return response()->json([
-                'status' => true,
-                'type' => "Category",
-                'slug'=> $slug,
-                'cat' => $cat,
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'type' => null,
-                'slug'=> $slug,
-                'cat' => null,
-            ]);
-        }
     }
 
     //Admin Routes

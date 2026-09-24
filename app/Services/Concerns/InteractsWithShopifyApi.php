@@ -89,22 +89,37 @@ trait InteractsWithShopifyApi
      * Shared helper for the *_count.json endpoints — all of them return
      * { "count": N } in the same shape.
      */
-    protected function fetchCount(string $endpoint): int
+    protected function fetchCount(string $endpoint, int $maxRetries = 3): int
     {
         $token = $this->getAccessToken();
+        $attempt = 0;
 
-        $response = Http::withHeaders([
-            'X-Shopify-Access-Token' => $token,
-        ])->get("https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/{$endpoint}");
+        while (true) {
+            $attempt++;
 
-        if ($response->failed()) {
-            throw new RuntimeException(
-                "Shopify count request failed ({$endpoint}): " . $response->body()
-            );
+            $response = Http::withHeaders([
+                'X-Shopify-Access-Token' => $token,
+            ])->get("https://{$this->shop->shop_domain}/admin/api/{$this->apiVersion}/{$endpoint}");
+
+            if ($response->status() === 429 && $attempt <= $maxRetries) {
+                // Shopify tells us exactly how long to wait, via this
+                // header, when it's present — falls back to simple linear
+                // backoff (2s, 4s, 6s) if it isn't.
+                $retryAfter = (float) ($response->header('Retry-After') ?: $attempt * 2);
+                sleep((int) ceil($retryAfter));
+                continue;
+            }
+
+            if ($response->failed()) {
+                throw new RuntimeException(
+                    "Shopify count request failed ({$endpoint}): " . $response->body()
+                );
+            }
+
+            return $response->json('count', 0);
         }
-
-        return $response->json('count', 0);
     }
+
 
     protected function graphqlStringLiteral(string $value): string
     {

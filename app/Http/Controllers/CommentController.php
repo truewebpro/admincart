@@ -18,7 +18,6 @@ class CommentController extends Controller
             ->latest()
             ->get();
 
-
         return response()->json($comments);
     }
 }
