@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\EnrichesWithLoyaltyPoints;
+use App\Models\AcartItem;
 use App\Models\Brand;
 use App\Models\Cat;
 use App\Models\Feature;
@@ -621,8 +622,12 @@ class ProductController extends Controller
                 ->where('shop_id', $shopId)
                 ->whereNotIn('variant_id', $submittedVariantIds)
                 ->pluck('variant_id');
-            Stock::whereIn('variant_id', $deletedVariants)->delete();
-            Variant::whereIn('variant_id', $deletedVariants)->delete();
+            if ($deletedVariants->isNotEmpty()) {
+                AcartItem::whereIn('variant_id', $deletedVariants)->delete();
+
+                Stock::whereIn('variant_id', $deletedVariants)->delete();
+                Variant::whereIn('variant_id', $deletedVariants)->delete();
+            }
 
             foreach ($request->vitems as $index => $nvar) {
                 $variantImageMeta = null;
