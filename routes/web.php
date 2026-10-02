@@ -485,6 +485,12 @@ Route::middleware(['auth','resolve.admin.shop'])->group(function(){
     });
 });
 
+Route::get('/debug-input-vars', function () {
+    return response()->json([
+        'max_input_vars' => ini_get('max_input_vars'),
+    ]);
+});
+
 Route::middleware(['auth','resolve.admin.shop'])
     ->get('/{any}', function () {
         return view('sadmin');
